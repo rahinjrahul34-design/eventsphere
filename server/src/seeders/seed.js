@@ -1,0 +1,966 @@
+/* eslint-disable no-console */
+const mongoose = require('mongoose');
+const { connectDB, disconnectDB } = require('../config/db');
+const { ticketCode, certificateId } = require('../utils/codes');
+
+const User = require('../models/User');
+const Category = require('../models/Category');
+const Event = require('../models/Event');
+const Registration = require('../models/Registration');
+const Ticket = require('../models/Ticket');
+const Payment = require('../models/Payment');
+const Speaker = require('../models/Speaker');
+const Session = require('../models/Session');
+const Volunteer = require('../models/Volunteer');
+const Sponsor = require('../models/Sponsor');
+const Notification = require('../models/Notification');
+const Message = require('../models/Message');
+const Connection = require('../models/Connection');
+const Certificate = require('../models/Certificate');
+const Feedback = require('../models/Feedback');
+const Waitlist = require('../models/Waitlist');
+const Report = require('../models/Report');
+const AuditLog = require('../models/AuditLog');
+const Announcement = require('../models/Announcement');
+const Poll = require('../models/Poll');
+const Question = require('../models/Question');
+const Favorite = require('../models/Favorite');
+const { PointActivity, UserBadge } = require('../models/Gamification');
+
+const PASSWORD = 'Event@123';
+const img = (id, w = 1400) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=70`;
+const avatar = (id) => `https://i.pravatar.cc/240?img=${id}`;
+
+const COORDS = {
+  Nashik: [73.7898, 19.9975],
+  Pune: [73.8567, 18.5204],
+  Mumbai: [72.8777, 19.076],
+  Bengaluru: [77.5946, 12.9716],
+  Delhi: [77.209, 28.6139],
+  Hyderabad: [78.4867, 17.385],
+};
+
+const day = (n, h = 9, m = 0) => {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  d.setHours(h, m, 0, 0);
+  return d;
+};
+const at = (base, dayOffset, h, min = 0, durMin = 60) => {
+  const s = new Date(base);
+  s.setDate(s.getDate() + dayOffset);
+  s.setHours(h, min, 0, 0);
+  const e = new Date(s.getTime() + durMin * 60000);
+  return [s, e];
+};
+
+const POS = ['great', 'amazing', 'excellent', 'loved', 'awesome', 'fantastic', 'wonderful', 'inspiring', 'helpful', 'best'];
+const NEG = ['bad', 'poor', 'disappointed', 'late', 'chaos', 'awful'];
+function sentiment(rating, comment = '') {
+  const c = comment.toLowerCase();
+  const score = POS.reduce((a, w) => a + (c.includes(w) ? 1 : 0), 0) - NEG.reduce((a, w) => a + (c.includes(w) ? 1 : 0), 0);
+  if (rating >= 4 && score >= 0) return 'positive';
+  if (rating <= 2 || score < 0) return 'negative';
+  return 'neutral';
+}
+
+const NAMES = [
+  'Vivaan Kapoor', 'Aditya Shah', 'Sai Reddy', 'Arjun Nair', 'Karthik Rao', 'Rohan Mehta',
+  'Ishan Gupta', 'Dev Patel', 'Yash Joshi', 'Diya Sharma', 'Saanvi Kulkarni', 'Ishita Bose',
+  'Kavya Reddy', 'Riya Patel', 'Tara Menon', 'Anika Rao', 'Sneha Desai', 'Farhan Ali',
+  'Kabir Singh', 'Manav Gupta', 'Nikhil Verma', 'Omkar Shinde', 'Pranav Joshi', 'Rahul Khanna',
+  'Sameer Sheikh', 'Tanmay Bhat', 'Varun Gokhale', 'Harsh Agarwal', 'Gauri Pandit', 'Simran Kaur',
+];
+const INTEREST_POOL = ['AI/ML', 'Web Development', 'Cyber Security', 'Business', 'Startups', 'Sports', 'Cultural', 'Music', 'Networking', 'Cloud', 'Design', 'Data Science'];
+const SKILL_POOL = ['React', 'Node.js', 'MERN', 'Python', 'TensorFlow', 'Docker', 'Kubernetes', 'Figma', 'Flutter', 'SQL', 'AWS', 'Java', 'Go', 'Next.js'];
+const GOALS = ['collaboration', 'internship', 'job', 'co-founder', 'mentorship', 'friends'];
+const CITIES = ['Nashik', 'Pune', 'Mumbai', 'Bengaluru', 'Hyderabad', 'Delhi'];
+
+const pick = (arr, i) => arr[i % arr.length];
+const rand = (seed) => {
+  const x = Math.sin(seed * 99.13) * 10000;
+  return x - Math.floor(x);
+};
+
+async function runSeed({ force = false, silent = false } = {}) {
+  const log = silent ? () => {} : console.log;
+  const existing = await User.countDocuments();
+  if (existing > 0 && !force) {
+    log('↷ Seed skipped (data already present). Use npm run seed to reset.');
+    return;
+  }
+
+  log('🌱 Seeding EventSphere demo database…');
+  await Promise.all([
+    User.deleteMany({}), Category.deleteMany({}), Event.deleteMany({}), Registration.deleteMany({}),
+    Ticket.deleteMany({}), Payment.deleteMany({}), Speaker.deleteMany({}), Session.deleteMany({}),
+    Volunteer.deleteMany({}), Sponsor.deleteMany({}), Notification.deleteMany({}), Message.deleteMany({}),
+    Connection.deleteMany({}), Certificate.deleteMany({}), Feedback.deleteMany({}), Waitlist.deleteMany({}),
+    Report.deleteMany({}), AuditLog.deleteMany({}), Announcement.deleteMany({}), Poll.deleteMany({}),
+    Question.deleteMany({}), Favorite.deleteMany({}), PointActivity.deleteMany({}), UserBadge.deleteMany({}),
+  ]);
+
+  // ─────────────── Categories ───────────────
+  const categoryData = [
+    ['Hackathon', 'Code2', '#7c3aed', 'Build, break and ship in a race against time'],
+    ['Workshop', 'Wrench', '#0891b2', 'Hands-on, instructor-led deep dives'],
+    ['Conference', 'Mic2', '#4f46e5', 'Multi-track talks, keynotes and expos'],
+    ['Cultural', 'Palmtree', '#db2777', 'Music, dance, art and celebration'],
+    ['Sports', 'Trophy', '#16a34a', 'Tournaments and athletic championships'],
+    ['Networking', 'Users', '#d97706', 'Meet peers, mentors and founders'],
+    ['Seminar', 'Presentation', '#0d9488', 'Research talks and knowledge sessions'],
+    ['Corporate', 'Briefcase', '#334155', 'Leadership, L&D and company events'],
+    ['Meetup', 'Coffee', '#ea580c', 'Casual community gatherings'],
+    ['Tech Talk', 'Cpu', '#2563eb', 'Focused technology sessions'],
+  ];
+  const catMap = {};
+  for (const [name, icon, color, description] of categoryData) {
+    const slug = name.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '');
+    const c = await Category.create({ name, slug, icon, color, description });
+    catMap[slug] = c;
+  }
+
+  // ─────────────── Users ───────────────
+  // Plain password — the User model pre-save hook performs the bcrypt hashing.
+  const mkUser = (over) => ({ password: PASSWORD, isActive: true, points: 0, ...over });
+
+  const admin = await User.create(mkUser({
+    name: 'Aanya Administrator', email: 'admin@eventsphere.demo', role: 'admin',
+    title: 'Platform Administrator', company: 'EventSphere', location: 'Mumbai',
+    bio: 'Keeps EventSphere safe, fair and running smoothly.', avatar: avatar(47),
+    interests: ['Business'], skills: ['Operations'], onboardingCompleted: true,
+  }));
+  const organizer = await User.create(mkUser({
+    name: 'Raj Malhotra', email: 'organizer@eventsphere.demo', role: 'organizer',
+    organizerStatus: 'approved', title: 'Founder & Event Director', company: 'Sphere Events',
+    location: 'Nashik', website: 'https://sphereevents.demo',
+    bio: '10+ years organizing tech conferences, hackathons and college fests across Maharashtra.',
+    avatar: avatar(12), interests: ['Startups', 'Business', 'Networking'], skills: ['Event Ops', 'Sponsorship'],
+    onboardingCompleted: true,
+    social: { linkedin: 'https://linkedin.com', twitter: 'https://x.com' },
+  }));
+  const attendee = await User.create(mkUser({
+    name: 'Aarav Verma', email: 'attendee@eventsphere.demo', role: 'attendee',
+    title: 'Final-year CS Student', company: 'KKWIEER Nashik', location: 'Nashik',
+    bio: 'MERN developer in the making. I build side-projects, chase hackathons and love meeting builders.',
+    avatar: avatar(11), interests: ['AI/ML', 'Web Development', 'Startups', 'Cyber Security'],
+    skills: ['React', 'Node.js', 'MERN', 'Python'], networkingGoal: 'collaboration',
+    onboardingCompleted: true,
+    social: { github: 'https://github.com', linkedin: 'https://linkedin.com' },
+  }));
+  const volunteer = await User.create(mkUser({
+    name: 'Priya Deshmukh', email: 'volunteer@eventsphere.demo', role: 'volunteer',
+    title: 'Operations Volunteer', company: 'Sphere Events', location: 'Nashik',
+    bio: 'Third-year EE student volunteering at tech events around campus.', avatar: avatar(45),
+    interests: ['Web Development', 'Music'], skills: ['Communication', 'First Aid'], onboardingCompleted: true,
+  }));
+  const speakerUser = await User.create(mkUser({
+    name: 'Dr. Meera Iyer', email: 'speaker@eventsphere.demo', role: 'speaker',
+    title: 'AI Research Lead', company: 'IIT Bombay', location: 'Mumbai',
+    bio: 'Researcher in applied ML and generative AI. Keynote speaker and open-source contributor.',
+    avatar: avatar(44), interests: ['AI/ML', 'Data Science'], skills: ['TensorFlow', 'Python', 'Research'],
+    onboardingCompleted: true,
+  }));
+  const organizer2 = await User.create(mkUser({
+    name: 'Neha Patil', email: 'neha@campuscore.demo', role: 'organizer', organizerStatus: 'approved',
+    title: 'Founder', company: 'CampusCore', location: 'Pune', avatar: avatar(49),
+    bio: 'Building communities and esports culture across Maharashtra colleges.',
+    interests: ['Sports', 'Startups', 'Gaming'], onboardingCompleted: true,
+  }));
+  const pendingOrganizer = await User.create(mkUser({
+    name: 'Rohit Jain', email: 'rohit.jain@eventsphere.demo', role: 'organizer', organizerStatus: 'pending',
+    title: 'Student Club President', company: 'CSI Student Chapter', location: 'Nashik', avatar: avatar(15),
+    organizerApplication: { organization: 'CSI Student Chapter', reason: 'We want to run our annual technical fest on EventSphere.', appliedAt: new Date() },
+    interests: ['Web Development'], onboardingCompleted: true,
+  }));
+
+  const firsts = NAMES.map((n) => n.split(' ')[0]);
+  const lasts = ['Sharma', 'Verma', 'Patel', 'Reddy', 'Nair', 'Rao', 'Mehta', 'Gupta', 'Joshi', 'Kulkarni', 'Bose', 'Iyer', 'Singh', 'Khanna', 'Sheikh', 'Pandit', 'Kaur', 'Deshpande', 'Menon', 'Agarwal'];
+  const attendees = [];
+  const TOTAL_GENERATED = 120;
+  for (let i = 0; i < TOTAL_GENERATED; i += 1) {
+    const interests = [];
+    for (let k = 0; k < 3; k += 1) if (rand(i * 7 + k) > 0.35) interests.push(INTEREST_POOL[(i + k) % INTEREST_POOL.length]);
+    const skills = [];
+    for (let k = 0; k < 2; k += 1) if (rand(i * 3 + k + 20) > 0.4) skills.push(SKILL_POOL[(i * 2 + k) % SKILL_POOL.length]);
+    const name = `${firsts[i % firsts.length]} ${lasts[(i * 7) % lasts.length]}`;
+    // eslint-disable-next-line no-await-in-loop
+    attendees.push(await User.create(mkUser({
+      name,
+      email: `${name.toLowerCase().replace(/[^a-z]/g, '.')}.${i}@eventsphere.demo`,
+      role: 'attendee',
+      title: pick(['Student', 'Developer', 'Designer', 'Founder', 'Data Analyst', 'Product Manager'], i),
+      company: pick(['KKWIEER', 'VIT Pune', 'TCS', 'Infosys', 'Freelance', 'IIT Bombay', 'StartupHQ', 'COEP'], i),
+      location: CITIES[i % CITIES.length],
+      avatar: avatar(((i * 3 + 5) % 70) + 1),
+      interests: [...new Set(interests)],
+      skills,
+      networkingGoal: GOALS[i % GOALS.length],
+      onboardingCompleted: true,
+    })));
+  }
+  const pool = [attendee, ...attendees];
+
+  // ─────────────── Speakers ───────────────
+  const speakerData = [
+    { name: 'Dr. Meera Iyer', user: speakerUser._id, title: 'AI Research Lead', company: 'IIT Bombay', photo: avatar(44), skills: ['Generative AI', 'LLMs', 'Research'], featured: true, bio: 'Leads applied ML research, has 40+ publications and mentors dozens of student AI projects.' },
+    { name: 'Rajesh Krishnan', title: 'Chief Technology Officer', company: 'CloudNova', photo: avatar(13), skills: ['Cloud', 'Distributed Systems'], bio: 'Scaled platforms to 50M users; speaks on cloud architecture and reliability.' },
+    { name: 'Sneha Kulkarni', title: 'Principal Security Engineer', company: 'ThreatGuard', photo: avatar(48), skills: ['Pen Testing', 'Network Security'], bio: 'Bug bounty hunter turned security leader protecting Indian fintechs.' },
+    { name: 'Marcus D’Souza', title: 'Venture Partner', company: 'FirstSpark Ventures', photo: avatar(14), skills: ['Fundraising', 'Product Strategy'], bio: 'Early-stage investor in 30+ campus startups across India.' },
+    { name: 'Ananya Roy', title: 'Design Director', company: 'PixelForge', photo: avatar(41), skills: ['UX Research', 'Design Systems'], bio: 'Design leader crafting calm, accessible products used by millions.' },
+    { name: 'Vikram Singh', title: 'Developer Advocate', company: 'DevForge', photo: avatar(16), skills: ['React', 'DevRel', 'TypeScript'], bio: 'You have watched his reels on shipping faster with modern JS.' },
+    { name: 'Fatima Sheikh', title: 'Head of Product', company: 'FinEdge', photo: avatar(40), skills: ['Product', 'Fintech'], bio: 'Builds payments products for the next 100 million Indians.' },
+    { name: 'Arjun Pillai', title: 'Open Source Maintainer', company: 'Stackly', photo: avatar(17), skills: ['Go', 'Kubernetes', 'OSS'], bio: 'Maintains infrastructure tools with 20k+ GitHub stars.' },
+  ];
+  const speakers = [];
+  for (const s of speakerData) {
+    // eslint-disable-next-line no-await-in-loop
+    speakers.push(await Speaker.create(s));
+  }
+
+  // ─────────────── Events ───────────────
+  const venue = (name, address, city, online = false, url = '') => ({
+    name, address, city,
+    onlineUrl: url || (online ? 'https://meet.eventsphere.demo/live' : ''),
+    coordinates: { type: 'Point', coordinates: COORDS[city] || COORDS.Nashik },
+  });
+
+  const events = {};
+  const mkEvent = async (e) => {
+    const ev = await Event.create({
+      shortDescription: '',
+      description: '',
+      tags: [],
+      ticketTypes: [],
+      faq: [],
+      customRegistrationFields: [],
+      settings: { allowWaitlist: true, showAttendeeList: true, requireRegistrationApproval: false, certificatesIssued: false },
+      ...e,
+    });
+    events[ev.slug] = ev;
+    return ev;
+  };
+
+  await mkEvent({
+    title: 'AI Innovation Summit 2026', slug: 'ai-innovation-summit',
+    shortDescription: '2-day summit on generative AI with keynotes, workshops, demos and networking.',
+    description: 'The AI Innovation Summit brings together 250+ students, researchers and builders for two power-packed days of generative AI. Day 1 covers foundation models, agents and responsible AI; Day 2 is a hands-on build day with mentor support from industry teams.\n\nEvery attendee gets a QR pass, live event feed, gamification rewards and a verifiable digital certificate.',
+    coverImage: img('photo-1591453089816-0fbb971b454c'),
+    category: catMap.conference._id, categorySlug: 'conference',
+    tags: ['AI/ML', 'Generative AI', 'Data Science', 'Networking', 'Startups'],
+    eventType: 'offline', startDate: day(3, 9), endDate: day(4, 17), timezone: 'Asia/Kolkata',
+    registrationDeadline: day(2, 23),
+    venue: venue('Main Auditorium, KKWIEER', 'Nashik-Pune Road, Nashik', 'Nashik'),
+    capacity: 250, price: 0,
+    ticketTypes: [
+      { name: 'General Pass', description: 'Full 2-day access, free', price: 0, quantity: 200, soldCount: 0 },
+      { name: 'Pro Pass', description: 'Swag kit, lunch both days, workshop seat', price: 399, quantity: 50, soldCount: 0 },
+    ],
+    customRegistrationFields: [
+      { label: 'College & Year', type: 'text', required: true, placeholder: 'e.g. KKWIEER, Third Year' },
+      { label: 'AI Experience', type: 'radio', required: true, options: ['Beginner', 'Intermediate', 'Advanced'] },
+      { label: 'Topics of interest', type: 'checkbox', required: false, options: ['LLMs', 'Computer Vision', 'Agents', 'MLOps', 'Ethics'] },
+      { label: 'Dietary preference', type: 'select', required: false, options: ['Veg', 'Non-veg', 'Vegan'] },
+    ],
+    faq: [
+      { q: 'Who should attend?', a: 'Any student or professional curious about applied AI — beginners welcome.' },
+      { q: 'Will I get a certificate?', a: 'Yes, checked-in attendees receive a verifiable digital certificate within 48 hours.' },
+      { q: 'Are laptops needed?', a: 'Required for Day 2 workshops; bring charger and a Google/GitHub account.' },
+      { q: 'Is food included?', a: 'Pro Pass includes lunch; all attendees get tea/coffee and snacks.' },
+    ],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved', featured: true,
+  });
+
+  await mkEvent({
+    title: 'TechNova Hackathon', slug: 'technova-hackathon',
+    shortDescription: '36-hour national-level hackathon. Build, pitch and win ₹2L+ in prizes.',
+    description: 'TechNova is a 36-hour hackathon for student teams across India. Pick a problem statement across AI, fintech, sustainability or developer tools, build a working prototype, and present it to judges from top startups and product companies.\n\nIncludes API credits, mentor office hours, midnight snacks, swag and ₹2,00,000+ in cash prizes.',
+    coverImage: img('photo-1504384308090-c894fdcc538d'),
+    category: catMap.hackathon._id, categorySlug: 'hackathon',
+    tags: ['Hackathon', 'AI/ML', 'Web Development', 'Startups', 'Competition'],
+    eventType: 'offline', startDate: day(12, 18), endDate: day(14, 12),
+    venue: venue('Innovation Labs, COEP', 'Shivajinagar, Pune', 'Pune'),
+    capacity: 500, price: 0,
+    ticketTypes: [
+      { name: 'Student Hacker', description: 'Free entry for teams of 2–4', price: 0, quantity: 400, soldCount: 0 },
+      { name: 'Pro Hacker Pass', description: 'Swag, meals all 3 days, API credits', price: 199, quantity: 100, soldCount: 0 },
+    ],
+    customRegistrationFields: [
+      { label: 'Team Name', type: 'text', required: false, placeholder: 'Solo participants welcome' },
+      { label: 'Experience Level', type: 'radio', required: true, options: ['Beginner', 'Intermediate', 'Advanced'] },
+      { label: 'Technologies', type: 'checkbox', required: false, options: ['MERN', 'Python', 'AI/ML', 'Mobile', 'Blockchain'] },
+    ],
+    faq: [
+      { q: 'Can I participate solo?', a: 'Yes — we help solo participants form teams before the sprint.' },
+      { q: 'Is it overnight?', a: 'Yes, the venue stays open with security, dinner and breakfast provided.' },
+      { q: 'Who owns the IP?', a: 'Your team owns everything you build.' },
+    ],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved', featured: true,
+  });
+
+  await mkEvent({
+    title: 'Campus Startup Expo', slug: 'campus-startup-expo',
+    shortDescription: '60 student startups, 20 investors, one expo floor. Demo day meets networking.',
+    description: 'The Campus Startup Expo is Maharashtra’s largest student-founder showcase: 60 early-stage teams, investor 1:1 slots, founder panels, and a hiring corner for internships. Free for students; teams pitch for the Best Campus Startup award.',
+    coverImage: img('photo-1556761175-b413da4baf72'),
+    category: catMap.networking._id, categorySlug: 'networking',
+    tags: ['Startups', 'Business', 'Networking', 'Internship'],
+    eventType: 'offline', startDate: day(6, 10), endDate: day(6, 18),
+    venue: venue('Bombay Exhibition Centre, Hall 2', 'Goregaon, Mumbai', 'Mumbai'),
+    capacity: 300, price: 0,
+    ticketTypes: [{ name: 'Student Visitor', description: 'Expo + panels access', price: 0, quantity: 300, soldCount: 0 }],
+    customRegistrationFields: [{ label: 'College', type: 'text', required: true }, { label: 'Are you pitching?', type: 'radio', required: false, options: ['Yes', 'No, just exploring'] }],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved', featured: true,
+  });
+
+  await mkEvent({
+    title: 'Cyber Security Bootcamp', slug: 'cyber-security-bootcamp',
+    shortDescription: 'Sold out! Hands-on ethical hacking and CTF training with ThreatGuard engineers.',
+    description: 'An intensive one-day bootcamp covering web app security, network attacks, and a capture-the-flag contest. Seats are intentionally limited to 40 for a hands-on lab experience. Join the waitlist to grab released seats automatically.',
+    coverImage: img('photo-1550751827-4bd374c3f58b'),
+    category: catMap.workshop._id, categorySlug: 'workshop',
+    tags: ['Cyber Security', 'Ethical Hacking', 'CTF', 'Networking'],
+    eventType: 'offline', startDate: day(4, 9, 30), endDate: day(4, 17),
+    venue: venue('Computer Center, KKWIEER', 'Nashik-Pune Road, Nashik', 'Nashik'),
+    capacity: 40, price: 299,
+    ticketTypes: [{ name: 'Lab Seat', description: 'Laptop required; lab access included', price: 299, quantity: 40, soldCount: 0 }],
+    customRegistrationFields: [
+      { label: 'Laptop OS', type: 'select', required: true, options: ['Windows', 'macOS', 'Linux'] },
+      { label: 'Kali Linux installed?', type: 'radio', required: true, options: ['Yes', 'No', 'Need help'] },
+    ],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved',
+  });
+
+  await mkEvent({
+    title: 'Rhythm & Hues — Annual Cultural Fest', slug: 'annual-cultural-fest',
+    shortDescription: 'Three nights of music, dance, drama and art. 800+ students, one unforgettable fest.',
+    description: 'The annual cultural fest features battle of the bands, dance championships, stand-up, an art walk and a headline DJ night. All participants receive digital certificates and the winning teams take home trophies and cash prizes.',
+    coverImage: img('photo-1493676304819-0d7a8d026dcf'),
+    category: catMap.cultural._id, categorySlug: 'cultural',
+    tags: ['Cultural', 'Music', 'Dance', 'Arts', 'Networking'],
+    eventType: 'offline', startDate: day(-60, 17), endDate: day(-58, 22),
+    venue: venue('Open Air Theatre, KKWIEER', 'Nashik', 'Nashik'),
+    capacity: 200, price: 0,
+    ticketTypes: [{ name: 'Festival Pass', description: 'All 3 days', price: 0, quantity: 800, soldCount: 0 }],
+    organizer: organizer._id, status: 'completed', approvalStatus: 'approved', featured: false,
+  });
+
+  await mkEvent({
+    title: 'Nashik Developer Meetup (Live Now)', slug: 'nashik-developer-meetup',
+    shortDescription: 'Happening now: lightning talks, live Q&A, polls and an AMA with local developers.',
+    description: 'Our monthly Nashik Developer Meetup is LIVE! Follow the live feed for schedule updates, participate in polls, ask questions during Q&A and climb the event leaderboard.',
+    coverImage: img('photo-1528605248644-14dd04022da1'),
+    category: catMap.meetup._id, categorySlug: 'meetup',
+    tags: ['Web Development', 'Networking', 'Tech Talk', 'Community'],
+    eventType: 'hybrid', startDate: day(0, new Date().getHours() - 1), endDate: day(0, new Date().getHours() + 4),
+    venue: venue('The Hive Co-working', 'College Road, Nashik', 'Nashik', true, 'https://meet.eventsphere.demo/dev-meetup'),
+    capacity: 120, price: 0,
+    ticketTypes: [{ name: 'Community Pass', description: 'Free entry', price: 0, quantity: 120, soldCount: 0 }],
+    organizer: organizer._id, status: 'live', approvalStatus: 'approved', featured: true,
+  });
+
+  await mkEvent({
+    title: 'Corporate Leadership Summit', slug: 'corporate-leadership-summit',
+    shortDescription: 'Executive leadership program for high-potential managers (completed edition).',
+    description: 'A sold-out leadership development summit covering decision frameworks, difficult conversations and leading through change. Included 360-degree assessments and executive coaching circles.',
+    coverImage: img('photo-1542744173-8e7e53415bb0'),
+    category: catMap.corporate._id, categorySlug: 'corporate',
+    tags: ['Business', 'Leadership', 'Corporate', 'Networking'],
+    eventType: 'offline', startDate: day(-30, 9), endDate: day(-30, 17),
+    venue: venue('Taj Lakeside Convention Hall', 'Hyderabad', 'Hyderabad'),
+    capacity: 150, price: 1999,
+    ticketTypes: [{ name: 'Executive Pass', description: 'Includes assessment, lunch & workbook', price: 1999, quantity: 150, soldCount: 0 }],
+    organizer: organizer._id, status: 'completed', approvalStatus: 'approved',
+  });
+
+  await mkEvent({
+    title: 'Inter-Collegiate Sports Championship', slug: 'sports-championship',
+    shortDescription: 'Cricket, football, athletics and esports across 3 days. 400 athletes.',
+    description: 'The inter-collegiate championship brings 400 athletes across cricket, football, athletics and table tennis, with an esports exhibition track. Register individually or as a team captain.',
+    coverImage: img('photo-1461896836934-ffe607ba8211'),
+    category: catMap.sports._id, categorySlug: 'sports',
+    tags: ['Sports', 'Fitness', 'Networking', 'Esports'],
+    eventType: 'offline', startDate: day(15, 7), endDate: day(17, 20),
+    venue: venue('University Sports Complex', 'Gangapur Road, Nashik', 'Nashik'),
+    capacity: 400, price: 0,
+    ticketTypes: [{ name: 'Athlete Pass', price: 0, quantity: 400, soldCount: 0 }],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved',
+  });
+
+  await mkEvent({
+    title: 'Cloud & DevOps Bootcamp', slug: 'cloud-devops-bootcamp',
+    shortDescription: 'Docker, Kubernetes and CI/CD from zero to deployed pipeline.',
+    description: 'A one-day hands-on bootcamp: containerize an app, deploy to Kubernetes, wire GitHub Actions, and monitor with Grafana. Bring a laptop; cloud credits provided.',
+    coverImage: img('photo-1451187580459-43490279c0fa'),
+    category: catMap.workshop._id, categorySlug: 'workshop',
+    tags: ['Cloud', 'DevOps', 'Docker', 'Kubernetes', 'AWS'],
+    eventType: 'offline', startDate: day(8, 9), endDate: day(8, 17, 30),
+    venue: venue('Seminar Hall 3, VIT Pune', 'Pune', 'Pune'),
+    capacity: 60, price: 599,
+    ticketTypes: [{ name: 'Bootcamp Seat', price: 599, quantity: 60, soldCount: 0, description: 'Cloud credits + lunch included' }],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved',
+  });
+
+  await mkEvent({
+    title: 'Design Thinking Sprint', slug: 'design-thinking-sprint',
+    shortDescription: 'A weekend sprint from user interview to clickable prototype.',
+    description: 'Learn design thinking by doing: interview real users, map journeys, sketch, prototype in Figma and present. Perfect for developers who want to design better products.',
+    coverImage: img('photo-1561070791-36c11767b26a'),
+    category: catMap.workshop._id, categorySlug: 'workshop',
+    tags: ['Design', 'UI/UX', 'Product', 'Startups'],
+    eventType: 'offline', startDate: day(20, 10), endDate: day(21, 16),
+    venue: venue('PixelForge Studio', 'Indiranagar, Bengaluru', 'Bengaluru'),
+    capacity: 80, price: 0,
+    ticketTypes: [{ name: 'Sprint Pass', price: 0, quantity: 80, soldCount: 0 }],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved',
+  });
+
+  await mkEvent({
+    title: 'Indie Music Night', slug: 'indie-music-night',
+    shortDescription: 'Five indie acts, one rooftop, zero autoplay. Live music under the stars.',
+    description: 'A curated evening of independent music featuring five acts from the Nashik-Pune circuit, food trucks and an open mic warm-up. Limited rooftop capacity — grab your pass.',
+    coverImage: img('photo-1501386761578-eac5c94b800a'),
+    category: catMap.cultural._id, categorySlug: 'cultural',
+    tags: ['Music', 'Cultural', 'Networking', 'Fun'],
+    eventType: 'offline', startDate: day(9, 18), endDate: day(9, 22, 30),
+    venue: venue('Skydeck Rooftop', 'College Road, Nashik', 'Nashik'),
+    capacity: 350, price: 249,
+    ticketTypes: [
+      { name: 'Early Bird', price: 249, quantity: 150, soldCount: 0 },
+      { name: 'At the Gate', price: 349, quantity: 200, soldCount: 0 },
+    ],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved',
+  });
+
+  await mkEvent({
+    title: 'Research Scholars Symposium', slug: 'research-scholars-symposium',
+    shortDescription: 'Paper presentations and keynotes for emerging researchers.',
+    description: 'A symposium for postgraduate and final-year research scholars, featuring paper presentations, a poster session and keynotes from leading labs.',
+    coverImage: img('photo-1517245386807-bb43f82c33c4'),
+    category: catMap.seminar._id, categorySlug: 'seminar',
+    tags: ['Research', 'Data Science', 'AI/ML', 'Academia'],
+    eventType: 'hybrid', startDate: day(25, 9), endDate: day(25, 17),
+    venue: venue('IISc Auditorium', 'Bengaluru', 'Bengaluru', true, 'https://meet.eventsphere.demo/symposium'),
+    capacity: 100, price: 0,
+    ticketTypes: [{ name: 'Delegate Pass', price: 0, quantity: 100, soldCount: 0 }],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved',
+  });
+
+  await mkEvent({
+    title: 'Fintech Founders Roundtable', slug: 'fintech-founders-roundtable',
+    shortDescription: 'An invite-only evening with fintech founders and operators.',
+    description: 'A curated roundtable dinner for 40 fintech founders and operators: candid conversations on regulation, distribution and fundraising, under Chatham House Rules.',
+    coverImage: img('photo-1556761175-5973dc0f32e7'),
+    category: catMap.networking._id, categorySlug: 'networking',
+    tags: ['Startups', 'Business', 'Fintech', 'Networking'],
+    eventType: 'offline', startDate: day(5, 18), endDate: day(5, 21),
+    venue: venue('The Quorum Club', 'Bandra Kurla Complex, Mumbai', 'Mumbai'),
+    capacity: 40, price: 0,
+    ticketTypes: [{ name: 'Invited Guest', price: 0, quantity: 40, soldCount: 0 }],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved',
+  });
+
+  await mkEvent({
+    title: 'MERN Stack Masterclass (Online)', slug: 'mern-stack-masterclass',
+    shortDescription: 'Go from React basics to deploying a full-stack MERN app in 3 hours.',
+    description: 'A fast-moving online masterclass: React + Tailwind front end, Express + MongoDB API, authentication, deployment and the patterns professionals actually use. Stream link is shared 1 hour before start.',
+    coverImage: img('photo-1633356122544-f134324a6cee'),
+    category: catMap['tech-talk']._id, categorySlug: 'tech-talk',
+    tags: ['Web Development', 'MERN', 'React', 'Node.js'],
+    eventType: 'online', startDate: day(14, 19), endDate: day(14, 22),
+    venue: { name: 'Online (Zoom)', address: '', city: '', onlineUrl: 'https://meet.eventsphere.demo/mern', coordinates: undefined },
+    capacity: 500, price: 0,
+    ticketTypes: [{ name: 'Online Seat', price: 0, quantity: 500, soldCount: 0 }],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved',
+  });
+
+  await mkEvent({
+    title: 'E-Sports Arena 2026', slug: 'esports-arena-2026',
+    shortDescription: 'BGMI, Valorant and FIFA campus tournament with ₹1L prize pool — awaiting approval.',
+    description: 'CampusCore presents E-Sports Arena, a two-day inter-collegiate esports tournament with casters, live finals on the big screen and ₹1,00,000 in prizes. College ID required.',
+    coverImage: img('photo-1542751371-adc38448a05e'),
+    category: catMap.sports._id, categorySlug: 'sports',
+    tags: ['Sports', 'Esports', 'Gaming', 'Networking'],
+    eventType: 'offline', startDate: day(30, 10), endDate: day(31, 20),
+    venue: venue('Campus Arena', 'FC Road, Pune', 'Pune'),
+    capacity: 200, price: 149,
+    ticketTypes: [{ name: 'Player Pass', price: 149, quantity: 120, soldCount: 0 }, { name: 'Spectator Pass', price: 99, quantity: 80, soldCount: 0 }],
+    riskFlags: ['External game publisher branding — IP review suggested', 'Gaming venue requires power & network capacity check'],
+    organizer: organizer2._id, status: 'published', approvalStatus: 'pending', featured: false,
+  });
+
+  // ─────────────── Sessions ───────────────
+  async function addSessions(slug, rows) {
+    const ev = events[slug];
+    for (const [d, h, min, dur, title, type, room, spk] of rows) {
+      const [startTime, endTime] = at(ev.startDate, d - 1, h, min, dur);
+      // eslint-disable-next-line no-await-in-loop
+      await Session.create({
+        event: ev._id, title, type, room, startTime, endTime,
+        speaker: spk != null ? speakers[spk]._id : undefined,
+        day: d, order: h * 60 + min,
+        engagementScore: 30 + Math.floor(rand(title.length + d) * 65),
+      });
+    }
+  }
+
+  await addSessions('ai-innovation-summit', [
+    [1, 9, 0, 45, 'Registration & Networking Breakfast', 'networking', 'Foyer'],
+    [1, 10, 0, 60, 'Opening Keynote — The Year of AI Agents', 'keynote', 'Main Auditorium', 0],
+    [1, 11, 15, 45, 'Building Production LLM Apps', 'talk', 'Main Auditorium', 4],
+    [1, 12, 15, 60, 'Lunch & Sponsor Expo', 'break', 'Dining Hall'],
+    [1, 13, 30, 90, 'Workshop: Prompt Engineering Lab', 'workshop', 'Lab 1'],
+    [1, 15, 15, 45, 'Responsible AI at Scale', 'talk', 'Main Auditorium', 1],
+    [1, 16, 30, 60, 'Panel: From Research to Startup', 'panel', 'Main Auditorium', 3],
+    [2, 9, 30, 90, 'Workshop: Build an AI App End-to-End', 'workshop', 'Lab 1', 0],
+    [2, 11, 30, 45, 'AI in Indian Languages', 'talk', 'Main Auditorium', 6],
+    [2, 14, 0, 60, 'Project Demos & Awards', 'ceremony', 'Main Auditorium', 3],
+  ]);
+  await addSessions('technova-hackathon', [
+    [1, 18, 0, 60, 'Check-in & Dinner', 'ceremony', 'Lobby'],
+    [1, 19, 0, 45, 'Opening & Problem Statements', 'keynote', 'Main Hall', 3],
+    [1, 20, 0, 60, 'Tech & API Showcase', 'talk', 'Main Hall', 4],
+    [1, 21, 30, 600, 'Hacking Sprint Round 1 (overnight)', 'workshop', 'Innovation Labs'],
+    [2, 14, 0, 90, 'Mentor Office Hours', 'networking', 'Breakout Rooms', 1],
+    [3, 9, 0, 180, 'Final Sprint & Submissions', 'workshop', 'Innovation Labs'],
+    [3, 12, 0, 120, 'Project Demos to Judges', 'panel', 'Main Hall', 3],
+    [3, 16, 0, 45, 'Awards & Closing', 'ceremony', 'Main Hall'],
+  ]);
+  await addSessions('cyber-security-bootcamp', [
+    [1, 9, 30, 60, 'Web App Security Fundamentals', 'talk', 'Lab', 2],
+    [1, 11, 0, 120, 'Hands-on: OWASP Top 10', 'workshop', 'Lab'],
+    [1, 14, 0, 120, 'CTF Challenge', 'activity', 'Lab', 2],
+    [1, 16, 30, 30, 'Awards & Wrap-up', 'ceremony', 'Lab'],
+  ]);
+  await addSessions('annual-cultural-fest', [
+    [1, 17, 0, 120, 'Battle of the Bands', 'activity', 'Open Air Theatre'],
+    [1, 19, 30, 90, 'Stand-up Night', 'activity', 'OAT Stage'],
+    [2, 18, 0, 150, 'Dance Championship', 'activity', 'Main Stage'],
+    [3, 19, 0, 180, 'Headline DJ Night', 'ceremony', 'Main Stage'],
+  ]);
+  const live = events['nashik-developer-meetup'];
+  {
+    const now = new Date();
+    const mk = (offsetH, dur, title, type, room, spk) => {
+      const s = new Date(now.getTime() + offsetH * 3600000);
+      const e = new Date(s.getTime() + dur * 60000);
+      return new Session({ event: live._id, title, type, room, startTime: s, endTime: e, speaker: spk != null ? speakers[spk]._id : undefined, day: 1, engagementScore: 60 + Math.floor(rand(title.length) * 40) });
+    };
+    const sessions = [
+      mk(-1.2, 0.5, 'Check-in & Chai', 'networking', 'Foyer'),
+      mk(-0.6, 0.7, 'Lightning Talks Round 1', 'talk', 'Main Hall', 5),
+      mk(-0.15, 0.8, 'Live Q&A: Modern React Patterns', 'talk', 'Main Hall', 5),
+      mk(1.0, 0.5, 'Tea Break & Networking', 'break', 'Foyer'),
+      mk(1.6, 0.8, 'Workshop: Ship Faster with Tooling', 'workshop', 'Room 204', 7),
+      mk(2.6, 0.6, 'AMA & Giveaways', 'panel', 'Main Hall', 4),
+    ];
+    for (const s of sessions) {
+      // eslint-disable-next-line no-await-in-loop
+      await s.save();
+    }
+  }
+  await addSessions('corporate-leadership-summit', [
+    [1, 9, 0, 60, 'Leadership in Uncertainty', 'keynote', 'Grand Ballroom', 6],
+    [1, 10, 30, 90, 'Decision Frameworks Workshop', 'workshop', 'Breakout A'],
+    [1, 13, 30, 60, 'Difficult Conversations', 'talk', 'Grand Ballroom'],
+    [1, 15, 30, 90, 'Executive Coaching Circles', 'panel', 'Breakout Rooms'],
+    [1, 16, 45, 15, 'Closing & Certificates', 'ceremony', 'Grand Ballroom'],
+  ]);
+
+  // ─────────────── Sponsors ───────────────
+  const sponsorSets = {
+    'ai-innovation-summit': [
+      { name: 'DevForge', tier: 'platinum', amount: 100000, benefits: 'Backdrop logo, 15-min keynote, booth, 20 passes', logo: img('photo-1560179707-f14e90ef3623', 300), website: 'https://devforge.demo', contactName: 'Karan Mehta', contactEmail: 'sponsors@devforge.demo' },
+      { name: 'CloudNova', tier: 'gold', amount: 50000, benefits: 'Booth, banner logo, 10 passes', logo: img('photo-1486406146926-c627a92ad1ab', 300), contactName: 'Ritu Sen', contactEmail: 'events@cloudnova.demo' },
+      { name: 'FinEdge', tier: 'silver', amount: 25000, benefits: 'Website logo, 5 passes', logo: img('photo-1486406146926-c627a92ad1ab', 300) },
+      { name: 'Stackly', tier: 'bronze', amount: 10000, benefits: 'Social shout-out, 2 passes', logo: img('photo-1486406146926-c627a92ad1ab', 300) },
+    ],
+    'technova-hackathon': [
+      { name: 'DevForge', tier: 'platinum', amount: 100000, benefits: 'Track naming, API credits, judging slot', logo: img('photo-1560179707-f14e90ef3623', 300) },
+      { name: 'PixelForge', tier: 'gold', amount: 50000, benefits: 'Design track sponsor', logo: img('photo-1486406146926-c627a92ad1ab', 300) },
+    ],
+    'campus-startup-expo': [
+      { name: 'FirstSpark Ventures', tier: 'platinum', amount: 100000, benefits: 'Investor lounge, jury seat', logo: img('photo-1560179707-f14e90ef3623', 300) },
+      { name: 'FinEdge', tier: 'gold', amount: 50000, benefits: 'Fintech corner', logo: img('photo-1486406146926-c627a92ad1ab', 300) },
+    ],
+  };
+  for (const [slug, list] of Object.entries(sponsorSets)) {
+    for (const s of list) {
+      // eslint-disable-next-line no-await-in-loop
+      await Sponsor.create({ ...s, event: events[slug]._id });
+    }
+  }
+
+  // ─────────────── Volunteers ───────────────
+  async function addVolunteers(slug, list) {
+    const ev = events[slug];
+    for (const v of list) {
+      // eslint-disable-next-line no-await-in-loop
+      await Volunteer.create({ event: ev._id, ...v });
+    }
+  }
+  await addVolunteers('ai-innovation-summit', [
+    { user: volunteer._id, name: 'Priya Deshmukh', email: volunteer.email, role: 'Technical Support', task: 'Projectors, mics, Wi-Fi on Day 1', zone: 'Main Auditorium', startTime: day(3, 8), endTime: day(3, 18), status: 'accepted' },
+    { name: 'Amit Wagh', email: 'amit.w@student.demo', role: 'Registration Desk', task: 'QR check-in and wristbands', zone: 'Main Entrance', startTime: day(3, 8), endTime: day(4, 12) },
+    { name: 'Sneha Patil', email: 'sneha.p@student.demo', role: 'Hospitality', task: 'Speaker hospitality & water stations', zone: 'Green Room', startTime: day(3, 8), endTime: day(4, 18) },
+    { name: 'Vikas More', email: 'vikas.m@student.demo', role: 'Security', task: 'Crowd flow and emergency response', zone: 'Gates', startTime: day(3, 8), endTime: day(4, 18) },
+    { name: 'Rhea D’Souza', email: 'rhea.d@student.demo', role: 'Photography', task: 'Coverage reels for socials', zone: 'Floating', startTime: day(3, 9), endTime: day(4, 16) },
+    { name: 'Karan Thakur', email: 'karan.t@student.demo', role: 'Stage Management', task: 'Speaker timers and cue management', zone: 'Stage', startTime: day(3, 9), endTime: day(4, 15) },
+  ]);
+  await addVolunteers('nashik-developer-meetup', [
+    { user: volunteer._id, name: 'Priya Deshmukh', email: volunteer.email, role: 'Technical Support', task: 'Livestream + projector', zone: 'Main Hall', startTime: day(0, 8), endTime: day(0, 14), status: 'accepted' },
+    { name: 'Amit Wagh', email: 'amit.w@student.demo', role: 'Registration Desk', task: 'Walk-in QR check-in', zone: 'Entrance', startTime: day(0, 8), endTime: day(0, 12) },
+  ]);
+  await addVolunteers('technova-hackathon', [
+    { name: 'Nikhil Joshi', email: 'nik.j@student.demo', role: 'Technical Support', task: 'Network and power strips', zone: 'Innovation Labs', startTime: day(12, 17), endTime: day(14, 14) },
+    { name: 'Meera Sen', email: 'meera.s@student.demo', role: 'Hospitality', task: 'Midnight snacks and coffee', zone: 'Pantry', startTime: day(12, 18), endTime: day(14, 10) },
+    { name: 'Ravi Shinde', email: 'ravi.s@student.demo', role: 'Security', task: 'Overnight security rounds', zone: 'Floors', startTime: day(12, 20), endTime: day(14, 8) },
+  ]);
+
+  // ─────────────── Registrations, tickets, payments ───────────────
+  const ticketTypesFor = (ev) => ev.ticketTypes.length ? ev.ticketTypes : [{ name: 'General', price: ev.price, quantity: ev.capacity }];
+
+  async function addRegistrations(slug, opts) {
+    const ev = events[slug];
+    const types = ticketTypesFor(ev);
+    const { target, checkedInRate = 0, cancelRate = 0, waitlist = 0, startIdx = 0, paidRate = 0.3 } = opts;
+    let made = 0;
+    let idx = startIdx;
+    let checkedIn = 0;
+    const chosenUsers = [];
+
+    while (made < target && idx < pool.length) {
+      const u = pool[idx];
+      idx += 1;
+      // Demo attendee is handled via addDirect so the live "register → QR → check-in" demo always works.
+      if (u._id.toString() === attendee._id.toString()) continue;
+      const rnd = rand(idx + ev._id.toString().length);
+      const isPaid = types.some((t) => t.price > 0) && rnd < paidRate;
+      let type = types[0];
+      if (types.length > 1) type = rnd > 0.75 ? types[types.length - 1] : types[0];
+      const price = isPaid ? type.price : types.some((t) => t.price === 0) ? 0 : type.price;
+      const chosen = isPaid ? type : types.find((t) => t.price === 0) || type;
+      const cancelled = rand(idx * 2 + 3) < cancelRate;
+      const registeredAt = new Date(ev.startDate.getTime() - Math.floor(rand(idx + 9) * 30 + 1) * 86400000);
+      // eslint-disable-next-line no-await-in-loop
+      const reg = await Registration.create({
+        event: ev._id, user: u._id,
+        ticketType: { name: chosen.name, price },
+        amountPaid: cancelled ? 0 : price,
+        status: cancelled ? 'cancelled' : 'confirmed',
+        source: pick(['direct', 'recommendation', 'search', 'shared'], idx),
+        registeredAt,
+        createdAt: registeredAt,
+        updatedAt: registeredAt,
+        responses: ev.customRegistrationFields.length
+          ? ev.customRegistrationFields.map((f, fi) => ({ field: f.label, label: f.label, value: f.options ? pick(f.options, idx + fi) : `${f.label} response` }))
+          : [],
+      });
+      if (!cancelled) {
+        chosenUsers.push({ u, reg, type: chosen });
+        made += 1;
+        if (price > 0) {
+          // eslint-disable-next-line no-await-in-loop
+          await Payment.create({
+            event: ev._id, registration: reg._id, user: u._id, amount: price, provider: 'demo',
+            orderId: `order_seed_${reg._id.toString().slice(-8)}`, paymentId: `pay_seed_${reg._id.toString().slice(-10)}`,
+            status: 'captured', ticketType: chosen.name,
+          });
+        }
+        // eslint-disable-next-line no-await-in-loop
+        await Ticket.create({
+          code: ticketCode(), event: ev._id, registration: reg._id, user: u._id,
+          ticketType: chosen.name, attendeeName: u.name,
+        });
+      }
+    }
+
+    // Check-ins for live/completed events
+    if (ev.startDate < new Date()) {
+      checkedIn = Math.floor(chosenUsers.length * checkedInRate);
+      for (let k = 0; k < checkedIn; k += 1) {
+        const { u, reg } = chosenUsers[k];
+        reg.status = 'checked_in';
+        reg.checkedInAt = new Date(ev.startDate.getTime() + 30 * 60000);
+        reg.checkInMethod = rand(k + 2) > 0.5 ? 'qr' : 'manual';
+        // eslint-disable-next-line no-await-in-loop
+        await reg.save();
+        // eslint-disable-next-line no-await-in-loop
+        await Ticket.updateOne({ registration: reg._id, user: u._id }, { status: 'used', checkedInAt: reg.checkedInAt });
+      }
+    }
+
+    // Waitlist
+    for (let w = 0; w < waitlist; w += 1) {
+      const u = pool[(idx + w) % pool.length];
+      // eslint-disable-next-line no-await-in-loop
+      const existing = await Registration.findOne({ event: ev._id, user: u._id });
+      if (existing) continue;
+      // eslint-disable-next-line no-await-in-loop
+      const reg = await Registration.create({
+        event: ev._id, user: u._id, ticketType: { name: types[0].name, price: types[0].price },
+        status: 'waitlisted',
+      });
+      // eslint-disable-next-line no-await-in-loop
+      await Waitlist.create({ event: ev._id, user: u._id, registration: reg._id, position: w + 1 });
+    }
+
+    // Recompute counters
+    const [confirmed, checked, waiting] = await Promise.all([
+      Registration.countDocuments({ event: ev._id, status: { $in: ['confirmed', 'checked_in'] } }),
+      Registration.countDocuments({ event: ev._id, status: 'checked_in' }),
+      Waitlist.countDocuments({ event: ev._id, status: { $in: ['waiting', 'notified'] } }),
+    ]);
+    ev.registrationCount = confirmed;
+    ev.checkedInCount = checked;
+    ev.waitlistCount = waiting;
+    ev.popularityScore = confirmed;
+    // ticket sold counts
+    ev.ticketTypes.forEach((t) => { t.soldCount = Math.floor(confirmed * (t.name === types[types.length - 1].name ? 0.25 : 0.75)); });
+    // eslint-disable-next-line no-await-in-loop
+    await ev.save();
+    return { confirmed, checkedIn: checked };
+  }
+
+  // Demo attendee's pre-existing registrations
+  async function addDirect(slug, { status, paid = false, typeName }) {
+    const ev = events[slug];
+    const types = ticketTypesFor(ev);
+    const chosen = types.find((t) => t.name === typeName) || types[0];
+    const reg = await Registration.create({
+      event: ev._id, user: attendee._id,
+      ticketType: { name: chosen.name, price: paid ? chosen.price : 0 },
+      amountPaid: paid ? chosen.price : 0, status,
+      source: 'direct',
+      registeredAt: new Date(ev.startDate.getTime() - 5 * 86400000),
+    });
+    if (status !== 'waitlisted' && status !== 'cancelled') {
+      await Ticket.create({ code: ticketCode(), event: ev._id, registration: reg._id, user: attendee._id, ticketType: chosen.name, attendeeName: attendee.name, ...(status === 'checked_in' ? { status: 'used', checkedInAt: ev.startDate } : {}) });
+      if (paid) await Payment.create({ event: ev._id, registration: reg._id, user: attendee._id, amount: chosen.price, provider: 'demo', orderId: `order_demo_${reg._id.toString().slice(-8)}`, paymentId: `pay_demo_${reg._id.toString().slice(-10)}`, status: 'captured', ticketType: chosen.name });
+    }
+    return reg;
+  }
+
+  await addRegistrations('ai-innovation-summit', { target: 84, waitlist: 0, startIdx: 0, paidRate: 0.22 });
+  await addRegistrations('technova-hackathon', { target: 96, startIdx: 0, paidRate: 0.18 });
+  await addDirect('technova-hackathon', { status: 'confirmed' });
+  await addRegistrations('campus-startup-expo', { target: 72, startIdx: 3, paidRate: 0 });
+  await addRegistrations('cyber-security-bootcamp', { target: 40, waitlist: 6, startIdx: 0, paidRate: 1 });
+  await addRegistrations('annual-cultural-fest', { target: 118, checkedInRate: 0.92, startIdx: 0, paidRate: 0, cancelRate: 0.02 });
+  await addDirect('annual-cultural-fest', { status: 'checked_in' });
+  await addRegistrations('nashik-developer-meetup', { target: 97, checkedInRate: 0.62, startIdx: 2, paidRate: 0 });
+  await addDirect('nashik-developer-meetup', { status: 'checked_in' });
+  await addRegistrations('corporate-leadership-summit', { target: 112, checkedInRate: 0.88, startIdx: 0, paidRate: 1 });
+  await addRegistrations('sports-championship', { target: 88, startIdx: 4 });
+  await addRegistrations('cloud-devops-bootcamp', { target: 41, startIdx: 1, paidRate: 0.9 });
+  await addRegistrations('design-thinking-sprint', { target: 52, startIdx: 5 });
+  await addRegistrations('indie-music-night', { target: 92, startIdx: 2, paidRate: 0.6 });
+  await addRegistrations('research-scholars-symposium', { target: 64, startIdx: 6 });
+  await addRegistrations('fintech-founders-roundtable', { target: 31, startIdx: 7 });
+  await addRegistrations('mern-stack-masterclass', { target: 108, startIdx: 0 });
+
+  // ─────────────── Feedback + certificates for completed events ───────────────
+  const FB_COMMENTS = {
+    positive: [
+      'Absolutely loved the energy and the speakers were world-class. Great organizing team!',
+      'Best college event I have attended. The QR check-in took ten seconds, amazing.',
+      'Fantastic workshops — I shipped my first ML model. Worth every minute.',
+      'Great networking, met my internship co-founder here!',
+      'Inspiring talks and everything ran on time. Highly recommend.',
+      'The live polls and Q&A made the sessions so much more engaging.',
+    ],
+    neutral: ['Good event overall, lunch could have been better.', 'Decent sessions, some talks overran.', 'Value for money, wished there were more seats.'],
+    negative: ['Registration desk was slow and lunch was late.', 'The audio in Hall B was poor and disappointing.'],
+  };
+  async function addFeedbackAndCerts(slug, { fbCount, certRate = 1, demoCert = false }) {
+    const ev = events[slug];
+    const regs = await Registration.find({ event: ev._id, status: 'checked_in' }).populate('user', 'name');
+    for (let k = 0; k < Math.min(fbCount, regs.length); k += 1) {
+      const reg = regs[k];
+      const r = rand(k + ev.title.length);
+      const rating = r > 0.12 ? (r > 0.55 ? 5 : 4) : r > 0.06 ? 3 : 2;
+      const pool2 = rating >= 4 ? FB_COMMENTS.positive : rating === 3 ? FB_COMMENTS.neutral : FB_COMMENTS.negative;
+      const comment = rand(k * 3 + 1) > 0.3 ? pool2[k % pool2.length] : '';
+      // eslint-disable-next-line no-await-in-loop
+      await Feedback.create({
+        event: ev._id, user: reg.user._id, registration: reg._id, rating,
+        contentRating: Math.max(1, Math.min(5, rating + (rand(k) > 0.5 ? 0 : -1))),
+        organizationRating: Math.max(1, Math.min(5, rating)),
+        venueRating: Math.max(1, Math.min(5, rating + (rand(k + 2) > 0.7 ? -1 : 0))),
+        comment, wouldRecommend: rating >= 4, sentiment: sentiment(rating, comment),
+      });
+    }
+    const certsFor = regs.slice(0, Math.floor(regs.length * certRate));
+    if (demoCert && !certsFor.some((r) => r.user._id.toString() === attendee._id.toString())) {
+      const aReg = await Registration.findOne({ event: ev._id, user: attendee._id }).populate('user', 'name');
+      if (aReg) certsFor.push(aReg);
+    }
+    ev.settings.certificatesIssued = true;
+    await ev.save();
+    for (const reg of certsFor) {
+      // eslint-disable-next-line no-await-in-loop
+      await Certificate.create({
+        certificateId: certificateId(), event: ev._id, user: reg.user._id, registration: reg._id,
+        issuedBy: organizer._id, recipientName: reg.user.name, eventTitle: ev.title,
+        organizerName: 'Sphere Events', type: 'participation', eventDate: ev.startDate,
+        issuedAt: new Date(ev.endDate.getTime() + 2 * 86400000),
+      });
+    }
+  }
+  await addFeedbackAndCerts('annual-cultural-fest', { fbCount: 46, certRate: 0.85, demoCert: true });
+  await addFeedbackAndCerts('corporate-leadership-summit', { fbCount: 28, certRate: 0.9 });
+  await addFeedbackAndCerts('nashik-developer-meetup', { fbCount: 8, certRate: 0 });
+
+  // ─────────────── Live event content ───────────────
+  const liveEv = events['nashik-developer-meetup'];
+  await Announcement.create([
+    { event: liveEv._id, author: organizer._id, authorName: organizer.name, title: 'Welcome to the Nashik Developer Meetup! 🎉', body: 'Check the schedule tab, drop questions in Q&A and vote in the first poll. Tea is in the foyer!', severity: 'info', pinned: true },
+    { event: liveEv._id, author: organizer._id, authorName: organizer.name, title: 'Workshop Hall A moved to Room 204', body: 'Heads up: the “Ship Faster with Tooling” workshop is moving from Hall A to Room 204 (first floor, turn right). Volunteers in blue tees will guide you.', severity: 'warning', pinned: true },
+  ]);
+
+  const poll1 = await Poll.create({
+    event: liveEv._id, createdBy: organizer._id,
+    question: 'Which talk are you most excited about today?',
+    options: [
+      { text: 'Modern React Patterns', voters: attendees.slice(0, 14).map((u) => u._id) },
+      { text: 'Ship Faster with Tooling', voters: attendees.slice(14, 22).map((u) => u._id) },
+      { text: 'The AMA session', voters: attendees.slice(22, 27).map((u) => u._id) },
+    ],
+  });
+  await Poll.create({
+    event: liveEv._id, createdBy: organizer._id,
+    question: 'What should our next meetup topic be?',
+    options: [{ text: 'AI agents in production', voters: [] }, { text: 'Rust for web devs', voters: [] }, { text: 'Design systems', voters: [] }],
+  });
+  await Question.create([
+    { event: liveEv._id, user: attendees[0]._id, userName: attendees[0].name, text: 'How do you handle server state vs client state in large React apps?', upvotes: [attendees[1]._id, attendees[2]._id, attendees[3]._id], answered: true, answer: 'Use TanStack Query for all server state and keep UI state local or in Zustand — the talk covers exactly this!', answeredByName: 'Vikram Singh' },
+    { event: liveEv._id, user: attendees[4]._id, userName: attendees[4].name, text: 'Will the slides be shared after the event?', upvotes: [attendees[5]._id, attendees[6]._id], answered: true, answer: 'Yes, you will receive them by email tomorrow with your certificate.', answeredByName: organizer.name },
+    { event: liveEv._id, user: attendees[7]._id, userName: 'Anonymous', text: 'Any internship openings for third-year students?', upvotes: [attendees[8]._id, attendees[9]._id, attendees[10]._id, attendees[11]._id] },
+  ]);
+  const chatLines = [
+    'Hello everyone! 👋', 'The chai is excellent today', 'Will this be recorded?', 'Loving the React patterns talk',
+    'Room 204 it is, thanks!', 'Anyone here from COEP?', 'That useReducer tip was gold', 'How do we join the AMA?',
+    'Follow the Q&A tab, vote questions up!', 'Great crowd today 🔥', 'Where do we collect swag?', 'At the foyer desk after the AMA',
+  ];
+  for (let i = 0; i < chatLines.length; i += 1) {
+    const u = attendees[i % attendees.length];
+    // eslint-disable-next-line no-await-in-loop
+    await Message.create({ kind: 'event', event: liveEv._id, sender: u._id, senderName: u.name, text: chatLines[i], createdAt: new Date(Date.now() - (chatLines.length - i) * 4 * 60000) });
+  }
+
+  // ─────────────── Connections (demo attendee) ───────────────
+  async function connect(a, b, status) {
+    await Connection.create({
+      requester: a, recipient: b, status, matchedScore: 70 + Math.floor(rand(a.toString().length + b.toString().length) * 29),
+      matchedReason: 'Shared interests in AI/ML and Web Development',
+      respondedAt: status === 'accepted' ? new Date() : undefined,
+    });
+  }
+  await connect(attendees[2]._id, attendee._id, 'accepted');
+  await connect(attendees[9]._id, attendee._id, 'accepted');
+  await connect(attendees[15]._id, attendee._id, 'pending');
+  await connect(attendee._id, attendees[20]._id, 'accepted');
+  await connect(attendees[0]._id, attendees[1]._id, 'accepted');
+  await connect(attendees[5]._id, attendees[8]._id, 'pending');
+  await Message.create({ kind: 'dm', sender: attendees[2]._id, senderName: attendees[2].name, recipient: attendee._id, text: 'Hey Aarav! Saw you are into MERN — want to team up for TechNova?', createdAt: new Date(Date.now() - 86400000) });
+  await Message.create({ kind: 'dm', sender: attendee._id, senderName: attendee.name, recipient: attendees[2]._id, text: 'Absolutely, let’s plan this evening!', createdAt: new Date(Date.now() - 86000000) });
+
+  // ─────────────── Favorites (demo attendee) ───────────────
+  await Favorite.create({ user: attendee._id, event: events['cyber-security-bootcamp']._id });
+  await Favorite.create({ user: attendee._id, event: events['design-thinking-sprint']._id });
+  await Favorite.create({ user: attendee._id, event: events['campus-startup-expo']._id });
+
+  // ─────────────── Notifications (demo attendee) ───────────────
+  const n = async (...args) => Notification.create(...args);
+  await n([
+    { user: attendee._id, type: 'registration', title: 'Registered: TechNova Hackathon', message: 'Your team pass is confirmed — grab your QR ticket.', link: '/my-tickets', read: false },
+    { user: attendee._id, type: 'certificate', title: 'Certificate ready: Rhythm & Hues — Annual Cultural Fest', message: 'Your verifiable digital certificate has been issued.', link: '/my-certificates', read: false },
+    { user: attendee._id, type: 'announcement', title: 'Nashik Developer Meetup: Workshop Hall A moved to Room 204', message: 'Volunteers in blue tees will guide you.', link: `/events/nashik-developer-meetup/live`, read: false },
+    { user: attendee._id, type: 'connection', title: `${attendees[15].name} wants to connect`, message: 'Accept to start networking and chat.', link: '/network', read: false },
+    { user: attendee._id, type: 'reminder', title: 'TechNova Hackathon starts in 12 days', message: 'Add it to your calendar and complete your team details.', link: '/calendar', read: true },
+    { user: attendee._id, type: 'system', title: 'Welcome to EventSphere! 🎉', message: 'Discover events, build connections and earn badges.', link: '/events', read: true },
+  ]);
+  await n([
+    { user: organizer._id, type: 'system', title: 'E-Sports Arena 2026 submitted for approval', message: 'CampusCore submitted a new event for review.', link: '/admin/events', read: false },
+    { user: admin._id, type: 'system', title: 'New organizer application: Rohit Jain', message: 'CSI Student Chapter is awaiting review.', link: '/admin/users', read: false },
+  ]);
+
+  // ─────────────── Reports & audit ───────────────
+  await Report.create({
+    reporter: attendees[12]._id, targetType: 'event', target: events['indie-music-night']._id,
+    reason: 'incorrect_info', details: 'The gate price shown at registration differs from the venue poster (₹399 vs ₹349).', status: 'open',
+  });
+  await Report.create({
+    reporter: attendees[3]._id, targetType: 'event', target: events['fintech-founders-roundtable']._id,
+    reason: 'spam', details: 'Looks like a private dinner advertised as open to all.', status: 'reviewing',
+  });
+  await AuditLog.create([
+    { actor: admin._id, actorName: admin.name, action: 'organizer.approved', targetType: 'user', targetId: organizer._id, meta: { email: organizer.email }, ip: '127.0.0.1' },
+    { actor: admin._id, actorName: admin.name, action: 'event.approved', targetType: 'event', targetId: events['ai-innovation-summit']._id, meta: { title: 'AI Innovation Summit 2026' }, ip: '127.0.0.1' },
+    { actor: admin._id, actorName: admin.name, action: 'event.approved', targetType: 'event', targetId: events['technova-hackathon']._id, meta: { title: 'TechNova Hackathon' }, ip: '127.0.0.1' },
+  ]);
+
+  // ─────────────── Gamification ledger ───────────────
+  const allUsers = await User.find({ role: 'attendee' });
+  for (const u of allUsers) {
+    // eslint-disable-next-line no-await-in-loop
+    const regs = await Registration.find({ user: u._id });
+    const confirmedCount = regs.filter((r) => ['confirmed', 'checked_in'].includes(r.status)).length;
+    const checkedCount = regs.filter((r) => r.status === 'checked_in').length;
+    if (confirmedCount) {
+      // eslint-disable-next-line no-await-in-loop
+      await PointActivity.create({ user: u._id, points: confirmedCount * 10, reason: 'Event registrations', meta: { count: confirmedCount } });
+    }
+    if (checkedCount) {
+      // eslint-disable-next-line no-await-in-loop
+      await PointActivity.create({ user: u._id, points: checkedCount * 50, reason: 'Event check-ins', meta: { count: checkedCount } });
+    }
+    const acceptedConnections = await Connection.countDocuments({
+      $or: [{ requester: u._id }, { recipient: u._id }], status: 'accepted',
+    });
+    if (acceptedConnections) {
+      // eslint-disable-next-line no-await-in-loop
+      await PointActivity.create({ user: u._id, points: acceptedConnections * 15, reason: 'Networking connections' });
+    }
+    if (u._id.toString() === attendee._id.toString()) {
+      poll1.options[0].voters.push(attendee._id);
+      // eslint-disable-next-line no-await-in-loop
+      await PointActivity.create({ user: u._id, event: liveEv._id, points: 10, reason: 'Answered a live poll' });
+    } else if (rand(u._id.toString().length) > 0.5) {
+      // eslint-disable-next-line no-await-in-loop
+      await PointActivity.create({ user: u._id, points: 10, reason: 'Answered a live poll' });
+    }
+    const total = await PointActivity.aggregate([{ $match: { user: u._id } }, { $group: { _id: null, p: { $sum: '$points' } } }]);
+    u.points = total[0]?.p || 0;
+    // eslint-disable-next-line no-await-in-loop
+    await u.save();
+  }
+  await poll1.save();
+
+  // Badges: evaluate rules for everyone
+  const gamification = require('../services/gamificationService');
+  const allForBadges = await User.find({});
+  for (const u of allForBadges) {
+    // eslint-disable-next-line no-await-in-loop
+    await gamification.evaluateBadges(u._id);
+  }
+
+  log('✓ Seed complete:');
+  log(`  ${await User.countDocuments()} users · ${await Event.countDocuments()} events · ${await Registration.countDocuments()} registrations · ${await Ticket.countDocuments()} tickets`);
+  log(`  ${await Certificate.countDocuments()} certificates · ${await Session.countDocuments()} sessions · ${await Speaker.countDocuments()} speakers`);
+}
+
+// Standalone execution
+if (require.main === module) {
+  (async () => {
+    await connectDB();
+    await runSeed({ force: process.argv.includes('--force'), silent: false });
+    await disconnectDB();
+    process.exit(0);
+  })().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}
+
+module.exports = { runSeed };

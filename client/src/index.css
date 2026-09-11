@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 20% 99%;
+    --foreground: 240 24% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 24% 12%;
+    --primary: 256 80% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 16% 96%;
+    --secondary-foreground: 240 18% 20%;
+    --muted: 240 16% 96%;
+    --muted-foreground: 240 8% 44%;
+    --accent: 256 80% 95%;
+    --accent-foreground: 256 80% 36%;
+    --destructive: 0 74% 54%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 68% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 32 92% 46%;
+    --warning-foreground: 0 0% 100%;
+    --border: 240 12% 90%;
+    --input: 240 12% 88%;
+    --ring: 256 80% 56%;
+    --radius: 0.85rem;
+    --shadow-color: 240 40% 20%;
+  }
+
+  .dark {
+    --background: 240 18% 7%;
+    --foreground: 240 20% 96%;
+    --card: 240 16% 10%;
+    --card-foreground: 240 20% 96%;
+    --primary: 256 85% 70%;
+    --primary-foreground: 240 30% 8%;
+    --secondary: 240 12% 16%;
+    --secondary-foreground: 240 20% 92%;
+    --muted: 240 12% 16%;
+    --muted-foreground: 240 10% 62%;
+    --accent: 256 50% 22%;
+    --accent-foreground: 256 90% 90%;
+    --destructive: 0 70% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 55% 50%;
+    --success-foreground: 240 30% 8%;
+    --warning: 32 90% 58%;
+    --warning-foreground: 240 30% 8%;
+    --border: 240 12% 20%;
+    --input: 240 12% 24%;
+    --ring: 256 85% 70%;
+    --shadow-color: 0 0% 0%;
+  }
+
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  h1, h2, h3, h4, h5 {
+    @apply font-display tracking-tight;
+  }
+  ::selection {
+    background: hsl(var(--primary) / 0.25);
+  }
+  /* Focus visibility */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.25);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.45); background-clip: content-box; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-card/75 backdrop-blur-xl border border-border/70;
+  }
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(110deg, hsl(256 85% 60%), hsl(222 90% 58%), hsl(280 80% 55%));
+  }
+  .gradient-brand {
+    background-image: linear-gradient(120deg, hsl(256 85% 58%), hsl(226 90% 56%));
+  }
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lift;
+  }
+  .skeleton {
+    @apply relative overflow-hidden bg-muted rounded-md;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.06), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 1.6s infinite;
+  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* Leaflet (map) dark tweaks */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  font-family: inherit;
+  z-index: 0;
+}
+.dark .leaflet-tile {
+  filter: brightness(0.62) invert(1) contrast(0.9) hue-rotate(180deg) saturate(0.6);
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+}
+
+/* Certificate print */
+@media print {
+  body * { visibility: hidden; }
+  #print-area, #print-area * { visibility: visible; }
+  #print-area { position: absolute; inset: 0; }
+  .no-print { display: none !important; }
+}

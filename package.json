@@ -1,0 +1,23 @@
+{
+  "name": "eventsphere",
+  "version": "1.0.0",
+  "private": true,
+  "description": "EventSphere — intelligent Event Management & Operations Platform (MERN)",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "postinstall": "node scripts/ensure-env.js",
+    "setup": "npm install",
+    "dev:server": "npm --workspace server run dev",
+    "dev:client": "npm --workspace client run dev",
+    "build": "npm --workspace client run build",
+    "start": "npm --workspace server start",
+    "seed": "npm --workspace server run seed",
+    "test": "npm --workspace server test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
