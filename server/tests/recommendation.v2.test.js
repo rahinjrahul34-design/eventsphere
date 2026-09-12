@@ -474,6 +474,8 @@ describe('AI Event Recommendation 2.0 Test Suite (20 Quality Tests + APIs)', () 
     expect(res.body.data.recommended).toBeDefined();
     expect(res.body.data.basedOnSkills).toBeDefined();
     expect(res.body.data.nearYou).toBeDefined();
+    expect(res.body.data.becauseYouLike).toBeDefined();
+    expect(res.body.data.newEventsYouMayLike).toBeDefined();
     expect(res.body.data.algorithmVersion).toBe('recommendation-v2');
   });
 

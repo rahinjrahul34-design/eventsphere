@@ -17,11 +17,10 @@ import {
   History,
   HelpCircle,
   ShieldCheck,
-  CheckCircle2,
+  Heart,
 } from 'lucide-react';
 import { endpoints } from '../lib/api';
-import RecommendationCard from '../components/recommendations/RecommendationCard';
-import EventCard from '../components/events/EventCard';
+import RecRail from '../components/recommendations/RecRail';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -55,7 +54,11 @@ export default function HomeFeed() {
   const nearYou = feed.nearYou || [];
   const exploreEvent = feed.exploreSomethingNew;
   const trendingInInterests = feed.trendingInInterests || [];
+  const becauseYouLike = feed.becauseYouLike || [];
+  const newEventsYouMayLike = feed.newEventsYouMayLike || [];
   const userSkills = feed.userSkills || user?.skills || [];
+  const hour = new Date().getHours();
+  const hello = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   const upcoming = (regsQ.data || [])
     .filter((r) => ['confirmed', 'checked_in'].includes(r.status) && r.event && new Date(r.event.endDate) >= new Date())
@@ -66,9 +69,11 @@ export default function HomeFeed() {
       {/* ─── Greeting Hero ─── */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-600 p-8 text-white shadow-lift">
         <div className="absolute -right-16 -top-16 size-56 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-        <h1 className="font-display text-3xl font-extrabold">Hi {user?.name?.split(' ')[0]} 👋</h1>
+        <h1 className="font-display text-3xl font-extrabold">
+          {hello} {user?.name?.split(' ')[0]} 👋
+        </h1>
         <p className="mt-1 max-w-xl text-white/85">
-          Your personalized event discovery platform — intelligent recommendations, verified match reasons, tickets, and rewards.
+          Here are events selected for you — match scores, verified reasons, and topics to explore next.
         </p>
 
         <div className="mt-5 flex flex-wrap gap-3">
@@ -169,11 +174,7 @@ export default function HomeFeed() {
             </div>
           </Card>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {recommended.map((e, i) => (
-              <RecommendationCard key={e._id} event={e} index={i} debug={isDebug} />
-            ))}
-          </div>
+          <RecRail events={recommended} debug={isDebug} />
         )}
       </section>
 
@@ -203,11 +204,7 @@ export default function HomeFeed() {
             </Link>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {basedOnSkills.map((e, i) => (
-              <RecommendationCard key={e._id} event={e} index={i} debug={isDebug} />
-            ))}
-          </div>
+          <RecRail events={basedOnSkills} debug={isDebug} />
         </section>
       )}
 
@@ -229,11 +226,7 @@ export default function HomeFeed() {
             </Link>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {similarToAttended.map((e, i) => (
-              <RecommendationCard key={e._id} event={e} index={i} debug={isDebug} />
-            ))}
-          </div>
+          <RecRail events={similarToAttended} debug={isDebug} />
         </section>
       )}
 
@@ -291,11 +284,7 @@ export default function HomeFeed() {
             </Link>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {nearYou.map((e, i) => (
-              <RecommendationCard key={e._id} event={e} index={i} debug={isDebug} />
-            ))}
-          </div>
+          <RecRail events={nearYou} debug={isDebug} />
         </section>
       )}
 
@@ -314,11 +303,37 @@ export default function HomeFeed() {
             </div>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {trendingInInterests.map((e, i) => (
-              <RecommendationCard key={e._id} event={e} index={i} debug={isDebug} />
-            ))}
+          <RecRail events={trendingInInterests} debug={isDebug} />
+        </section>
+      )}
+
+      {becauseYouLike.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex items-center gap-2.5">
+            <div className="grid size-9 place-items-center rounded-xl bg-pink-500/10 text-pink-600 dark:text-pink-400">
+              <Heart className="size-5" />
+            </div>
+            <div>
+              <h2 className="font-display text-xl font-bold">Because you like…</h2>
+              <p className="text-sm text-muted-foreground">Tied to interests, favorites, and events you already attended</p>
+            </div>
           </div>
+          <RecRail events={becauseYouLike} debug={isDebug} />
+        </section>
+      )}
+
+      {newEventsYouMayLike.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex items-center gap-2.5">
+            <div className="grid size-9 place-items-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
+              <Sparkles className="size-5" />
+            </div>
+            <div>
+              <h2 className="font-display text-xl font-bold">New events you may like</h2>
+              <p className="text-sm text-muted-foreground">Fresh listings that still match your profile</p>
+            </div>
+          </div>
+          <RecRail events={newEventsYouMayLike} debug={isDebug} />
         </section>
       )}
 

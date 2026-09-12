@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   CalendarDays,
   MapPin,
   Sparkles,
-  Users,
   IndianRupee,
   Building2,
   Video,
@@ -15,6 +14,7 @@ import {
 } from 'lucide-react';
 import FavoriteButton from '../events/FavoriteButton';
 import WhyThisEventModal from './WhyThisEventModal';
+import RecommendationFeedback from './RecommendationFeedback';
 import { fmtDate, categoryMeta, typeLabel } from '../../lib/format';
 import { endpoints } from '../../lib/api';
 
@@ -23,12 +23,25 @@ const typeIcon = { offline: Building2, online: Video, hybrid: Radio };
 export default function RecommendationCard({ event, index = 0, onDismiss, debug = false }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const impressed = useRef(false);
+
+  useEffect(() => {
+    if (impressed.current || !event?._id) return;
+    impressed.current = true;
+    endpoints
+      .recommendationInteraction({
+        eventId: event._id,
+        interactionType: 'impression',
+        recommendationSource: event.recommendationSource || 'PERSONALIZED',
+      })
+      .catch(() => {});
+  }, [event?._id, event?.recommendationSource]);
 
   if (dismissed) return null;
 
   const cat = categoryMeta(event.categorySlug);
   const TypeIcon = typeIcon[event.eventType] || Building2;
-  const matchPct = event.matchPercentage || 85;
+  const matchPct = Number.isFinite(event.matchPercentage) ? event.matchPercentage : null;
 
   const handleDismiss = async (e) => {
     e.preventDefault();
@@ -135,18 +148,25 @@ export default function RecommendationCard({ event, index = 0, onDismiss, debug 
               </p>
             </div>
 
-            {/* Why this event pill */}
-            <div className="mt-1 pt-2 border-t border-muted/50">
-              <button
-                type="button"
-                onClick={() => setModalOpen(true)}
-                className="w-full text-left group/why flex items-start gap-1.5 rounded-lg bg-primary/8 hover:bg-primary/12 px-2.5 py-2 text-xs font-medium text-primary transition"
-              >
-                <Sparkles className="size-3.5 mt-0.5 shrink-0 text-primary group-hover/why:rotate-12 transition-transform" />
-                <span className="flex-1 line-clamp-1">{event.topReason || 'Matches your interests and skills'}</span>
-                <HelpCircle className="size-3.5 shrink-0 opacity-70 group-hover/why:opacity-100" />
-              </button>
-            </div>
+            {event.organizer?.name && (
+              <p className="text-[11px] text-muted-foreground">
+                Hosted by <span className="font-semibold text-foreground">{event.organizer.name}</span>
+              </p>
+            )}
+
+            {event.topReason && (
+              <div className="mt-1 border-t border-muted/50 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(true)}
+                  className="group/why flex w-full items-start gap-1.5 rounded-lg bg-primary/8 px-2.5 py-2 text-left text-xs font-medium text-primary transition hover:bg-primary/12"
+                >
+                  <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary transition-transform group-hover/why:rotate-12" />
+                  <span className="flex-1 line-clamp-2">{event.topReason}</span>
+                  <HelpCircle className="size-3.5 shrink-0 opacity-70 group-hover/why:opacity-100" />
+                </button>
+              </div>
+            )}
 
             {/* Developer debug preview */}
             {debug && event._debug && (
@@ -158,28 +178,31 @@ export default function RecommendationCard({ event, index = 0, onDismiss, debug 
             )}
 
             {/* Footer / CTA */}
-            <div className="mt-auto flex items-center justify-between pt-2">
-              <span className="font-display font-extrabold text-sm">
+            <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+              <span className="font-display text-sm font-extrabold">
                 {event.price > 0 || (event.ticketTypes || []).some((t) => t.price > 0) ? (
                   <span className="flex items-center">
                     <IndianRupee className="size-3.5" />
                     {Math.min(
-                      ...[event.price || Infinity, ...event.ticketTypes.filter((t) => t.price > 0).map((t) => t.price)]
+                      ...[event.price || Infinity, ...(event.ticketTypes || []).filter((t) => t.price > 0).map((t) => t.price)]
                     )}{' '}
                     onward
                   </span>
                 ) : (
-                  <span className="text-success font-bold">Free</span>
+                  <span className="font-bold text-success">Free</span>
                 )}
               </span>
 
-              <Link
-                to={`/events/${event.slug}`}
-                onClick={handleCardClick}
-                className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary transition group-hover:bg-primary group-hover:text-white"
-              >
-                Register
-              </Link>
+              <div className="flex items-center gap-2">
+                <RecommendationFeedback eventId={event._id} />
+                <Link
+                  to={`/events/${event.slug}`}
+                  onClick={handleCardClick}
+                  className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary transition group-hover:bg-primary group-hover:text-white"
+                >
+                  View event
+                </Link>
+              </div>
             </div>
           </div>
         </div>

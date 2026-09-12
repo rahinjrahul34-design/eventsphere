@@ -152,16 +152,17 @@ export default function WhyThisEventModal({ open, onClose, event, onFeedbackSubm
                 </div>
               )}
 
-              {/* Location */}
-              <div className="flex items-start gap-3 p-3 rounded-xl border bg-muted/30">
-                <MapPin className="size-4 text-emerald-500 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-xs font-bold">Location Proximity</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {event.eventType === 'online' ? 'Online event — join from anywhere' : `Taking place in ${event.venue?.city || 'your area'}`}
-                  </p>
+              {reasons.some((r) => r.type === 'location') && (
+                <div className="flex items-start gap-3 rounded-xl border bg-muted/30 p-3">
+                  <MapPin className="mt-0.5 size-4 shrink-0 text-emerald-500" />
+                  <div>
+                    <p className="text-xs font-bold">Location</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {reasons.find((r) => r.type === 'location')?.detail}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Feedback Section */}

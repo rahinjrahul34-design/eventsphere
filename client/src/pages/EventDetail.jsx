@@ -16,7 +16,7 @@ import { Avatar } from '../components/ui/avatar';
 import FavoriteButton from '../components/events/FavoriteButton';
 import ShareMenu from '../components/events/ShareMenu';
 import MapView from '../components/events/MapView';
-import EventCard from '../components/events/EventCard';
+import RecommendationCard from '../components/recommendations/RecommendationCard';
 import CheckoutDialog from '../components/events/CheckoutDialog';
 import SmartHoldModal from '../components/waitlist/SmartHoldModal';
 import OrganizerTrustCard from '../components/trustsphere/OrganizerTrustCard';
@@ -293,18 +293,10 @@ export default function EventDetail() {
 
           {/* Similar */}
           {similarQ.data?.length > 0 && (
-            <Section title="Similar events you’ll love">
+            <Section title="More events you may like">
               <div className="grid gap-5 sm:grid-cols-2">
                 {similarQ.data.map((e, i) => (
-                  <div key={e._id} className="flex flex-col">
-                    <EventCard event={e} index={i} compact />
-                    {e.topReason && (
-                      <div className="mt-2 flex items-center justify-between text-[11px] px-3 py-1.5 rounded-lg bg-primary/8 text-primary font-medium border border-primary/10">
-                        <span className="truncate">✨ {e.topReason}</span>
-                        {e.matchPercentage && <span className="font-extrabold shrink-0 ml-2">{e.matchPercentage}% match</span>}
-                      </div>
-                    )}
-                  </div>
+                  <RecommendationCard key={e._id} event={e} index={i} />
                 ))}
               </div>
             </Section>
