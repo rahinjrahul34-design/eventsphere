@@ -72,6 +72,19 @@ export function useGlobalSocket() {
       qc.invalidateQueries({ queryKey: ['events'] });
     };
 
+    // ---- TrustSphere real-time updates (CORE FEATURE 36) ----
+    const onTrustUpdated = (d) => {
+      qc.invalidateQueries({ queryKey: ['my-trust'] });
+      qc.invalidateQueries({ queryKey: ['my-trust-history'] });
+      qc.invalidateQueries({ queryKey: ['trust'] });
+      if (d?.scoreDelta) {
+        toast(d.scoreDelta > 0 ? `Trust score up ${d.scoreDelta} → ${d.trustScore}` : `Trust score down ${Math.abs(d.scoreDelta)} → ${d.trustScore}`, {
+          description: d.trigger ? `Trigger: ${d.trigger.replace(/_/g, ' ').toLowerCase()}` : undefined,
+          icon: d.scoreDelta > 0 ? '📈' : '📉',
+        });
+      }
+    };
+
     socket.on('notification:new', onNotification);
     socket.on('points:awarded', onPoints);
     socket.on('badge:awarded', onBadge);
@@ -81,6 +94,7 @@ export function useGlobalSocket() {
     socket.on('smartqueue:reminder', onReminder);
     socket.on('smartqueue:position', onPosition);
     socket.on('smartqueue:update', onQueueUpdate);
+    socket.on('trust:updated', onTrustUpdated);
     return () => {
       socket.off('notification:new', onNotification);
       socket.off('points:awarded', onPoints);
@@ -91,6 +105,7 @@ export function useGlobalSocket() {
       socket.off('smartqueue:reminder', onReminder);
       socket.off('smartqueue:position', onPosition);
       socket.off('smartqueue:update', onQueueUpdate);
+      socket.off('trust:updated', onTrustUpdated);
     };
   }, [token, qc, user?.id]);
 }

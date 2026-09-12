@@ -128,6 +128,18 @@ export default function AdminTrustAnalytics() {
             );
           })}
         </div>
+
+        {/* Numeric score bands (90–100 / 80–89 / … / below 60) — CORE FEATURE 37 */}
+        {analytics.scoreBandDistribution && Object.values(analytics.scoreBandDistribution).some((v) => v > 0) && (
+          <div className="grid grid-cols-3 gap-2 border-t pt-3 sm:grid-cols-6">
+            {Object.entries(analytics.scoreBandDistribution).map(([band, count]) => (
+              <div key={band} className="rounded-xl border bg-muted/30 p-2.5 text-center">
+                <p className="text-sm font-extrabold text-foreground">{count}</p>
+                <p className="text-[10px] font-semibold text-muted-foreground">{band}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Flagged / At-Risk Organizers Radar */}

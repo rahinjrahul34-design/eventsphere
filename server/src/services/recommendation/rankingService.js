@@ -7,6 +7,62 @@ const { ALGORITHM_VERSION } = require('./config');
 const { getCandidateEvents } = require('./candidateService');
 const { scoreEvent } = require('./scoringEngine');
 const { applyDiversity, selectExplorationEvent } = require('./diversityService');
+const OrganizerTrustProfile = require('../../models/OrganizerTrustProfile');
+
+/**
+ * TrustSphere × Recommendation 2.0 integration (CORE FEATURE 47).
+ *
+ * Organizer reliability acts as a *small, bounded* contextual signal — it can
+ * nudge an event by at most ±3 points and can NEVER overpower user relevance.
+ * Organizers without a trust profile (cold start) receive no adjustment at
+ * all, so new organizers are not penalized by the discovery feed.
+ */
+async function applyTrustSignal(scoredEvents) {
+  const organizerIds = [
+    ...new Set(
+      scoredEvents
+        .map((e) => e.organizer?._id?.toString() || e.organizer?.toString())
+        .filter(Boolean)
+    ),
+  ];
+  if (organizerIds.length === 0) return scoredEvents;
+
+  const profiles = await OrganizerTrustProfile.find({
+    organizer: { $in: organizerIds },
+  })
+    .select('organizer trustScore trustLevel verified')
+    .lean();
+
+  const byOrganizer = Object.fromEntries(profiles.map((p) => [p.organizer.toString(), p]));
+
+  for (const item of scoredEvents) {
+    const orgId = item.organizer?._id?.toString() || item.organizer?.toString();
+    const profile = orgId ? byOrganizer[orgId] : null;
+    if (!profile) continue; // cold-start organizer: zero adjustment
+
+    const trust = profile.trustScore || 0;
+    let nudge = 0;
+    if (trust >= 90) nudge = 3;
+    else if (trust >= 80) nudge = 2;
+    else if (trust >= 70) nudge = 1;
+    else if (trust > 0 && trust < 50) nudge = -3;
+
+    if (nudge !== 0) {
+      item.matchPercentage = Math.max(35, Math.min(98, item.matchPercentage + nudge));
+      item.reasons = item.reasons || [];
+      item.reasons.push({
+        type: nudge > 0 ? 'trust' : 'trust_risk',
+        label: nudge > 0 ? 'Organizer has a strong EventSphere reliability record' : 'Organizer reliability record is below platform benchmarks',
+        points: nudge,
+      });
+    }
+    item.organizerTrust = { score: trust, level: profile.trustLevel, verified: profile.verified };
+  }
+
+  // Re-sort: trust nudges may have reordered near-equal candidates
+  scoredEvents.sort((a, b) => b.matchPercentage - a.matchPercentage);
+  return scoredEvents;
+}
 
 /**
  * Executes full ranking pipeline to produce multi-section discovery feeds.
@@ -18,6 +74,9 @@ async function generateRankedFeed(userProfile, { limit = 8, debug = false } = {}
   const scoredEvents = candidates.map((event) =>
     scoreEvent(event, userProfile, { maxBatchRegs, isDebug: debug })
   );
+
+  // TrustSphere contextual signal (bounded ±3) — applied BEFORE diversity
+  await applyTrustSignal(scoredEvents);
 
   // Sort descending by match percentage and raw score
   scoredEvents.sort((a, b) => b.matchPercentage - a.matchPercentage);
