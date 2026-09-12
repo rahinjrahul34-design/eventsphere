@@ -75,7 +75,7 @@ export default function ExecutiveSummaryCard({ overallHealth, onRefresh, isRefre
               <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1 font-medium">
                   <CheckCircle2 className="size-3.5 text-primary" />
-                  Model Confidence: <strong className="text-foreground">{confidence}%</strong>
+                  Model Confidence: <strong className="text-foreground">{confidence != null ? `${confidence}%` : 'N/A'}</strong>
                 </span>
 
                 <button

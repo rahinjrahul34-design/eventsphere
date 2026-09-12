@@ -413,5 +413,111 @@ describe('AI Command Center - Comprehensive Test Suite', () => {
       const check = await EventRiskAlert.findById(alert._id);
       expect(check.status).toBe('resolved');
     });
+
+    test('PATCH with invalid status value returns 400 Bad Request', async () => {
+      const res = await request(app)
+        .patch(`/api/command-center/${testEvent._id}/actions/507f1f77bcf86cd799439011`)
+        .set('Authorization', `Bearer ${organizerToken}`)
+        .send({ status: 'not-a-real-status' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+  });
+
+  describe('8. Honest Data Availability (No Fabricated Fallbacks)', () => {
+    let pristineEvent;
+
+    beforeAll(async () => {
+      // A brand-new event: no predictions, no safety assessment, no queue, no SEO profile.
+      const res = await request(app)
+        .post('/api/events')
+        .set('Authorization', `Bearer ${organizerToken}`)
+        .send({
+          title: 'Command Center Pristine Event 2026',
+          shortDescription: 'Fresh event with zero intelligence activity.',
+          description: 'Used to verify that unavailable modules are reported honestly instead of fabricated.',
+          eventType: 'offline',
+          venue: { name: 'Quiet Hall', city: 'Bangalore' },
+          startDate: new Date(Date.now() + 86400000 * 14),
+          endDate: new Date(Date.now() + 86400000 * 15),
+          capacity: 100,
+        });
+      pristineEvent = res.body.data;
+    });
+
+    afterAll(async () => {
+      await Event.deleteMany({ title: 'Command Center Pristine Event 2026' });
+    });
+
+    test('Fresh event reports modules as unavailable with null metrics (never fake defaults)', async () => {
+      const res = await request(app)
+        .get(`/api/command-center/${pristineEvent._id}`)
+        .set('Authorization', `Bearer ${organizerToken}`);
+
+      expect(res.status).toBe(200);
+      const d = res.body.data;
+
+      expect(d.attendance.available).toBe(false);
+      expect(d.attendance.expectedAttendance).toBeNull();
+      expect(d.attendance.attendanceRate).toBeNull();
+
+      expect(d.safety.available).toBe(false);
+      expect(d.safety.safetyScore).toBeNull();
+
+      expect(d.trust.trustScore).toBeNull();
+      expect(d.trust.verified).toBeNull();
+
+      expect(d.overallHealth.confidence).toBeNull();
+      expect(d.overallHealth.dataCompleteness.availableModules).toBeLessThan(6);
+      expect(d.overallHealth.breakdown.safety.usedBaseline).toBe(true);
+      expect(d.overallHealth.breakdown.registration.usedBaseline).toBe(false);
+    });
+  });
+});
+
+describe('AI Command Center - Narrative & Caching Unit Tests', () => {
+  const { generateDeterministicBrief, generateExecutiveBrief, clearBriefCache } = require('../src/services/commandCenter/narrativeService');
+
+  afterAll(() => {
+    clearBriefCache();
+  });
+
+  test('Deterministic brief never renders an undefined attendance rate', () => {
+    const brief = generateDeterministicBrief({
+      event: { _id: 'u1', title: 'Unit Event', capacity: 100, registrationCount: 10 },
+      health: { score: 70, status: 'Good' },
+      actions: [],
+      pulseData: { attendance: { expectedAttendees: 8 } }, // no attendanceRate field
+    });
+    expect(brief.situation).not.toContain('undefined');
+    expect(brief.situation).toContain('8');
+  });
+
+  test('Executive brief is cached while facts are unchanged (no LLM spam)', async () => {
+    clearBriefCache();
+    const ctx = {
+      event: { _id: 'u2', title: 'Cache Event', capacity: 100, registrationCount: 40 },
+      health: { score: 82, status: 'Good' },
+      actions: [],
+      shieldAlerts: [],
+    };
+    const first = await generateExecutiveBrief(ctx);
+    const second = await generateExecutiveBrief(ctx);
+    expect(second.cached).toBe(true);
+    expect(second.generatedAt).toBe(first.generatedAt);
+  });
+
+  test('Executive brief regenerates when underlying facts change', async () => {
+    clearBriefCache();
+    const ctx = {
+      event: { _id: 'u3', title: 'Change Event', capacity: 100, registrationCount: 40 },
+      health: { score: 82, status: 'Good' },
+      actions: [],
+      shieldAlerts: [],
+    };
+    await generateExecutiveBrief(ctx);
+    const changed = await generateExecutiveBrief({ ...ctx, health: { score: 41, status: 'At Risk' } });
+    expect(changed.cached).toBeUndefined();
   });
 });

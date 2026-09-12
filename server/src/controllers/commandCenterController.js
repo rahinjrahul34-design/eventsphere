@@ -160,6 +160,12 @@ const updateActionStatus = asyncHandler(async (req, res) => {
   const { actionId } = req.params;
   const { status = 'resolved' } = req.body;
 
+  // Validate against the union of statuses supported by the underlying models.
+  const ALLOWED_STATUSES = ['active', 'acknowledged', 'resolved'];
+  if (!ALLOWED_STATUSES.includes(status)) {
+    throw ApiError.badRequest(`Invalid status. Allowed values: ${ALLOWED_STATUSES.join(', ')}`);
+  }
+
   await authorizeEventAccess(eventId, req.user);
 
   let updated = false;

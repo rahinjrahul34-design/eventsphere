@@ -261,6 +261,37 @@ function calculateEventHealth({
   const positiveFactors = [];
   const negativeFactors = [];
 
+  // Dimension data availability — dimensions computed from an assumed baseline
+  // (because the source module has no data yet) are flagged `usedBaseline` so
+  // the UI can explain exactly which inputs are real vs neutral assumptions.
+  const baselineNotes = {
+    attendance: !pulseData ? 'EventPulse prediction unavailable — derived from live registration count' : null,
+    safety: !shieldData ? 'EventShield assessment unavailable — neutral baseline assumed' : null,
+    registration: null, // always derived from the real Event document
+    queue: !queueData ? 'SmartQueue metrics unavailable — normal-state baseline assumed' : null,
+    content: !boostProfile ? 'EventBoost not yet analyzed — neutral baseline assumed' : null,
+    trust: !trustProfile ? 'TrustSphere profile unavailable — neutral baseline assumed' : null,
+  };
+  const breakdownBase = {
+    attendance: { score: attendanceScore, label: 'Attendance & Pacing' },
+    safety: { score: safetyScore, label: 'Safety & Risk Management' },
+    registration: { score: registrationScore, label: 'Registration Progress' },
+    queue: { score: queueScore, label: 'Queue & Waitlist Health' },
+    content: { score: contentScore, label: 'SEO & Content Quality' },
+    trust: { score: trustScore, label: 'Organizer Trust Profile' },
+  };
+  const breakdown = {};
+  Object.entries(breakdownBase).forEach(([key, entry]) => {
+    breakdown[key] = {
+      ...entry,
+      weight: WEIGHTS[key],
+      weightedScore: Math.round(entry.score * WEIGHTS[key]),
+      usedBaseline: Boolean(baselineNotes[key]),
+      baselineNote: baselineNotes[key],
+    };
+  });
+  const availableModuleCount = Object.values(baselineNotes).filter((n) => !n).length;
+
   // Attendance factors
   if (attendanceScore >= 75) {
     positiveFactors.push({ area: 'Attendance', factor: 'Solid forecasted attendee turnout and conversion' });
@@ -308,51 +339,24 @@ function calculateEventHealth({
     status,
     color: tier.color,
     description: tier.description,
-    confidence: pulseData?.health?.confidence || (shieldData ? 88 : 78),
+    confidence: pulseData?.health?.confidence ?? null,
+    confidenceBasis: pulseData?.health?.confidence !== undefined
+      ? 'Confidence reported by EventPulse prediction model'
+      : null,
+    dataCompleteness: {
+      availableModules: availableModuleCount,
+      totalModules: 6,
+      note: availableModuleCount < 6
+        ? `${6 - availableModuleCount} intelligence module(s) have no data yet; neutral baselines are used for those dimensions and flagged in the breakdown.`
+        : null,
+    },
     isOverridden,
     overrideReason: isOverridden
       ? hasCriticalSafetyAlert
         ? 'Overridden due to active critical safety alert'
         : 'Overridden due to venue overcapacity exceeding 110%'
       : null,
-    breakdown: {
-      attendance: {
-        score: attendanceScore,
-        weight: WEIGHTS.attendance,
-        weightedScore: Math.round(attendanceScore * WEIGHTS.attendance),
-        label: 'Attendance & Pacing',
-      },
-      safety: {
-        score: safetyScore,
-        weight: WEIGHTS.safety,
-        weightedScore: Math.round(safetyScore * WEIGHTS.safety),
-        label: 'Safety & Risk Management',
-      },
-      registration: {
-        score: registrationScore,
-        weight: WEIGHTS.registration,
-        weightedScore: Math.round(registrationScore * WEIGHTS.registration),
-        label: 'Registration Progress',
-      },
-      queue: {
-        score: queueScore,
-        weight: WEIGHTS.queue,
-        weightedScore: Math.round(queueScore * WEIGHTS.queue),
-        label: 'Queue & Waitlist Health',
-      },
-      content: {
-        score: contentScore,
-        weight: WEIGHTS.content,
-        weightedScore: Math.round(contentScore * WEIGHTS.content),
-        label: 'SEO & Content Quality',
-      },
-      trust: {
-        score: trustScore,
-        weight: WEIGHTS.trust,
-        weightedScore: Math.round(trustScore * WEIGHTS.trust),
-        label: 'Organizer Trust Profile',
-      },
-    },
+    breakdown,
     formula: {
       equation: 'Health = (Attendance × 0.25) + (Safety × 0.20) + (Registration × 0.20) + (Queue × 0.15) + (SEO × 0.10) + (Trust × 0.10)',
       explanation: 'Composite health score aggregates predictive attendance, operational safety, ticket sales velocity, waitlist efficiency, content completeness, and organizer trust with an automatic safety override cap at <= 45 if critical hazards are present.',

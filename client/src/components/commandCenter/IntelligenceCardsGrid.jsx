@@ -12,6 +12,10 @@ export default function IntelligenceCardsGrid({ data }) {
 
   const { attendance, safety, queue, trust, seo, recommendations, event } = data;
 
+  // Honest display helper: missing module data renders as an explicit dash,
+  // never as a fabricated default number (spec §22).
+  const fmt = (v) => (v === null || v === undefined ? '—' : v);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -108,8 +112,8 @@ export default function IntelligenceCardsGrid({ data }) {
                   <p className="text-[11px] text-muted-foreground">EventShield Real-Time</p>
                 </div>
               </div>
-              <Badge variant={safety?.criticalRisksCount > 0 ? 'destructive' : 'success'} className="text-[10px]">
-                {safety?.criticalRisksCount > 0 ? `${safety.criticalRisksCount} Critical Alert` : `${safety?.safetyScore ?? 75}/100 Safe`}
+              <Badge variant={safety?.criticalRisksCount > 0 ? 'destructive' : safety?.available ? 'success' : 'secondary'} className="text-[10px]">
+                {safety?.criticalRisksCount > 0 ? `${safety.criticalRisksCount} Critical Alert` : safety?.available ? `${safety.safetyScore}/100 Safe` : 'No Safety Data'}
               </Badge>
             </div>
 
@@ -117,10 +121,10 @@ export default function IntelligenceCardsGrid({ data }) {
               <div className="rounded-xl bg-secondary/40 p-2.5">
                 <span className="text-[11px] font-semibold text-muted-foreground block">Safety Score</span>
                 <span className="text-lg font-black font-display text-foreground block">
-                  {safety?.safetyScore ?? 75}
+                  {fmt(safety?.safetyScore)}
                 </span>
                 <span className="text-[10px] text-muted-foreground capitalize">
-                  {safety?.currentRiskLevel || 'Low'} Risk Level
+                  {safety?.currentRiskLevel ? `${safety.currentRiskLevel} Risk Level` : 'Risk Level Unavailable'}
                 </span>
               </div>
 
@@ -203,7 +207,7 @@ export default function IntelligenceCardsGrid({ data }) {
             <div className="space-y-1.5 text-xs text-muted-foreground pt-1">
               <div className="flex justify-between items-center">
                 <span>Queue Efficiency:</span>
-                <strong className="text-foreground">{queue?.efficiencyScore ?? 85}/100</strong>
+                <strong className="text-foreground">{fmt(queue?.efficiencyScore)}/100</strong>
               </div>
               <div className="flex justify-between items-center">
                 <span>Avg Claim Time:</span>
@@ -249,9 +253,9 @@ export default function IntelligenceCardsGrid({ data }) {
               <div className="rounded-xl bg-secondary/40 p-2.5">
                 <span className="text-[11px] font-semibold text-muted-foreground block">Trust Score</span>
                 <span className="text-lg font-black font-display text-foreground block">
-                  {trust?.trustScore ?? 70}
+                  {fmt(trust?.trustScore)}
                 </span>
-                <span className="text-[10px] text-muted-foreground">{trust?.trustLevel || 'Standard'} Tier</span>
+                <span className="text-[10px] text-muted-foreground">{trust?.trustLevel ? `${trust.trustLevel} Tier` : 'Tier Unavailable'}</span>
               </div>
 
               <div className="rounded-xl bg-secondary/40 p-2.5">
@@ -299,7 +303,7 @@ export default function IntelligenceCardsGrid({ data }) {
                 </div>
               </div>
               <Badge variant={seo?.seoScore >= 70 ? 'success' : 'outline'} className="text-[10px]">
-                {seo?.seoScore ?? 50}/100 SEO
+                {fmt(seo?.seoScore)}/100 SEO
               </Badge>
             </div>
 
@@ -307,7 +311,7 @@ export default function IntelligenceCardsGrid({ data }) {
               <div className="rounded-xl bg-secondary/40 p-2.5">
                 <span className="text-[11px] font-semibold text-muted-foreground block">Content Score</span>
                 <span className="text-lg font-black font-display text-foreground block">
-                  {seo?.contentScore ?? 50}
+                  {fmt(seo?.contentScore)}
                 </span>
                 <span className="text-[10px] text-muted-foreground">Listing quality</span>
               </div>
@@ -315,7 +319,7 @@ export default function IntelligenceCardsGrid({ data }) {
               <div className="rounded-xl bg-secondary/40 p-2.5">
                 <span className="text-[11px] font-semibold text-muted-foreground block">Readability</span>
                 <span className="text-lg font-black font-display text-foreground block">
-                  {seo?.readabilityScore ?? 70}
+                  {fmt(seo?.readabilityScore)}
                 </span>
                 <span className="text-[10px] text-muted-foreground">Clarity index</span>
               </div>
@@ -324,7 +328,7 @@ export default function IntelligenceCardsGrid({ data }) {
             <div className="space-y-1 text-xs text-muted-foreground pt-1">
               <span className="text-[11px] font-semibold text-muted-foreground block">Top Opportunity:</span>
               <p className="line-clamp-2 text-foreground font-medium">
-                {seo?.mainOpportunity || 'Enhance meta tags & headings with AI'}
+                {seo?.mainOpportunity || 'Run EventBoost analysis to see optimization opportunities.'}
               </p>
             </div>
           </div>
