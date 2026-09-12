@@ -22,7 +22,11 @@ export function ProtectedRoute({ children, roles }) {
         ? '/admin'
         : user.role === 'organizer'
           ? '/dashboard/events'
-          : '/home';
+          : user.role === 'volunteer'
+            ? '/dashboard/assignments'
+            : user.role === 'speaker'
+              ? '/dashboard/speaking'
+              : '/home';
     return <Navigate to={home} replace />;
   }
   return children;

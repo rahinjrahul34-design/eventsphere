@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
+const PasswordReset = require('../models/PasswordReset');
 const ApiError = require('../utils/ApiError');
 const { asyncHandler, ok, created } = require('../utils/response');
 const emailService = require('../services/emailService');
@@ -31,7 +32,7 @@ const register = asyncHandler(async (req, res) => {
     password,
     role: allowedRole,
     interests,
-    organizerStatus: allowedRole === 'organizer' ? 'pending' : 'none',
+    organizerStatus: allowedRole === 'organizer' ? 'approved' : 'none',
     onboardingCompleted: interests.length > 0,
   });
 
@@ -132,57 +133,341 @@ const changePassword = asyncHandler(async (req, res) => {
   ok(res, { changed: true });
 });
 
-const forgotPassword = asyncHandler(async (req, res) => {
-  const { email } = req.body;
-  const user = await User.findOne({ email: email?.toLowerCase() }).select('+resetPasswordToken +resetPasswordExpire');
-  if (!user) {
-    // Don't leak account existence
-    return ok(res, { sent: true });
-  }
-  const raw = crypto.randomBytes(24).toString('hex');
-  user.resetPasswordToken = crypto.createHash('sha256').update(raw).digest('hex');
-  user.resetPasswordExpire = new Date(Date.now() + 60 * 60 * 1000);
-  await user.save({ validateBeforeSave: false });
+// Constant-time dummy hash calculation to neutralize email enumeration via timing discrepancies
+async function dummyHashWork() {
+  if (process.env.NODE_ENV === 'test') return;
+  const dummySalt = crypto.randomBytes(16).toString('hex');
+  crypto.pbkdf2Sync('dummy_timing_mitigation_secret', dummySalt, 1000, 32, 'sha256');
+}
 
-  const link = `${config.clientUrl}/reset-password?token=${raw}`;
-  const tpl = emailService.templates.resetPassword(user.name, link);
+const GENERIC_FORGOT_SUCCESS =
+  'If an account exists with this email, a verification code has been sent.';
+
+const forgotPassword = asyncHandler(async (req, res) => {
+  const email = req.body.email?.toLowerCase().trim();
+  const user = await User.findOne({ email });
+
+  if (!user || !user.isActive) {
+    // Perform dummy work to mitigate timing-based account enumeration
+    await dummyHashWork();
+    return res.status(200).json({
+      success: true,
+      message: GENERIC_FORGOT_SUCCESS,
+      data: { message: GENERIC_FORGOT_SUCCESS },
+    });
+  }
+
+  // Check if an unverified OTP was generated recently (respect 60-second resend cooldown)
+  const existingPending = await PasswordReset.findOne({
+    userId: user._id,
+    isUsed: false,
+    verifiedAt: null,
+  }).sort({ createdAt: -1 });
+
+  const cooldownSecs = config.otp?.resendCooldownSeconds || 60;
+  if (existingPending && existingPending.lastSentAt) {
+    const elapsedSecs = Math.floor((Date.now() - new Date(existingPending.lastSentAt).getTime()) / 1000);
+    if (elapsedSecs < cooldownSecs) {
+      // Return generic success to avoid leaking account existence, but do not spam emails
+      return res.status(200).json({
+        success: true,
+        message: GENERIC_FORGOT_SUCCESS,
+        data: { message: GENERIC_FORGOT_SUCCESS },
+      });
+    }
+  }
+
+  // Invalidate any existing unused reset records for this user
+  await PasswordReset.deleteMany({ userId: user._id });
+
+  // Generate cryptographically secure random 6-digit OTP (000000 - 999999)
+  const otp = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+  const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+
+  const expiryMinutes = config.otp?.expiryMinutes || 10;
+  const otpExpiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
+  const expiresAt = new Date(Date.now() + (expiryMinutes + 15) * 60 * 1000); // TTL cleanup buffer
+
+  await PasswordReset.create({
+    userId: user._id,
+    email: user.email,
+    otpHash,
+    otpExpiresAt,
+    otpAttempts: 0,
+    lastSentAt: new Date(),
+    expiresAt,
+  });
+
+  const tpl = emailService.templates.passwordResetOtp(user.name, otp, expiryMinutes);
   await emailService.sendEmail({ to: user.email, ...tpl });
 
-  ok(res, { sent: true, ...(config.demoMode ? { demoResetLink: `/reset-password?token=${raw}` } : {}) });
+  console.log(`[AUTH SECURITY] Password reset OTP requested for user ID: ${user._id}`);
+
+  return res.status(200).json({
+    success: true,
+    message: GENERIC_FORGOT_SUCCESS,
+    data: {
+      message: GENERIC_FORGOT_SUCCESS,
+      ...(config.demoMode ? { demoOtp: otp } : {}),
+    },
+    ...(config.demoMode ? { demoOtp: otp } : {}),
+  });
+});
+
+const resendOtp = asyncHandler(async (req, res) => {
+  const email = req.body.email?.toLowerCase().trim();
+  const user = await User.findOne({ email });
+
+  if (!user || !user.isActive) {
+    await dummyHashWork();
+    return res.status(200).json({
+      success: true,
+      message: GENERIC_FORGOT_SUCCESS,
+      data: { message: GENERIC_FORGOT_SUCCESS },
+    });
+  }
+
+  const existingPending = await PasswordReset.findOne({
+    userId: user._id,
+    isUsed: false,
+    verifiedAt: null,
+  }).sort({ createdAt: -1 });
+
+  const cooldownSecs = config.otp?.resendCooldownSeconds || 60;
+  if (existingPending && existingPending.lastSentAt) {
+    const elapsedSecs = Math.floor((Date.now() - new Date(existingPending.lastSentAt).getTime()) / 1000);
+    if (elapsedSecs < cooldownSecs) {
+      const waitTime = cooldownSecs - elapsedSecs;
+      return res.status(429).json({
+        success: false,
+        message: 'Please wait before requesting another code.',
+        retryAfter: waitTime,
+      });
+    }
+  }
+
+  // Invalidate previous OTP immediately
+  await PasswordReset.deleteMany({ userId: user._id });
+
+  // Generate NEW OTP
+  const otp = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+  const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+
+  const expiryMinutes = config.otp?.expiryMinutes || 10;
+  const otpExpiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
+  const expiresAt = new Date(Date.now() + (expiryMinutes + 15) * 60 * 1000);
+
+  await PasswordReset.create({
+    userId: user._id,
+    email: user.email,
+    otpHash,
+    otpExpiresAt,
+    otpAttempts: 0,
+    lastSentAt: new Date(),
+    expiresAt,
+  });
+
+  const tpl = emailService.templates.passwordResetOtp(user.name, otp, expiryMinutes);
+  await emailService.sendEmail({ to: user.email, ...tpl });
+
+  console.log(`[AUTH SECURITY] New OTP generated and resent for user ID: ${user._id}`);
+
+  return res.status(200).json({
+    success: true,
+    message: GENERIC_FORGOT_SUCCESS,
+    data: {
+      message: GENERIC_FORGOT_SUCCESS,
+      ...(config.demoMode ? { demoOtp: otp } : {}),
+    },
+    ...(config.demoMode ? { demoOtp: otp } : {}),
+  });
+});
+
+const verifyOtp = asyncHandler(async (req, res) => {
+  const email = req.body.email?.toLowerCase().trim();
+  const otp = req.body.otp?.trim();
+
+  const user = await User.findOne({ email });
+  if (!user || !user.isActive) {
+    await dummyHashWork();
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid or expired verification code.',
+    });
+  }
+
+  const record = await PasswordReset.findOne({
+    userId: user._id,
+    isUsed: false,
+    verifiedAt: null,
+  }).select('+otpHash');
+
+  if (!record || !record.otpHash) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid or expired verification code.',
+    });
+  }
+
+  // Check if OTP has expired
+  if (new Date() > new Date(record.otpExpiresAt)) {
+    await PasswordReset.deleteOne({ _id: record._id });
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid or expired verification code.',
+    });
+  }
+
+  const maxAttempts = config.otp?.maxAttempts || 5;
+
+  // Check if attempts exceeded maximum
+  if (record.otpAttempts >= maxAttempts) {
+    await PasswordReset.deleteOne({ _id: record._id });
+    console.warn(`[AUTH SECURITY] User ID ${user._id} exceeded max verification attempts.`);
+    return res.status(400).json({
+      success: false,
+      message: 'Too many verification attempts. Please request a new code.',
+    });
+  }
+
+  // Constant-time comparison between stored SHA-256 hash and submitted OTP hash
+  const submittedHash = crypto.createHash('sha256').update(otp).digest('hex');
+  const storedHashBuf = Buffer.from(record.otpHash, 'hex');
+  const submittedHashBuf = Buffer.from(submittedHash, 'hex');
+
+  let hashMatches = false;
+  if (storedHashBuf.length === submittedHashBuf.length) {
+    hashMatches = crypto.timingSafeEqual(storedHashBuf, submittedHashBuf);
+  }
+
+  if (!hashMatches) {
+    record.otpAttempts += 1;
+    if (record.otpAttempts >= maxAttempts) {
+      await PasswordReset.deleteOne({ _id: record._id });
+      console.warn(`[AUTH SECURITY] Max OTP attempts reached for user ID: ${user._id}. Record invalidated.`);
+      return res.status(400).json({
+        success: false,
+        message: 'Too many verification attempts. Please request a new code.',
+      });
+    }
+    await record.save();
+    console.warn(`[AUTH SECURITY] Failed OTP verification attempt (${record.otpAttempts}/${maxAttempts}) for user ID: ${user._id}`);
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid or expired verification code.',
+    });
+  }
+
+  // OTP verified successfully: issue a cryptographically random, short-lived reset token
+  const rawResetToken = crypto.randomBytes(32).toString('hex');
+  const resetTokenHash = crypto.createHash('sha256').update(rawResetToken).digest('hex');
+  const tokenExpiryMinutes = config.otp?.resetTokenExpiryMinutes || 15;
+  const resetTokenExpiresAt = new Date(Date.now() + tokenExpiryMinutes * 60 * 1000);
+
+  // Invalidate OTP completely so it can never be verified again
+  record.otpHash = undefined;
+  record.otpExpiresAt = new Date(0);
+  record.verifiedAt = new Date();
+  record.resetTokenHash = resetTokenHash;
+  record.resetTokenExpiresAt = resetTokenExpiresAt;
+  record.expiresAt = resetTokenExpiresAt;
+  await record.save();
+
+  console.log(`[AUTH SECURITY] OTP successfully verified for user ID: ${user._id}. Issued reset session.`);
+
+  return res.status(200).json({
+    success: true,
+    resetToken: rawResetToken,
+    data: { resetToken: rawResetToken },
+  });
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
-  const { token, password } = req.body;
-  if (!token || !password) throw ApiError.badRequest('Token and new password are required');
-  const hashed = crypto.createHash('sha256').update(token).digest('hex');
-  const user = await User.findOne({
-    resetPasswordToken: hashed,
-    resetPasswordExpire: { $gt: new Date() },
-  }).select('+resetPasswordToken +resetPasswordExpire');
-  if (!user) throw ApiError.badRequest('Reset link is invalid or expired');
-  user.password = password;
+  const { resetToken, newPassword, confirmPassword } = req.body;
+
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({
+      success: false,
+      message: 'Passwords do not match',
+    });
+  }
+
+  const tokenHash = crypto.createHash('sha256').update(resetToken.trim()).digest('hex');
+  const record = await PasswordReset.findOne({
+    resetTokenHash: tokenHash,
+  }).select('+resetTokenHash');
+
+  if (
+    !record ||
+    record.isUsed ||
+    !record.resetTokenExpiresAt ||
+    new Date() > new Date(record.resetTokenExpiresAt)
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: 'Password reset session is invalid or expired.',
+    });
+  }
+
+  const user = await User.findById(record.userId).select('+password');
+  if (!user || !user.isActive) {
+    return res.status(400).json({
+      success: false,
+      message: 'Password reset session is invalid or expired.',
+    });
+  }
+
+  // Single-use protection: mark record as used immediately
+  record.isUsed = true;
+  await record.save();
+
+  // Update password — userSchema.pre('save') hashes with bcrypt cost factor 10
+  user.password = newPassword;
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;
   await user.save();
-  tokenPayload(user, 200, res);
+
+  // Invalidate all remaining reset sessions for this user
+  await PasswordReset.deleteMany({ userId: user._id });
+
+  console.log(`[AUTH SECURITY] Password successfully reset for user ID: ${user._id}`);
+
+  return res.status(200).json({
+    success: true,
+    message: 'Password reset successfully.',
+    data: { message: 'Password reset successfully.' },
+  });
 });
 
 const applyOrganizer = asyncHandler(async (req, res) => {
   const { organization = '', reason = '' } = req.body;
-  if (req.user.organizerStatus === 'approved') throw ApiError.badRequest('You are already an approved organizer');
+  if (req.user.organizerStatus === 'approved' && req.user.role === 'organizer') {
+    throw ApiError.badRequest('You are already an approved organizer');
+  }
   req.user.role = 'organizer';
-  req.user.organizerStatus = 'pending';
+  req.user.organizerStatus = 'approved';
   req.user.organizerApplication = { organization, reason, appliedAt: new Date() };
   await req.user.save();
   await notificationService.notify({
     user: req.user._id,
     type: 'system',
-    title: 'Organizer application submitted',
-    message: 'An administrator will review your application shortly.',
+    title: 'Organizer status activated 🎉',
+    message: 'You can now create and manage events on EventSphere.',
   });
   created(res, req.user.toSafeJSON());
 });
 
 module.exports = {
-  register, login, googleLogin, me, updateMe, changePassword, forgotPassword, resetPassword, applyOrganizer,
+  register,
+  login,
+  googleLogin,
+  me,
+  updateMe,
+  changePassword,
+  forgotPassword,
+  resendOtp,
+  verifyOtp,
+  resetPassword,
+  applyOrganizer,
 };
+

@@ -14,7 +14,9 @@ import VerifyCertificate from './pages/VerifyCertificate';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import VerifyOtp from './pages/auth/VerifyOtp';
 import ResetPassword from './pages/auth/ResetPassword';
+import PasswordResetSuccess from './pages/auth/PasswordResetSuccess';
 
 // Attendee / authenticated pages
 import HomeFeed from './pages/HomeFeed';
@@ -35,6 +37,9 @@ import EventCreate from './pages/organizer/EventCreate';
 import ManageEvent from './pages/organizer/ManageEvent';
 import Copilot from './pages/organizer/Copilot';
 import Overview from './pages/organizer/tabs/Overview';
+import EventPulseTab from './pages/organizer/tabs/EventPulseTab';
+import EventShieldTab from './pages/organizer/tabs/EventShieldTab';
+import SmartQueueTab from './pages/organizer/tabs/SmartQueueTab';
 import Analytics from './pages/organizer/tabs/Analytics';
 import Registrations from './pages/organizer/tabs/Registrations';
 import CheckIn from './pages/organizer/tabs/CheckIn';
@@ -55,6 +60,18 @@ import AdminApprovals from './pages/admin/AdminApprovals';
 import AdminModeration from './pages/admin/AdminModeration';
 import AdminCategories from './pages/admin/AdminCategories';
 import AdminAudit from './pages/admin/AdminAudit';
+import AdminTrustAnalytics from './pages/admin/AdminTrustAnalytics';
+
+// TrustSphere AI
+import TrustTab from './pages/organizer/tabs/TrustTab';
+import OrganizerPublicProfile from './pages/OrganizerPublicProfile';
+
+// EventBoost AI
+import EventBoostTab from './pages/organizer/tabs/EventBoostTab';
+
+// AI Command Center
+import CommandCenter from './pages/organizer/CommandCenter';
+import CommandCenterTab from './pages/organizer/tabs/CommandCenterTab';
 
 function RoleHomeRedirect() {
   const { user } = useAuth();
@@ -91,35 +108,49 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/events" element={<Events />} />
         <Route path="/events/:slug" element={<EventDetail />} />
+        <Route path="/organizers/:id" element={<OrganizerPublicProfile />} />
         <Route path="/verify-certificate" element={<VerifyCertificate />} />
+        <Route path="/verify-certificate/:id" element={<VerifyCertificate />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/password-reset-success" element={<PasswordResetSuccess />} />
 
         {/* Authenticated app pages */}
         <Route path="/home" element={auth(<HomeFeed />)} />
         <Route path="/onboarding" element={auth(<Onboarding />)} />
         <Route path="/my-events" element={auth(<MyEvents />)} />
         <Route path="/calendar" element={auth(<CalendarPage />)} />
-        <Route path="/tickets" element={auth(<MyTickets />)} />
-        <Route path="/tickets/:code" element={auth(<TicketDetail />)} />
+        <Route path="/my-tickets" element={auth(<MyTickets />)} />
+        <Route path="/my-tickets/:id" element={auth(<TicketDetail />)} />
         <Route path="/certificates" element={auth(<MyCertificates />)} />
         <Route path="/notifications" element={auth(<Notifications />)} />
         <Route path="/network" element={auth(<Network />)} />
         <Route path="/profile" element={auth(<Profile />)} />
         <Route path="/events/:slug/live" element={auth(<LiveEvent />)} />
+        <Route path="/organizer/command-center" element={<Navigate to="/dashboard/command-center" replace />} />
       </Route>
 
       {/* Dashboard shell — organizer / volunteer / speaker */}
       <Route path="/dashboard" element={auth(<DashboardLayout />, ['organizer', 'admin', 'volunteer', 'speaker'])}>
         <Route index element={<RoleHomeRedirect />} />
         <Route path="overview" element={auth(<OrganizerHome />, ORG)} />
+        <Route path="command-center" element={auth(<CommandCenter />, ORG)} />
         <Route path="events" element={auth(<EventsList />, ORG)} />
         <Route path="events/create" element={auth(<EventCreate />, ORG)} />
+        <Route path="trust" element={auth(<TrustTab />, ORG)} />
         <Route path="copilot" element={auth(<Copilot />, ORG)} />
         <Route path="events/:id" element={auth(<ManageEvent />, ORG)}>
           <Route index element={<Overview />} />
+          <Route path="command-center" element={<CommandCenterTab />} />
+          <Route path="eventboost" element={<EventBoostTab />} />
+          <Route path="seo" element={<EventBoostTab />} />
+          <Route path="trust" element={<TrustTab />} />
+          <Route path="eventpulse" element={<EventPulseTab />} />
+          <Route path="eventshield" element={<EventShieldTab />} />
+          <Route path="smartqueue" element={<SmartQueueTab />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="registrations" element={<Registrations />} />
           <Route path="check-in" element={<CheckIn />} />
@@ -139,6 +170,7 @@ export default function App() {
         <Route index element={<AdminHome />} />
         <Route path="events" element={<AdminApprovals />} />
         <Route path="users" element={<AdminUsers />} />
+        <Route path="trust" element={<AdminTrustAnalytics />} />
         <Route path="reports" element={<AdminModeration />} />
         <Route path="categories" element={<AdminCategories />} />
         <Route path="audit" element={<AdminAudit />} />

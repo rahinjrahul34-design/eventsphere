@@ -1,125 +1,130 @@
 const Event = require('../models/Event');
-const Registration = require('../models/Registration');
-const Favorite = require('../models/Favorite');
+const { ALGORITHM_VERSION } = require('./recommendation/config');
+const { buildUserProfile } = require('./recommendation/userProfileService');
+const { getCandidateEvents } = require('./recommendation/candidateService');
+const { scoreEvent } = require('./recommendation/scoringEngine');
+const { applyDiversity, selectExplorationEvent } = require('./recommendation/diversityService');
+const { generateRankedFeed } = require('./recommendation/rankingService');
+const { findSimilarEvents } = require('./recommendation/similarityService');
+const { generateExplanation } = require('./recommendation/explainabilityService');
+const { recordInteraction, getRecommendationAnalytics } = require('./recommendation/interactionService');
 
 /**
- * Personalized event recommendation engine.
- * Score = category match + tag match + past behaviour + saved events
- *         + location + popularity. Every score ships with human reasons ("Why recommended?").
+ * AI Event Recommendation 2.0 Engine
+ * Backward-compatible facade preserving existing functions while exposing v2 multi-section feeds.
  */
-async function getRecommendedEvents(user, { limit = 8 } = {}) {
-  const [events, pastRegs, favorites] = await Promise.all([
-    Event.find({
-      status: { $in: ['published', 'live'] },
-      approvalStatus: 'approved',
-      endDate: { $gte: new Date() },
-    })
-      .populate('organizer', 'name company')
-      .populate('category', 'name slug color')
-      .lean(),
-    user
-      ? Registration.find({ user: user._id, status: { $in: ['confirmed', 'checked_in', 'waitlisted'] } })
-          .populate('event', 'categorySlug tags venue')
-          .lean()
-      : Promise.resolve([]),
-    user ? Favorite.find({ user: user._id }).lean() : Promise.resolve([]),
-  ]);
+async function getRecommendedEvents(user, { limit = 8, debug = false } = {}) {
+  const userProfile = await buildUserProfile(user);
+  const candidates = await getCandidateEvents({ userProfile });
 
-  const favoriteIds = new Set(favorites.map((f) => f.event.toString()));
-  const pastCategories = {};
-  const pastTitles = [];
-  pastRegs.forEach((r) => {
-    if (r.event?.categorySlug) pastCategories[r.event.categorySlug] = (pastCategories[r.event.categorySlug] || 0) + 1;
-    if (r.event) pastTitles.push(r.event);
-  });
-  const maxRegs = Math.max(1, ...events.map((e) => e.registrationCount || 0));
-  const interests = (user?.interests || []).map((i) => i.toLowerCase());
-  const skills = (user?.skills || []).map((s) => s.toLowerCase());
-  const attendedTechCount = pastRegs.length;
+  const maxBatchRegs = Math.max(1, ...candidates.map((e) => e.registrationCount || 0));
 
-  const scored = events.map((event) => {
-    let score = 0;
-    const reasons = [];
-    const tags = (event.tags || []).map((t) => t.toLowerCase());
+  const scoredEvents = candidates.map((event) =>
+    scoreEvent(event, userProfile, { maxBatchRegs, isDebug: debug })
+  );
 
-    // Category affinity
-    if (interests.some((i) => event.categorySlug?.toLowerCase().includes(i.replace(/[^a-z]/g, '')) || i.includes(event.categorySlug?.replace(/[^a-z]/g, '')))) {
-      score += 22;
-      reasons.push(`Matches your interest in ${event.category?.name || event.categorySlug}`);
-    }
-    // Tag overlap with interests and skills
-    const tagHits = [...new Set(tags.filter((t) => interests.some((i) => t.includes(i.replace(/\s/g, '')) || i.replace(/\s/g, '').includes(t))))];
-    const skillHits = tags.filter((t) => skills.some((s) => t.includes(s) || s.includes(t)));
-    score += Math.min(24, tagHits.length * 8);
-    score += Math.min(15, skillHits.length * 5);
-    if (tagHits.length) reasons.push(`Matches ${tagHits.length} of your interests`);
+  // Sort descending by match percentage / score
+  scoredEvents.sort((a, b) => b.matchPercentage - a.matchPercentage);
 
-    // Past registrations
-    if (pastCategories[event.categorySlug]) {
-      score += Math.min(25, 10 + pastCategories[event.categorySlug] * 5);
-      reasons.push(`You attended ${pastCategories[event.categorySlug]} similar event${pastCategories[event.categorySlug] > 1 ? 's' : ''}`);
-    }
+  // Apply diversity to prevent single-category saturation
+  const diverseTop = applyDiversity(scoredEvents, limit);
 
-    // Saved events
-    if (favoriteIds.has(event._id.toString())) {
-      score += 8;
-      reasons.push('You saved a related event');
-    }
-
-    // Location
-    if (user?.location && event.venue?.city && user.location.toLowerCase().includes(event.venue.city.toLowerCase())) {
-      score += 10;
-      reasons.push(`Happening in ${event.venue.city}, your area`);
-    }
-
-    // Popularity
-    const popularity = ((event.registrationCount || 0) / maxRegs) * 15;
-    score += popularity;
-    if (popularity > 10) reasons.push('Trending among attendees right now');
-
-    if (reasons.length === 0) reasons.push('Fresh event you might enjoy');
-
-    return { ...event, score: Math.round(score), reasons: reasons.slice(0, 3), isFavorite: favoriteIds.has(event._id.toString()) };
-  });
-
-  scored.sort((a, b) => b.score - a.score);
-  const top = scored.slice(0, limit);
-
-  // Summary reason used in the section header
+  // Generate section summary
   let summary = 'Recommended from trending events near you';
-  if (interests.length) summary = `Recommended because you follow ${interests.slice(0, 2).join(' and ')}`;
-  if (attendedTechCount >= 3) summary += ` and attended ${attendedTechCount} events`;
+  if (userProfile.interests.length > 0) {
+    const formatted = userProfile.interests
+      .slice(0, 2)
+      .map((i) => i.charAt(0).toUpperCase() + i.slice(1))
+      .join(' and ');
+    summary = `Recommended because you follow ${formatted}`;
+  }
+  if (userProfile.attendedEvents.length >= 2) {
+    summary += ` and attended ${userProfile.attendedEvents.length} events`;
+  }
 
-  return { events: top, summary, attendedCount: attendedTechCount };
+  return {
+    events: diverseTop,
+    summary,
+    attendedCount: userProfile.attendedEvents.length,
+    algorithmVersion: ALGORITHM_VERSION,
+  };
 }
 
+/**
+ * Multi-section personalized discovery feed for the upgraded Homepage.
+ */
+async function getRecommendationFeed(user, { limit = 6, debug = false } = {}) {
+  const userProfile = await buildUserProfile(user);
+  return generateRankedFeed(userProfile, { limit, debug });
+}
+
+/**
+ * Advanced similar events recommendation for Event Details page.
+ */
 async function getSimilarEvents(event, { limit = 4 } = {}) {
-  const events = await Event.find({
-    _id: { $ne: event._id },
-    status: { $in: ['published', 'live'] },
-    approvalStatus: 'approved',
-    endDate: { $gte: new Date(Date.now() - 7 * 864e5) },
-  })
-    .populate('organizer', 'name company')
-    .populate('category', 'name slug color')
-    .lean();
-
-  const tagSet = new Set((event.tags || []).map((t) => t.toLowerCase()));
-  const scored = events
-    .map((e) => {
-      let score = 0;
-      if (e.categorySlug === event.categorySlug) score += 30;
-      (e.tags || []).forEach((t) => {
-        if (tagSet.has(t.toLowerCase())) score += 8;
-      });
-      if (e.eventType === event.eventType) score += 4;
-      if (e.venue?.city && event.venue?.city && e.venue.city === event.venue.city) score += 8;
-      return { ...e, score };
-    })
-    .filter((e) => e.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
-  return scored;
+  return findSimilarEvents(event, { limit });
 }
 
-module.exports = { getRecommendedEvents, getSimilarEvents };
+/**
+ * Personalized Trending events matching user interests and high velocity.
+ */
+async function getTrendingEvents(user, { limit = 6 } = {}) {
+  const userProfile = await buildUserProfile(user);
+  const candidates = await getCandidateEvents({ userProfile });
+  const maxBatchRegs = Math.max(1, ...candidates.map((e) => e.registrationCount || 0));
+
+  const scoredEvents = candidates
+    .map((e) => scoreEvent(e, userProfile, { maxBatchRegs }))
+    .filter((e) => !e.isDismissed);
+
+  // Sort by registration count and match percentage
+  scoredEvents.sort((a, b) => {
+    const aVelocity = (a.registrationCount || 0) + a.matchPercentage * 0.5;
+    const bVelocity = (b.registrationCount || 0) + b.matchPercentage * 0.5;
+    return bVelocity - aVelocity;
+  });
+
+  return scoredEvents.slice(0, limit).map((e) => ({
+    ...e,
+    recommendationSource: 'TRENDING',
+  }));
+}
+
+/**
+ * Nearby and online events for location-aware discovery.
+ */
+async function getNearbyEvents(user, { limit = 6 } = {}) {
+  const userProfile = await buildUserProfile(user);
+  const candidates = await getCandidateEvents({ userProfile });
+  const scoredEvents = candidates
+    .map((e) => scoreEvent(e, userProfile))
+    .filter((e) => !e.isDismissed && (e.eventType === 'online' || (e.reasons || []).some((r) => r.type === 'location')))
+    .sort((a, b) => b.matchPercentage - a.matchPercentage);
+
+  return scoredEvents.slice(0, limit).map((e) => ({
+    ...e,
+    recommendationSource: 'NEARBY',
+  }));
+}
+
+/**
+ * Exploration & serendipity candidate event from adjacent domain.
+ */
+async function getExplorationRecommendation(user) {
+  const userProfile = await buildUserProfile(user);
+  const candidates = await getCandidateEvents({ userProfile });
+  return selectExplorationEvent(candidates, userProfile);
+}
+
+module.exports = {
+  getRecommendedEvents,
+  getRecommendationFeed,
+  getSimilarEvents,
+  getTrendingEvents,
+  getNearbyEvents,
+  getExplorationRecommendation,
+  generateExplanation,
+  recordInteraction,
+  getRecommendationAnalytics,
+  buildUserProfile,
+};

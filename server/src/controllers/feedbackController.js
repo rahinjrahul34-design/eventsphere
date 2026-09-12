@@ -33,6 +33,20 @@ const submitFeedback = asyncHandler(async (req, res) => {
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
   created(res, feedback);
+
+  // Asynchronously update organizer's TrustSphere profile when new feedback is received
+  if (event.organizer) {
+    try {
+      const { calculateAndSaveTrustProfile } = require('../services/trustsphere/trustProfileService');
+      calculateAndSaveTrustProfile(
+        event.organizer,
+        'FEEDBACK_RECEIVED',
+        `New verified attendee feedback: ${rating} stars`
+      ).catch((err) => console.error('[TrustSphere] Async recalculation error:', err.message));
+    } catch (err) {
+      // Non-blocking
+    }
+  }
 });
 
 const eventFeedback = asyncHandler(async (req, res) => {

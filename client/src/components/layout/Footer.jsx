@@ -26,7 +26,7 @@ export default function Footer() {
           </div>
           <FooterCol title="Platform" links={[['Explore events', '/events'], ['Hackathons', '/events?category=hackathon'], ['Calendar', '/calendar'], ['Smart networking', '/network']]} />
           <FooterCol title="For organizers" links={[['Create event', '/dashboard/events/create'], ['Organizer dashboard', '/dashboard/events'], ['AI Event Copilot', '/dashboard/copilot'], ['Check-in scanner', '/dashboard/events']]} />
-          <FooterCol title="Account" links={[['Log in', '/login'], ['Register', '/register'], ['My tickets', '/my-tickets'], ['Certificates', '/my-certificates']]} />
+          <FooterCol title="Account" links={[['Log in', '/login'], ['Register', '/register'], ['My tickets', '/my-tickets'], ['Certificates', '/certificates']]} />
         </div>
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-3 border-t pt-6 text-xs text-muted-foreground">
           <p>© {new Date().getFullYear()} EventSphere. Built for the MERN hackathon demo.</p>

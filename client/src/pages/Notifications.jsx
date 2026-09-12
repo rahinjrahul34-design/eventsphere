@@ -6,6 +6,7 @@ import { EmptyState, ErrorState } from '../components/ui/states';
 import { Spinner } from '../components/ui/misc';
 import { Button } from '../components/ui/button';
 import { timeAgo, cn } from '../lib/utils';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const ICONS = {
   registration: '🎟️', reminder: '⏰', schedule_change: '🗓️', announcement: '📣', ticket: '🎫',
@@ -13,6 +14,7 @@ const ICONS = {
 };
 
 export default function Notifications() {
+  usePageTitle('Notifications');
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ['notifications'], queryFn: endpoints.notifications });
   const readAll = useMutation({

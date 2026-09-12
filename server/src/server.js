@@ -8,12 +8,19 @@ const { runSeed } = require('./seeders/seed');
 async function start() {
   await connectDB();
 
+  // In demo mode or when database is completely empty, ensure seed data exists
   if (config.seedOnStart) {
     await runSeed({ silent: false });
+  } else {
+    // Even if SEED_ON_START=false, seed if the database has 0 users (e.g. in-memory MongoDB fresh restart)
+    await runSeed({ force: false, silent: false });
   }
 
   const server = http.createServer(app);
   initSocket(server);
+
+  const smartQueue = require('./services/smartqueue');
+  smartQueue.expirationWorker.startWorker();
 
   server.listen(config.port, '0.0.0.0', () => {
     console.log(`\n🚀 EventSphere API running at http://localhost:${config.port}`);
@@ -23,6 +30,7 @@ async function start() {
 
   const shutdown = async (sig) => {
     console.log(`\n${sig} received, shutting down…`);
+    smartQueue.expirationWorker.stopWorker();
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(1), 5000).unref();
   };

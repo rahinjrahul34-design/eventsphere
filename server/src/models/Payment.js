@@ -17,6 +17,7 @@ const paymentSchema = new mongoose.Schema(
     },
     ticketType: { type: String, default: 'General' },
     quantity: { type: Number, default: 1 },
+    holdId: { type: mongoose.Schema.Types.ObjectId, ref: 'SeatHold' },
   },
   { timestamps: true }
 );

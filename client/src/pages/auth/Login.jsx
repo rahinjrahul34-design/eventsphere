@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/button';
 import { Input, Label } from '../../components/ui/input';
 import { useAuth } from '../../store/auth';
 import { toast } from 'sonner';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 const DEMO = [
   { role: 'Admin', email: 'admin@eventsphere.demo' },
@@ -17,10 +18,12 @@ const DEMO = [
 ];
 
 export default function Login() {
+  usePageTitle('Log In');
   const { register, handleSubmit, setValue, formState: { errors } } = useForm();
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
+  const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const googleRef = useRef(null);
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
@@ -35,10 +38,16 @@ export default function Login() {
 
     const existingScript = document.getElementById('google-gsi-script');
     const render = () => {
-      if (!window.google?.accounts?.id || !googleRef.current) return;
+      if (!window.google?.accounts?.id) return;
+      if (!googleRef.current) {
+        // Ref may not be committed yet on the first render cycle; retry on next frame
+        requestAnimationFrame(render);
+        return;
+      }
       window.google.accounts.id.initialize({
         client_id: clientId,
         callback: async (response) => {
+          setGoogleSubmitting(true);
           try {
             const user = await loginWithGoogle(response.credential);
             toast.success(`Welcome, ${user.name.split(' ')[0]}!`);
@@ -53,6 +62,8 @@ export default function Login() {
             );
           } catch (e) {
             toast.error(e.message || 'Google sign-in failed');
+          } finally {
+            setGoogleSubmitting(false);
           }
         },
       });
@@ -143,12 +154,21 @@ export default function Login() {
           or continue with
           <span className="h-px flex-1 bg-border" />
         </div>
-        {googleReady ? (
-          <div ref={googleRef} className="min-h-[44px]" />
-        ) : (
-          <Button type="button" variant="outline" className="w-full" disabled>
-            Google sign-in needs VITE_GOOGLE_CLIENT_ID
+        {googleSubmitting ? (
+          <Button type="button" variant="outline" className="w-full" loading disabled>
+            Verifying Google account…
           </Button>
+        ) : (
+          <>
+            <div ref={googleRef} className="min-h-[44px]" style={{ display: googleReady ? 'block' : 'none' }} />
+            {!googleReady && (
+              <Button type="button" variant="outline" className="w-full" disabled>
+                {import.meta.env.VITE_GOOGLE_CLIENT_ID
+                  ? 'Loading Google sign-in…'
+                  : 'Google sign-in needs VITE_GOOGLE_CLIENT_ID'}
+              </Button>
+            )}
+          </>
         )}
       </div>
 

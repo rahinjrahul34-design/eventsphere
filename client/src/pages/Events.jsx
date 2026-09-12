@@ -13,10 +13,12 @@ import { Select } from '../components/ui/input';
 import { Link } from 'react-router-dom';
 import { fmtDate, fmtTime, inr, typeLabel, categoryMeta } from '../lib/format';
 import FavoriteButton from '../components/events/FavoriteButton';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const EMPTY = { q: '', category: '', type: '', city: '', price: '', date: 'upcoming', sort: 'date' };
 
 export default function Events() {
+  usePageTitle('Explore Events');
   const [params, setParams] = useSearchParams();
   const [filters, setFilters] = useState({
     ...EMPTY,

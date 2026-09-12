@@ -9,12 +9,14 @@ import { Button } from '../components/ui/button';
 import { fmtDate } from '../lib/format';
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const statusVariant = {
   confirmed: 'success', checked_in: 'success', waitlisted: 'warning', cancelled: 'destructive', pending: 'secondary',
 };
 
 export default function MyEvents() {
+  usePageTitle('My Events');
   const q = useQuery({ queryKey: ['my-registrations'], queryFn: endpoints.myRegistrations });
   const [tab, setTab] = useState('upcoming');
 

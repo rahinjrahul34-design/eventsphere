@@ -13,6 +13,7 @@ import { EmptyState } from '../../../components/ui/states';
 import { fmtDateTime, inr } from '../../../lib/format';
 import { toast } from 'sonner';
 import { cn } from '../../../lib/utils';
+import SmartQueueConsole from '../../../components/waitlist/SmartQueueConsole';
 
 const STATUS_VARIANT = {
   confirmed: 'success', checked_in: 'live', pending: 'warning', waitlisted: 'warning', cancelled: 'destructive',
@@ -133,26 +134,7 @@ export default function Registrations() {
       )}
 
       {tab === 'waitlist' && (
-        <Card>
-          <CardHeader><CardTitle>Waitlist queue</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            {waitlist.length === 0 && <EmptyState icon={ArrowUpCircle} title="Waitlist is empty" description="Nobody is waiting for a seat right now." />}
-            {waitlist.map((w) => (
-              <div key={w._id} className={cn('flex items-center gap-3 rounded-xl border p-3', w.status !== 'waiting' && 'opacity-60')}>
-                <span className="grid size-9 place-items-center rounded-full bg-warning/15 font-bold text-warning">#{w.position}</span>
-                <div className="flex-1">
-                  <p className="text-sm font-bold">{w.user?.name}</p>
-                  <p className="text-xs text-muted-foreground">{w.user?.email} · {w.status}</p>
-                </div>
-                {w.status === 'waiting' && (
-                  <Button size="sm" variant="outline" loading={promote.isPending} onClick={() => promote.mutate(w._id)}>
-                    <ArrowUpCircle className="size-4" /> Promote
-                  </Button>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <SmartQueueConsole eventId={event._id} />
       )}
     </div>
   );

@@ -21,4 +21,7 @@ router.post('/categories', a.createCategory);
 router.put('/categories/:id', a.updateCategory);
 router.delete('/categories/:id', a.deleteCategory);
 
+// EventPulse platform accuracy
+router.get('/eventpulse/accuracy', require('../controllers/eventPulseController').getAdminAccuracy);
+
 module.exports = router;

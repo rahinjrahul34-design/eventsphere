@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   MapPin, CalendarDays, Clock, Users, Building2, Radio, Video, Share2, Heart,
-  ChevronRight, Sparkles, CalendarPlus, AlertCircle, Star, Trophy, MessageSquare,
+  ChevronRight, Sparkles, CalendarPlus, AlertCircle, Star, Trophy, MessageSquare, Zap,
 } from 'lucide-react';
 import { endpoints } from '../lib/api';
 import { Button } from '../components/ui/button';
@@ -18,18 +18,39 @@ import ShareMenu from '../components/events/ShareMenu';
 import MapView from '../components/events/MapView';
 import EventCard from '../components/events/EventCard';
 import CheckoutDialog from '../components/events/CheckoutDialog';
+import SmartHoldModal from '../components/waitlist/SmartHoldModal';
+import OrganizerTrustCard from '../components/trustsphere/OrganizerTrustCard';
 import { Spinner, ErrorState } from '../components/ui/misc';
 import { rangeLabel, fmtTime, fmtDate, inr, typeLabel, categoryMeta } from '../lib/format';
 import { useAuth } from '../store/auth';
+import { usePageTitle } from '../hooks/usePageTitle';
+import EventSeoHead from '../components/seo/EventSeoHead';
 
 export default function EventDetail() {
   const { slug } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [checkout, setCheckout] = useState(false);
+  const [showHoldModal, setShowHoldModal] = useState(false);
 
   const eventQ = useQuery({ queryKey: ['event', slug], queryFn: () => endpoints.event(slug) });
   const event = eventQ.data;
+  usePageTitle(event?.title || 'Event Details');
+
+  const holdQ = useQuery({
+    queryKey: ['smartqueue-hold', event?._id],
+    queryFn: () => endpoints.smartQueue.getHold(event._id),
+    enabled: !!event?._id && !!user,
+    refetchInterval: (query) => (query.state.data?.hasActiveHold ? 3000 : 15000),
+  });
+  const activeHold = holdQ.data?.hasActiveHold ? holdQ.data.hold : null;
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'claim-hold' && activeHold) {
+      setShowHoldModal(true);
+    }
+  }, [searchParams, activeHold]);
 
   const sessionsQ = useQuery({
     queryKey: ['sessions', event?._id], queryFn: () => endpoints.sessions(event._id), enabled: !!event,
@@ -51,8 +72,9 @@ export default function EventDetail() {
   if (eventQ.isError) return <ErrorState message={eventQ.error.message} onRetry={eventQ.refetch} className="min-h-[60vh]" />;
 
   const cat = categoryMeta(event.categorySlug);
-  const seatsLeft = Math.max(0, event.capacity - event.registrationCount);
-  const fillPct = Math.round((event.registrationCount / Math.max(1, event.capacity)) * 100);
+  const effectiveCount = (event.registrationCount || 0) + (event.activeHoldsCount || 0);
+  const seatsLeft = Math.max(0, event.capacity - effectiveCount);
+  const fillPct = Math.round((effectiveCount / Math.max(1, event.capacity)) * 100);
   const TypeIcon = event.eventType === 'online' ? Video : event.eventType === 'hybrid' ? Radio : Building2;
   const registered = ['confirmed', 'checked_in', 'pending'].includes(event.myRegistration?.status);
   const waitlisted = event.myRegistration?.status === 'waitlisted';
@@ -67,6 +89,7 @@ export default function EventDetail() {
 
   return (
     <div className="pb-16">
+      <EventSeoHead event={event} />
       {/* Hero */}
       <div className="relative">
         <div className="h-[38vh] min-h-[280px] w-full overflow-hidden">
@@ -272,7 +295,17 @@ export default function EventDetail() {
           {similarQ.data?.length > 0 && (
             <Section title="Similar events you’ll love">
               <div className="grid gap-5 sm:grid-cols-2">
-                {similarQ.data.map((e, i) => <EventCard key={e._id} event={e} index={i} compact />)}
+                {similarQ.data.map((e, i) => (
+                  <div key={e._id} className="flex flex-col">
+                    <EventCard event={e} index={i} compact />
+                    {e.topReason && (
+                      <div className="mt-2 flex items-center justify-between text-[11px] px-3 py-1.5 rounded-lg bg-primary/8 text-primary font-medium border border-primary/10">
+                        <span className="truncate">✨ {e.topReason}</span>
+                        {e.matchPercentage && <span className="font-extrabold shrink-0 ml-2">{e.matchPercentage}% match</span>}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </Section>
           )}
@@ -283,6 +316,25 @@ export default function EventDetail() {
           <div className="lg:sticky lg:top-24 space-y-4">
             <Card className="overflow-hidden">
               <CardContent className="p-5">
+                {activeHold && (
+                  <div className="mb-4 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3.5 text-center space-y-2">
+                    <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                      <Zap className="size-4 animate-pulse" />
+                      <span>Reserved Seat Waiting!</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Promoted from waitlist! Seat reserved exclusively for you.
+                    </p>
+                    <Button
+                      className="w-full font-bold shadow-md shadow-indigo-500/20 bg-indigo-600 hover:bg-indigo-700 text-white text-xs"
+                      size="sm"
+                      onClick={() => setShowHoldModal(true)}
+                    >
+                      Claim Seat ({Math.floor((activeHold.secondsRemaining || 0) / 60)}m left)
+                    </Button>
+                  </div>
+                )}
+
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground">Starting at</p>
@@ -297,8 +349,21 @@ export default function EventDetail() {
                 <Progress value={fillPct} className="mt-3" />
                 <p className="mt-1.5 text-xs text-muted-foreground">{event.registrationCount} registered · {event.capacity} capacity</p>
 
-                <Button className="mt-4 w-full" size="lg" onClick={register} disabled={registered}>
-                  {registered ? 'Already registered' : waitlisted ? 'On waitlist' : seatsLeft === 0 ? 'Join waitlist' : 'Register now'}
+                <Button
+                  className="mt-4 w-full"
+                  size="lg"
+                  onClick={activeHold ? () => setShowHoldModal(true) : register}
+                  disabled={registered}
+                >
+                  {registered
+                    ? 'Already registered'
+                    : activeHold
+                    ? '⚡ Claim Reserved Seat'
+                    : waitlisted
+                    ? 'On waitlist (Queue Active)'
+                    : seatsLeft === 0
+                    ? 'Join waitlist'
+                    : 'Register now'}
                 </Button>
                 {event.status === 'live' && (
                   <Link to={`/events/${event.slug}/live`}><Button variant="destructive" className="mt-2 w-full"><Radio /> Join Live Event</Button></Link>
@@ -320,15 +385,35 @@ export default function EventDetail() {
             </Card>
 
             <Card>
-              <CardContent className="p-5">
-                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Organized by</p>
-                <Link to="/network" className="mt-2 flex items-center gap-3">
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Organized by</p>
+                  {event.organizer?._id && (
+                    <Link
+                      to={`/organizers/${event.organizer._id}`}
+                      className="text-xs font-semibold text-primary hover:underline"
+                    >
+                      View Profile
+                    </Link>
+                  )}
+                </div>
+                <Link
+                  to={event.organizer?._id ? `/organizers/${event.organizer._id}` : '#'}
+                  className="flex items-center gap-3 group"
+                >
                   <Avatar name={event.organizer?.name} src={event.organizer?.avatar} className="size-11" />
                   <div>
-                    <p className="font-bold text-sm">{event.organizer?.name}</p>
+                    <p className="font-bold text-sm group-hover:text-primary transition">{event.organizer?.name}</p>
                     <p className="text-xs text-muted-foreground">{event.organizer?.company || 'Event organizer'}</p>
                   </div>
                 </Link>
+
+                {/* TrustSphere Reputation Card */}
+                {event.organizer?._id && (
+                  <div className="pt-2 border-t border-border/60">
+                    <OrganizerTrustCard organizerId={event.organizer._id} compact={true} showBreakdown={true} />
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -344,6 +429,23 @@ export default function EventDetail() {
       </div>
 
       <CheckoutDialog event={event} open={checkout} onClose={() => setCheckout(false)} />
+
+      {activeHold && (
+        <SmartHoldModal
+          open={showHoldModal}
+          onClose={() => setShowHoldModal(false)}
+          event={event}
+          hold={activeHold}
+          onClaimSuccess={() => {
+            eventQ.refetch();
+            holdQ.refetch();
+          }}
+          onDeclineSuccess={() => {
+            eventQ.refetch();
+            holdQ.refetch();
+          }}
+        />
+      )}
     </div>
   );
 }

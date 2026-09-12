@@ -7,8 +7,10 @@ import { EmptyState, ErrorState } from '../components/ui/states';
 import { Spinner } from '../components/ui/misc';
 import { Badge } from '../components/ui/badge';
 import { fmtDate, fmtTime } from '../lib/format';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function CalendarPage() {
+  usePageTitle('Calendar');
   const q = useQuery({ queryKey: ['calendar'], queryFn: endpoints.calendar });
 
   if (q.isLoading) return <Spinner />;

@@ -5,16 +5,19 @@ import { endpoints } from '../lib/api';
 import TicketPass from '../components/tickets/TicketPass';
 import { Spinner, ErrorState } from '../components/ui/misc';
 import { Button } from '../components/ui/button';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function TicketDetail() {
+  usePageTitle('Ticket Details');
   const { id } = useParams();
   const q = useQuery({
-    queryKey: ['tickets'],
-    queryFn: endpoints.myTickets,
+    queryKey: ['ticket', id],
+    queryFn: () => endpoints.ticket(id),
+    enabled: !!id,
   });
   if (q.isLoading) return <Spinner />;
   if (q.isError) return <ErrorState message={q.error.message} onRetry={q.refetch} />;
-  const ticket = (q.data || []).find((t) => t._id === id);
+  const ticket = q.data;
   if (!ticket) return <ErrorState title="Ticket not found" message="It may belong to another account." />;
 
   return (

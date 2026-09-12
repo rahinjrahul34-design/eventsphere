@@ -12,6 +12,7 @@ import { Input, Textarea, Label, Select } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { Spinner } from '../../components/ui/misc';
 import { toast } from 'sonner';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 const SUGGESTIONS = [
   '2-day AI/ML hackathon in Nashik for 300 college students',
@@ -20,6 +21,7 @@ const SUGGESTIONS = [
 ];
 
 export default function Copilot() {
+  usePageTitle('AI Copilot');
   const navigate = useNavigate();
   const [brief, setBrief] = useState('');
   const [plan, setPlan] = useState(null);

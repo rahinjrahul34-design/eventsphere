@@ -14,7 +14,7 @@ const { emitToEvent } = require('../sockets');
 const { POINTS } = require('../utils/badges');
 
 function seatsLeft(event) {
-  return Math.max(0, event.capacity - event.registrationCount);
+  return Math.max(0, event.capacity - (event.registrationCount || 0) - (event.activeHoldsCount || 0));
 }
 
 async function createTicket(registration, event, user) {
@@ -220,6 +220,16 @@ const verifyPayment = asyncHandler(async (req, res) => {
     user: req.user,
     ticketType: { name: record.ticketType, price: record.amount / Math.max(1, record.quantity) },
   });
+
+  if (record.holdId) {
+    try {
+      const smartQueue = require('../services/smartqueue');
+      await smartQueue.holdService.acceptSeatHold({ holdId: record.holdId, userId: req.user._id });
+    } catch (holdErr) {
+      console.warn('SeatHold acceptance warning during payment verification:', holdErr.message);
+    }
+  }
+
   ok(res, { success: true, ticket, registration });
 });
 
@@ -241,32 +251,15 @@ const cancelRegistration = asyncHandler(async (req, res) => {
     event.registrationCount = Math.max(0, event.registrationCount - 1);
     await event.save();
 
-    // Promote next waitlisted attendee automatically
-    const next = await Waitlist.findOne({
-      event: event._id,
-      status: { $in: ['waiting', 'notified'] },
-    }).sort({ position: 1 });
-    if (next) {
-      const nextReg = await Registration.findById(next.registration);
-      const nextUser = await require('../models/User').findById(next.user);
-      if (nextReg && nextUser && nextReg.ticketType?.price === 0) {
-        next.status = 'promoted';
-        next.promotedAt = new Date();
-        await next.save();
-        promoted = await confirmRegistration({ event, registration: nextReg, user: nextUser });
-      } else if (nextReg) {
-        next.status = 'notified';
-        next.notifiedAt = new Date();
-        await next.save();
-        await notificationService.notify({
-          user: next.user,
-          type: 'waitlist',
-          title: `A seat opened for ${event.title}!`,
-          message: 'Complete payment within 24 hours to claim your spot.',
-          link: `/events/${event.slug}`,
-          email: emailService.templates.waitlistPromoted(nextUser?.name || '', event.title),
-        });
+    // Trigger SmartQueue promotion engine
+    try {
+      const smartQueue = require('../services/smartqueue');
+      const promoResult = await smartQueue.promotionEngine.handleSeatAvailable(event._id);
+      if (promoResult?.promoted?.length) {
+        promoted = promoResult.promoted[0];
       }
+    } catch (sqErr) {
+      console.error('SmartQueue auto-promotion error upon cancellation:', sqErr);
     }
   }
 

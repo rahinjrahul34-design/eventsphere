@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Compass, Search, Sun, Moon, Menu, LogOut, LayoutDashboard, User as UserIcon, Sparkles } from 'lucide-react';
+import { Compass, Search, Sun, Moon, Menu, LogOut, LayoutDashboard, User as UserIcon, Sparkles, Ticket, Award } from 'lucide-react';
 import { useTheme } from '../../store/theme';
 import { useAuth } from '../../store/auth';
 import { useUI } from '../../store/ui';
@@ -98,6 +98,8 @@ export default function Navbar() {
                     </span>
                   </div>
                   <Link to={dashboardLink} onClick={close}><MenuItem icon={LayoutDashboard}>Dashboard</MenuItem></Link>
+                  <Link to="/my-tickets" onClick={close}><MenuItem icon={Ticket}>My Tickets</MenuItem></Link>
+                  <Link to="/certificates" onClick={close}><MenuItem icon={Award}>My Certificates</MenuItem></Link>
                   <Link to="/profile" onClick={close}><MenuItem icon={UserIcon}>Profile & Preferences</MenuItem></Link>
                   <Link to="/notifications" className="sm:hidden" onClick={close}><MenuItem icon={Compass}>Notifications</MenuItem></Link>
                   <MenuItem

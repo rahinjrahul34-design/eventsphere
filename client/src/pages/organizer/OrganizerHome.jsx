@@ -12,8 +12,10 @@ import { Spinner } from '../../components/ui/misc';
 import { TrendChart } from '../../components/charts/Charts';
 import { fmtDate } from '../../lib/format';
 import { useMemo } from 'react';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 export default function OrganizerHome() {
+  usePageTitle('Organizer Dashboard');
   const eventsQ = useQuery({ queryKey: ['my-events'], queryFn: endpoints.myEvents });
   const events = eventsQ.data || [];
   const ids = events.map((e) => e._id);

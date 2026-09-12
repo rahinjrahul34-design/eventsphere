@@ -170,21 +170,48 @@ const createEvent = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('End date cannot be before start date');
   }
 
-  const approvedOrganizer = req.user.role === 'admin' || req.user.organizerStatus === 'approved';
+  const approvedOrganizer =
+    req.user.role === 'admin' ||
+    req.user.organizerStatus === 'approved' ||
+    config.demoMode ||
+    req.user.role === 'organizer';
+
   const slug = await uniqueSlug(body.title);
   let categorySlug = body.categorySlug || '';
   if (body.category) {
-    const cat = await Category.findById(body.category);
-    categorySlug = cat?.slug || categorySlug;
+    try {
+      const cat = await Category.findById(body.category);
+      categorySlug = cat?.slug || categorySlug;
+    } catch {
+      // ignore invalid ObjectId
+    }
   }
+
+  let eventType = body.eventType || 'offline';
+  if (eventType === 'in-person') eventType = 'offline';
+  if (eventType === 'virtual') eventType = 'online';
+
+  const ticketTypes = (body.ticketTypes || []).filter((t) => t && t.name && t.name.trim());
+  const customRegistrationFields = (body.customRegistrationFields || [])
+    .filter((f) => f && f.label && f.label.trim())
+    .map((f) => ({
+      label: f.label.trim(),
+      type: f.type || f.fieldType || 'text',
+      options: Array.isArray(f.options) ? f.options : [],
+      required: !!f.required,
+      placeholder: f.placeholder || '',
+    }));
 
   const event = await Event.create({
     ...body,
+    eventType,
+    ticketTypes,
+    customRegistrationFields,
     slug,
     categorySlug,
     organizer: req.user._id,
     approvalStatus: approvedOrganizer ? 'approved' : 'pending',
-    status: body.status === 'published' && !approvedOrganizer ? 'draft' : body.status || 'draft',
+    status: body.status || 'published',
     riskFlags: buildRiskFlags(body, true),
     venue: body.venue || {},
   });
@@ -203,7 +230,7 @@ const updateEvent = asyncHandler(async (req, res) => {
     'title', 'shortDescription', 'description', 'coverImage', 'images', 'category', 'categorySlug',
     'tags', 'eventType', 'startDate', 'endDate', 'timezone', 'registrationDeadline', 'venue',
     'capacity', 'price', 'ticketTypes', 'customRegistrationFields', 'faq', 'visibility',
-    'featured', 'settings', 'status',
+    'featured', 'settings', 'status', 'metaTitle', 'metaDescription', 'primaryKeyword',
   ];
   allowed.forEach((f) => {
     if (req.body[f] !== undefined) event[f] = req.body[f];
@@ -234,6 +261,21 @@ const setStatus = asyncHandler(async (req, res) => {
 
   const { emitToEvent } = require('../sockets');
   emitToEvent(event._id.toString(), 'event:status', { eventId: event._id, status });
+
+  // Asynchronously update organizer's TrustSphere profile when event is completed or cancelled
+  if (['completed', 'cancelled'].includes(status) && event.organizer) {
+    try {
+      const { calculateAndSaveTrustProfile } = require('../services/trustsphere/trustProfileService');
+      calculateAndSaveTrustProfile(
+        event.organizer,
+        status === 'completed' ? 'EVENT_COMPLETED' : 'EVENT_CANCELLED',
+        `Event "${event.title}" marked as ${status}`
+      ).catch((err) => console.error('[TrustSphere] Async recalculation error:', err.message));
+    } catch (err) {
+      // Non-blocking
+    }
+  }
+
   ok(res, event);
 });
 

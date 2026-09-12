@@ -20,13 +20,18 @@ export const useAuth = create(
       },
       loginWithGoogle: async (credential) => {
         set({ status: 'loading' });
-        const data = await endpoints.googleLogin({ credential });
-        set({ user: data.user, token: data.token, status: 'idle' });
-        return data.user;
+        try {
+          const data = await endpoints.googleLogin({ credential });
+          set({ user: data.user, token: data.token, status: 'idle' });
+          return data.user;
+        } catch (err) {
+          set({ status: 'idle' });
+          throw err;
+        }
       },
       register: async (payload) => {
         set({ status: 'loading' });
-        const data = await endpoints.register(payload);
+        const data = await endpoints.signup(payload);
         set({ user: data.user, token: data.token, status: 'idle' });
         return data.user;
       },

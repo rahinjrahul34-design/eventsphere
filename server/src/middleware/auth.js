@@ -61,13 +61,13 @@ const requireRole =
     next();
   };
 
-// Organizers must be approved by an admin.
+// Organizers can create and manage events.
 const requireApprovedOrganizer = (req, res, next) => {
   if (req.user.role === 'admin') return next();
-  if (req.user.role !== 'organizer' || req.user.organizerStatus !== 'approved') {
-    return next(ApiError.forbidden('Your organizer account is pending approval.'));
-  }
-  next();
+  if (config.demoMode) return next();
+  if (req.user.role === 'organizer') return next();
+  if (req.user.organizerStatus === 'approved') return next();
+  return next(ApiError.forbidden('Only event organizers and administrators can create events.'));
 };
 
 module.exports = { requireAuth, optionalAuth, requireRole, requireApprovedOrganizer };

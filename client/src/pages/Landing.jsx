@@ -10,6 +10,7 @@ import { endpoints } from '../lib/api';
 import { Button } from '../components/ui/button';
 import EventCard from '../components/events/EventCard';
 import { EVENT_CATEGORIES, fmtDate } from '../lib/format';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const stats = [
   { value: 10000, suffix: '+', label: 'Attendees' },
@@ -65,6 +66,7 @@ const innovations = [
 ];
 
 export default function Landing() {
+  usePageTitle(null);
   const navigate = useNavigate();
   const { data } = useQuery({
     queryKey: ['events', 'featured'],

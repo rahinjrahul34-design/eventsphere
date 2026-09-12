@@ -12,8 +12,10 @@ import { Avatar } from '../components/ui/avatar';
 import { INTERESTS, SKILLS, GOALS } from '../lib/format';
 import { timeAgo, cn } from '../lib/utils';
 import { toast } from 'sonner';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function Profile() {
+  usePageTitle('Profile');
   const { user, patchUser } = useAuth();
   const [tab, setTab] = useState('profile');
 

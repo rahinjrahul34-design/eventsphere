@@ -19,4 +19,20 @@ router.post('/:id/report', requireAuth, ctrl.reportEvent);
 router.get('/:id/ical', requireAuth, ctrl.ical);
 router.get('/:id/registrations/export', requireAuth, ctrl.exportRegistrations);
 
+// Flagship EventShield AI Module
+router.use('/:id/eventshield', require('./eventShield.routes'));
+
+// Flagship EventPulse AI Module
+router.use('/:id/eventpulse', require('./eventPulse.routes'));
+
+// Flagship SmartQueue AI Module
+router.use('/:id/smartqueue', require('./smartQueue.routes'));
+
+// Flagship EventBoost AI Module
+router.use('/:id/seo', require('./eventBoost.routes'));
+router.use('/:id/eventboost', require('./eventBoost.routes'));
+
+// Flagship AI Command Center Module
+router.use('/:id/command-center', require('./commandCenter.routes'));
+
 module.exports = router;

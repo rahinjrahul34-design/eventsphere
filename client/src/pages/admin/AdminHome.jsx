@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Users, CalendarDays, Ticket, IndianRupee, ShieldCheck, Flag, ArrowRight, UserCheck } from 'lucide-react';
+import { Users, CalendarDays, Ticket, IndianRupee, ShieldCheck, Flag, ArrowRight, UserCheck, Sparkles } from 'lucide-react';
 import { endpoints } from '../../lib/api';
 import StatCard from '../../components/dashboard/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -10,9 +10,12 @@ import { Avatar } from '../../components/ui/avatar';
 import { Spinner } from '../../components/ui/misc';
 import { TrendChart, DonutChart, COLORS } from '../../components/charts/Charts';
 import { fmtDate } from '../../lib/format';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 export default function AdminHome() {
+  usePageTitle('Admin Dashboard');
   const q = useQuery({ queryKey: ['admin-stats'], queryFn: () => endpoints.adminStats(30), refetchInterval: 60000 });
+  const recQ = useQuery({ queryKey: ['recommendation-analytics'], queryFn: endpoints.recommendationAnalytics });
   if (q.isLoading) return <Spinner />;
   const d = q.data;
   const cards = d.cards || {};
@@ -143,6 +146,97 @@ export default function AdminHome() {
               </tbody>
             </table>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* ─── Recommendation Intelligence (AI 2.0) ─── */}
+      <Card className="border-primary/20">
+        <CardHeader className="flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="size-5 text-primary" /> Recommendation Intelligence (v2)
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Live algorithmic CTR, satisfaction ratings, and user interaction signals
+            </p>
+          </div>
+          <Badge variant="outline" className="font-mono text-xs border-primary/30 text-primary">
+            v2 ENGINE ACTIVE
+          </Badge>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-xl border bg-card p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Signals</p>
+              <p className="mt-1 font-display text-2xl font-extrabold">{recQ.data?.totalInteractions || 0}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Clicks, dismissals & ratings</p>
+            </div>
+            <div className="rounded-xl border bg-card p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Recommendation CTR</p>
+              <p className="mt-1 font-display text-2xl font-extrabold text-primary">{recQ.data?.ctr || '0.0%'}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{recQ.data?.clicks || 0} direct clicks</p>
+            </div>
+            <div className="rounded-xl border bg-card p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Satisfaction Rate</p>
+              <p className="mt-1 font-display text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                {recQ.data?.satisfactionRate || '100%'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">{recQ.data?.likes || 0} likes vs {recQ.data?.dislikes || 0} dislikes</p>
+            </div>
+            <div className="rounded-xl border bg-card p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dismissals</p>
+              <p className="mt-1 font-display text-2xl font-extrabold text-rose-500">{recQ.data?.dismissals || 0}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Trained negative penalties</p>
+            </div>
+          </div>
+
+          {recQ.data?.recentInteractions?.length > 0 && (
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                Recent Recommendation Signals
+              </h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b text-left text-muted-foreground uppercase">
+                      <th className="p-2">User</th>
+                      <th className="p-2">Event</th>
+                      <th className="p-2">Signal</th>
+                      <th className="p-2">Source</th>
+                      <th className="p-2">Detail / Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recQ.data.recentInteractions.slice(0, 8).map((inter) => (
+                      <tr key={inter._id} className="border-b last:border-0">
+                        <td className="p-2 font-medium">{inter.user?.name || 'Anonymous User'}</td>
+                        <td className="p-2 font-semibold">{inter.event?.title || 'Unknown Event'}</td>
+                        <td className="p-2">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                              inter.interactionType === 'click'
+                                ? 'bg-primary/10 text-primary'
+                                : inter.interactionType === 'dismiss'
+                                ? 'bg-rose-500/10 text-rose-600'
+                                : 'bg-emerald-500/10 text-emerald-600'
+                            }`}
+                          >
+                            {inter.interactionType}
+                          </span>
+                        </td>
+                        <td className="p-2 text-muted-foreground font-mono text-[10px]">
+                          {inter.recommendationSource || 'PERSONALIZED'}
+                        </td>
+                        <td className="p-2 text-muted-foreground">
+                          {inter.feedbackReason || (inter.feedbackType === 'like' ? 'Positive match' : '—')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

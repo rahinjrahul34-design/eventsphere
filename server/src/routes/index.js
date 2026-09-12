@@ -21,6 +21,9 @@ router.use('/search', require('./search.routes'));
 router.use('/', require('./engagement.routes'));
 router.use('/', require('./live.routes'));
 router.use('/', require('./networking.routes'));
+router.use('/recommendations', require('./recommendations.routes'));
+router.use('/trust', require('./trustSphere.routes'));
+router.use('/command-center', require('./commandCenter.routes'));
 router.use('/', require('./misc.routes'));
 
 module.exports = router;

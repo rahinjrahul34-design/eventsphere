@@ -7,8 +7,10 @@ import { EmptyState, ErrorState } from '../components/ui/states';
 import { Spinner } from '../components/ui/misc';
 import { Badge } from '../components/ui/badge';
 import { fmtDate } from '../lib/format';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function MyTickets() {
+  usePageTitle('My Tickets');
   const q = useQuery({ queryKey: ['tickets'], queryFn: endpoints.myTickets });
 
   if (q.isLoading) return <Spinner />;

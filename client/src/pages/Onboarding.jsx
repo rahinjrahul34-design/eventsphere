@@ -7,8 +7,10 @@ import { INTERESTS } from '../lib/format';
 import { endpoints } from '../lib/api';
 import { useAuth } from '../store/auth';
 import { toast } from 'sonner';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function Onboarding() {
+  usePageTitle('Get Started');
   const { user, patchUser } = useAuth();
   const [interests, setInterests] = useState(user?.interests || []);
   const [step, setStep] = useState(0);

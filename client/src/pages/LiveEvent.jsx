@@ -18,8 +18,10 @@ import { Spinner, ErrorState } from '../components/ui/misc';
 import { fmtTime } from '../lib/format';
 import { timeAgo } from '../lib/utils';
 import { toast } from 'sonner';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function LiveEvent() {
+  usePageTitle('Live Event');
   const { slug } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();

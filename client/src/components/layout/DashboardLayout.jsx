@@ -1,7 +1,7 @@
 import { NavLink, Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, CalendarDays, Plus, Bot, Users, ClipboardList, Mic2,
-  ShieldCheck, Flag, Tags, ScrollText, Menu, X, Sparkles, Home, LogOut,
+  ShieldCheck, Flag, Tags, ScrollText, Menu, X, Sparkles, Home, LogOut, Activity,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../store/auth';
@@ -24,14 +24,17 @@ export default function DashboardLayout() {
 
   const organizerNav = [
     { to: '/dashboard/overview', icon: LayoutDashboard, label: 'Overview' },
+    { to: '/dashboard/command-center', icon: Activity, label: 'AI Command Center' },
     { to: '/dashboard/events', icon: CalendarDays, label: 'My Events' },
     { to: '/dashboard/events/create', icon: Plus, label: 'Create Event' },
+    { to: '/dashboard/trust', icon: ShieldCheck, label: 'TrustSphere AI' },
     { to: '/dashboard/copilot', icon: Bot, label: 'AI Copilot' },
   ];
   const adminNav = [
     { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
     { to: '/admin/events', icon: CalendarDays, label: 'Event Approvals' },
     { to: '/admin/users', icon: Users, label: 'Users & Organizers' },
+    { to: '/admin/trust', icon: ShieldCheck, label: 'Trust Intelligence' },
     { to: '/admin/reports', icon: Flag, label: 'Reports' },
     { to: '/admin/categories', icon: Tags, label: 'Categories' },
     { to: '/admin/audit', icon: ScrollText, label: 'Audit Logs' },

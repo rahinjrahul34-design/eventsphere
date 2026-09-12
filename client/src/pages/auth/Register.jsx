@@ -6,8 +6,10 @@ import { Button } from '../../components/ui/button';
 import { Input, Label, Select } from '../../components/ui/input';
 import { useAuth } from '../../store/auth';
 import { toast } from 'sonner';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 export default function Register() {
+  usePageTitle('Create Account');
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [loading, setLoading] = useState(false);
   const { register: signup } = useAuth();

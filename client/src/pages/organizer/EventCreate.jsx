@@ -13,6 +13,7 @@ import { Badge } from '../../components/ui/badge';
 import { cn } from '../../lib/utils';
 import { EVENT_CATEGORIES } from '../../lib/format';
 import { toast } from 'sonner';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 const DRAFT_KEY = 'es-event-draft';
 const STEPS = [
@@ -45,6 +46,7 @@ const blank = {
 };
 
 export default function EventCreate() {
+  usePageTitle('Create Event');
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(() => {
@@ -66,60 +68,108 @@ export default function EventCreate() {
 
   const create = useMutation({
     mutationFn: async () => {
+      if (!form.title?.trim()) {
+        setStep(0);
+        throw new Error('Please enter an event title in the Basics step.');
+      }
+      if (!form.categorySlug) {
+        setStep(0);
+        throw new Error('Please select a category in the Basics step.');
+      }
+      if (!form.startDate || !form.endDate) {
+        setStep(1);
+        throw new Error('Please specify start and end dates in Date & Time.');
+      }
+      if (new Date(form.endDate) < new Date(form.startDate)) {
+        setStep(1);
+        throw new Error('End date cannot be before start date.');
+      }
+
       const cat = (categories || EVENT_CATEGORIES).find((c) => c.slug === form.categorySlug);
       const payload = {
-        title: form.title,
-        shortDescription: form.shortDescription,
-        description: form.description,
+        title: form.title.trim(),
+        shortDescription: form.shortDescription?.trim() || '',
+        description: form.description?.trim() || form.title.trim(),
         coverImage: form.coverImage || undefined,
-        category: cat?._id,
-        categorySlug: form.categorySlug,
-        tags: String(form.tags).split(',').map((t) => t.trim()).filter(Boolean),
-        eventType: form.eventType,
+        category: cat?._id || undefined,
+        categorySlug: form.categorySlug || 'conference',
+        tags: String(form.tags || '').split(',').map((t) => t.trim()).filter(Boolean),
+        eventType: form.eventType || 'offline',
         startDate: new Date(form.startDate).toISOString(),
         endDate: new Date(form.endDate).toISOString(),
-        timezone: form.timezone,
+        timezone: form.timezone || 'Asia/Kolkata',
         registrationDeadline: form.registrationDeadline ? new Date(form.registrationDeadline).toISOString() : undefined,
         venue: {
-          name: form.venueName, address: form.address, city: form.city, onlineUrl: form.onlineUrl,
+          name: form.venueName || '',
+          address: form.address || '',
+          city: form.city || (form.eventType === 'online' ? '' : 'Main Venue'),
+          onlineUrl: form.onlineUrl || '',
           coordinates: form.lat && form.lng ? { type: 'Point', coordinates: [Number(form.lng), Number(form.lat)] } : undefined,
         },
-        capacity: Number(form.capacity),
-        price: Number(form.price),
-        ticketTypes: form.ticketTypes,
-        customRegistrationFields: form.customFields.map(({ id, ...rest }) => rest),
+        capacity: Math.max(1, Number(form.capacity) || 100),
+        price: Math.max(0, Number(form.price) || 0),
+        ticketTypes: (form.ticketTypes || []).filter((t) => t?.name?.trim()),
+        customRegistrationFields: (form.customFields || []).filter((f) => f?.label?.trim()).map(({ id, ...rest }) => rest),
         faq: [],
         status: 'published',
       };
+
       const event = await endpoints.createEvent(payload);
-      // Related records created in their own collections after the event exists.
-      for (const sp of form.speakers) {
-        // eslint-disable-next-line no-await-in-loop
-        await endpoints.createSpeaker(event._id, sp);
+
+      // Attach valid speakers
+      const validSpeakers = (form.speakers || []).filter((s) => s?.name?.trim());
+      for (const sp of validSpeakers) {
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          await endpoints.createSpeaker(event._id, sp);
+        } catch (err) {
+          console.warn('Failed to attach speaker:', err);
+        }
       }
-      for (const sc of form.schedule) {
-        // eslint-disable-next-line no-await-in-loop
-        await endpoints.createSession(event._id, {
-          title: sc.title, type: sc.type || 'talk', room: sc.room || 'Main Hall',
-          startTime: new Date(`${form.startDate.slice(0, 10)}T${sc.time || '10:00'}`).toISOString(),
-          endTime: new Date(new Date(`${form.startDate.slice(0, 10)}T${sc.time || '10:00'}`).getTime() + Number(sc.duration || 60) * 60000).toISOString(),
-          day: Number(sc.day || 1), order: Number(sc.time?.replace(':', '') || 0),
-        });
+
+      // Attach valid schedule sessions
+      const validSchedule = (form.schedule || []).filter((s) => s?.title?.trim());
+      const baseDateStr = form.startDate ? new Date(form.startDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+      for (const sc of validSchedule) {
+        try {
+          const sessionStart = new Date(`${baseDateStr}T${sc.time || '10:00'}:00.000Z`);
+          const durationMin = Number(sc.duration || 60);
+          const sessionEnd = new Date(sessionStart.getTime() + durationMin * 60000);
+
+          // eslint-disable-next-line no-await-in-loop
+          await endpoints.createSession(event._id, {
+            title: sc.title,
+            type: sc.type || 'talk',
+            room: sc.room || 'Main Hall',
+            startTime: isNaN(sessionStart.getTime()) ? new Date().toISOString() : sessionStart.toISOString(),
+            endTime: isNaN(sessionEnd.getTime()) ? new Date(Date.now() + 3600000).toISOString() : sessionEnd.toISOString(),
+            day: Number(sc.day || 1),
+            order: Number(sc.time?.replace(':', '') || 0),
+          });
+        } catch (err) {
+          console.warn('Failed to attach session:', err);
+        }
       }
+
       return event;
     },
     onSuccess: (event) => {
-      toast.success('Event published! 🎉');
+      toast.success('Event published successfully! 🎉', {
+        action: {
+          label: 'Optimize with EventBoost AI',
+          onClick: () => navigate(`/dashboard/events/${event._id}/eventboost`),
+        },
+      });
       localStorage.removeItem(DRAFT_KEY);
       navigate(`/dashboard/events/${event._id}`);
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e) => toast.error(e.message || 'Failed to create event'),
   });
 
   const canNext = () => {
-    if (STEPS[step].key === 'basic') return form.title && form.categorySlug && form.description.length > 20;
-    if (STEPS[step].key === 'datetime') return form.startDate && form.endDate && new Date(form.endDate) >= new Date(form.startDate);
-    if (STEPS[step].key === 'venue') return form.eventType === 'online' ? true : form.venueName && form.city;
+    if (STEPS[step].key === 'basic') return Boolean(form.title?.trim() && form.categorySlug);
+    if (STEPS[step].key === 'datetime') return Boolean(form.startDate && form.endDate && new Date(form.endDate) >= new Date(form.startDate));
+    if (STEPS[step].key === 'venue') return form.eventType === 'online' ? true : Boolean(form.city?.trim() || form.venueName?.trim());
     if (STEPS[step].key === 'tickets') return Number(form.capacity) > 0;
     return true;
   };
@@ -129,7 +179,7 @@ export default function EventCreate() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-display text-2xl font-extrabold">Create an event</h2>
-          <p className="text-sm text-muted-foreground">Drafts auto-save in your browser. {useMemo(() => '', [])}</p>
+          <p className="text-sm text-muted-foreground">Drafts auto-save in your browser.</p>
         </div>
         <Button variant="outline" onClick={() => navigate('/dashboard/copilot')}>
           <Bot className="size-4" /> Generate with AI Copilot
@@ -470,6 +520,16 @@ function StepPublish({ form, setForm }) {
         <Button variant="link" className="px-0" loading={plan.isPending} onClick={() => plan.mutate()}>
           <Bot className="size-4" /> Generate full organizer checklist with AI
         </Button>
+
+        <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4 flex items-center gap-3">
+          <Sparkles className="size-5 text-primary shrink-0" />
+          <div className="text-xs">
+            <span className="font-bold text-foreground">Next: Maximize event discovery with EventBoost AI</span>
+            <p className="text-muted-foreground mt-0.5">
+              After publishing, EventBoost AI will analyze your content quality, keyword coverage, and generate Google SERP and Open Graph social previews.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

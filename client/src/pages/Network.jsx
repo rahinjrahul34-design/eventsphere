@@ -12,8 +12,10 @@ import { Avatar } from '../components/ui/avatar';
 import { ErrorState } from '../components/ui/states';
 import { GOALS } from '../lib/format';
 import { toast } from 'sonner';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function Network() {
+  usePageTitle('Network');
   const { user } = useAuth();
   const [tab, setTab] = useState('discover');
 

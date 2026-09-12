@@ -73,7 +73,13 @@ const myCertificates = asyncHandler(async (req, res) => {
 
 // GET /api/certificates/verify/:certificateId — PUBLIC
 const verifyCertificate = asyncHandler(async (req, res) => {
-  const cert = await Certificate.findOne({ certificateId: req.params.certificateId })
+  const queryId = (req.params.certificateId || '').trim();
+  const cert = await Certificate.findOne({
+    $or: [
+      { certificateId: { $regex: new RegExp(`^${queryId}$`, 'i') } },
+      ...(queryId.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: queryId }] : []),
+    ],
+  })
     .populate('event', 'title slug startDate organizer')
     .populate('user', 'name');
   if (!cert) return ok(res, { valid: false, reason: 'NOT_FOUND' });

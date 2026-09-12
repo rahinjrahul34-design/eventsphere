@@ -32,6 +32,13 @@ module.exports = {
     user: process.env.EMAIL_USER || '',
     pass: process.env.EMAIL_PASSWORD || '',
     from: process.env.EMAIL_FROM || 'EventSphere <no-reply@eventsphere.demo>',
+    resendApiKey: process.env.RESEND_API_KEY || '',
+  },
+  otp: {
+    expiryMinutes: parseInt(process.env.OTP_EXPIRY_MINUTES || '10', 10),
+    maxAttempts: parseInt(process.env.OTP_MAX_ATTEMPTS || '5', 10),
+    resendCooldownSeconds: parseInt(process.env.OTP_RESEND_COOLDOWN_SECONDS || '60', 10),
+    resetTokenExpiryMinutes: parseInt(process.env.PASSWORD_RESET_TOKEN_EXPIRY_MINUTES || '15', 10),
   },
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID || '',

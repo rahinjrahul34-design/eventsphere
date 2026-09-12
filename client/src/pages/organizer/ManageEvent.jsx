@@ -2,7 +2,7 @@ import { useParams, NavLink, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   LayoutDashboard, BarChart3, Users, QrCode, Radio, Clock, Mic2, Hand, Award,
-  ChevronRight, ExternalLink,
+  ChevronRight, ExternalLink, ShieldAlert, Activity, Zap, ShieldCheck, Sparkles, Sliders,
 } from 'lucide-react';
 import { endpoints } from '../../lib/api';
 import { Spinner, ErrorState } from '../../components/ui/misc';
@@ -11,6 +11,12 @@ import { cn } from '../../lib/utils';
 
 const TABS = [
   { to: '', icon: LayoutDashboard, label: 'Overview', end: true },
+  { to: 'command-center', icon: Sliders, label: 'Command Center' },
+  { to: 'eventboost', icon: Sparkles, label: 'EventBoost AI' },
+  { to: 'trust', icon: ShieldCheck, label: 'TrustSphere AI' },
+  { to: 'eventpulse', icon: Activity, label: 'EventPulse AI' },
+  { to: 'eventshield', icon: ShieldAlert, label: 'EventShield AI' },
+  { to: 'smartqueue', icon: Zap, label: 'SmartQueue AI' },
   { to: 'analytics', icon: BarChart3, label: 'Analytics' },
   { to: 'registrations', icon: Users, label: 'Registrations' },
   { to: 'check-in', icon: QrCode, label: 'Check-in' },

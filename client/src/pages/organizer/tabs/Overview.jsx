@@ -1,7 +1,7 @@
 import { useOutletContext, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Users, CheckCircle2, IndianRupee, Gauge, MessageSquare, Star, Award, Bot, Radio, Download,
+  Users, CheckCircle2, IndianRupee, Gauge, MessageSquare, Star, Award, Bot, Radio, Download, Activity, Sparkles,
 } from 'lucide-react';
 import { endpoints } from '../../../lib/api';
 import StatCard from '../../../components/dashboard/StatCard';
@@ -68,6 +68,16 @@ export default function Overview() {
         <Card>
           <CardHeader><CardTitle>Quick actions</CardTitle></CardHeader>
           <CardContent className="space-y-2">
+            <Link to={`/dashboard/events/${event._id}/eventboost`}>
+              <Button variant="outline" className="w-full justify-start font-bold text-primary border-primary/30 bg-primary/5 hover:bg-primary/10">
+                <Sparkles className="size-4" /> EventBoost AI & SEO
+              </Button>
+            </Link>
+            <Link to={`/dashboard/events/${event._id}/eventpulse`}>
+              <Button variant="outline" className="w-full justify-start font-bold text-primary border-primary/30 bg-primary/5 hover:bg-primary/10">
+                <Activity className="size-4" /> EventPulse AI Forecast
+              </Button>
+            </Link>
             <Link to={`/dashboard/events/${event._id}/check-in`}><Button variant="outline" className="w-full justify-start"><CheckCircle2 className="size-4" /> QR check-in desk</Button></Link>
             <Link to={`/events/${event.slug}/live`}><Button variant="outline" className="w-full justify-start"><Radio className="size-4" /> Live control center</Button></Link>
             <Button variant="outline" className="w-full justify-start" loading={issueCerts.isPending} onClick={() => issueCerts.mutate()}>
