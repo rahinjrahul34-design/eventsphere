@@ -211,16 +211,16 @@ describe('EventShield AI - Comprehensive Test Suite', () => {
       expect(accCat.score).toBeLessThanOrEqual(50);
     });
 
-    it('8. flags outdoor environmental exposure when isOutdoor is true', () => {
+    it('8. does not invent weather when forecast data is unavailable', () => {
       const outdoorEvent = {
         eventType: 'offline',
         safetyConfig: { isOutdoor: true },
       };
       const result = evaluateEventRisk(outdoorEvent);
       const weatherCat = result.categories.find((c) => c.id === 'weather');
-      expect(weatherCat.riskLevel).toBe('medium');
-      expect(weatherCat.score).toBeLessThanOrEqual(60);
-      expect(weatherCat.issues[0]).toMatch(/Outdoor event setup/i);
+      expect(weatherCat.evidence.join(' ')).toMatch(/Weather data unavailable/i);
+      expect(weatherCat.issues.length).toBe(0);
+      expect(weatherCat.recommendations[0]).toMatch(/Weather data unavailable/i);
     });
 
     it('9. adapts gracefully for virtual/online events (no physical venue penalty)', () => {
