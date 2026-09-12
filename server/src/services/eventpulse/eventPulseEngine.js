@@ -10,6 +10,7 @@ const Event = require('../../models/Event');
 const config = require('./config');
 
 const { extractEventFeatures } = require('./featureExtractor');
+const { extractEventFeatures: extractFeatures } = require('./featureExtractor');
 const EnsembleModel = require('./models/ensembleModel');
 const { calculateRegistrationVelocity } = require('./velocityService');
 const { calculateExpectedAttendance } = require('./attendanceService');
@@ -29,6 +30,17 @@ try {
   // Safe fallback if sockets not yet initialized (e.g. in test runner)
 }
 
+const EventPulseAlert = require('../../models/EventPulseAlert');
+
+/** Lightweight read of currently-active alerts (used on cached reads). */
+async function activeAlertsFor(eventId) {
+  try {
+    return await EventPulseAlert.find({ eventId, status: 'active' }).sort({ createdAt: -1 }).lean();
+  } catch (e) {
+    return [];
+  }
+}
+
 /**
  * Generate or retrieve cached prediction for an event
  */
@@ -43,7 +55,15 @@ async function getOrComputePrediction(eventId, forceRefresh = false) {
     }).lean();
 
     if (cached) {
-      return cached;
+      // Attach a fresh (read-only) feature extract so the dashboard keeps its
+      // live signals (trend history, current counts, live monitor) even on
+      // cached reads — WITHOUT rerunning the expensive model/AI/write pipeline.
+      try {
+        const features = await extractEventFeatures(eventId);
+        return { ...cached, activeAlerts: await activeAlertsFor(eventId), features };
+      } catch (e) {
+        return cached;
+      }
     }
   }
 
@@ -141,11 +161,12 @@ async function getOrComputePrediction(eventId, forceRefresh = false) {
     { upsert: true, new: true }
   ).lean();
 
-  // 10. Record snapshot for timeline (daily or on forced refresh)
-  await EventPredictionSnapshot.create({
+  // 10. Record snapshot for prediction timeline (CORE FEATURE 34)
+  // Pre-event: at most one snapshot per calendar day (upserted, so the day's
+  // point always reflects the latest model state). Live events: a new point
+  // per recalculation, because intra-day prediction evolution is valuable.
+  const snapshotPayload = {
     eventId,
-    snapshotTime: now,
-    dayOffset: Math.round(features.timing.daysSincePublication),
     predictedRegistrations: preliminaryPrediction.forecast.predictedRegistrations,
     actualRegistrations: features.registrations.totalConfirmed,
     expectedAttendance: preliminaryPrediction.attendance.expectedAttendees,
@@ -153,7 +174,17 @@ async function getOrComputePrediction(eventId, forceRefresh = false) {
     engagementScore: preliminaryPrediction.engagement.score,
     trigger: forceRefresh ? 'manual' : 'daily',
     modelVersion: config.MODEL_VERSION,
-  });
+  };
+  if (features.event.isLive) {
+    await EventPredictionSnapshot.create({ ...snapshotPayload, snapshotTime: now, dayOffset: Math.round(features.timing.daysSincePublication) });
+  } else {
+    const dayOffset = Math.round(features.timing.daysSincePublication);
+    await EventPredictionSnapshot.findOneAndUpdate(
+      { eventId, dayOffset },
+      { $set: { ...snapshotPayload, snapshotTime: now } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+  }
 
   // 11. Broadcast update to event room via Socket.IO
   if (socketHelpers?.emitToEvent) {

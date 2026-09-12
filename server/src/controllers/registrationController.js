@@ -12,6 +12,7 @@ const gamification = require('../services/gamificationService');
 const emailService = require('../services/emailService');
 const { emitToEvent } = require('../sockets');
 const { POINTS } = require('../utils/badges');
+const { scheduleEventPulseRecalc } = require('../services/eventpulse/recalcScheduler');
 
 function seatsLeft(event) {
   return Math.max(0, event.capacity - (event.registrationCount || 0) - (event.activeHoldsCount || 0));
@@ -267,6 +268,10 @@ const cancelRegistration = asyncHandler(async (req, res) => {
     registrationCount: event.registrationCount,
     seatsLeft: seatsLeft(event),
   });
+
+  // EventPulse AI: cancellation affects velocity → debounced recalculation
+  scheduleEventPulseRecalc(event._id, 'registration_cancel');
+
   ok(res, { cancelled: true, promotedTicket: promoted });
 });
 

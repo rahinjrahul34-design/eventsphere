@@ -6,6 +6,7 @@ const { asyncHandler, ok } = require('../utils/response');
 const gamification = require('../services/gamificationService');
 const { POINTS } = require('../utils/badges');
 const { emitToEvent } = require('../sockets');
+const { scheduleEventPulseRecalc } = require('../services/eventpulse/recalcScheduler');
 
 // GET /api/tickets/my
 const myTickets = asyncHandler(async (req, res) => {

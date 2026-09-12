@@ -9,6 +9,7 @@ const ApiError = require('../utils/ApiError');
 const { asyncHandler, ok, created } = require('../utils/response');
 const { slugify } = require('../utils/codes');
 const { getRecommendedEvents, getSimilarEvents } = require('../services/recommendationService');
+const { scheduleEventPulseRecalc } = require('../services/eventpulse/recalcScheduler');
 
 const eventCardFields = '_id title slug shortDescription coverImage categorySlug tags eventType startDate endDate venue capacity registrationCount checkedInCount price ticketTypes organizer featured status approvalStatus';
 
@@ -261,6 +262,11 @@ const setStatus = asyncHandler(async (req, res) => {
 
   const { emitToEvent } = require('../sockets');
   emitToEvent(event._id.toString(), 'event:status', { eventId: event._id, status });
+
+  // EventPulse AI: lifecycle transitions (published/live/completed) → recalculation
+  if (['published', 'live', 'completed'].includes(status)) {
+    scheduleEventPulseRecalc(event._id, 'status_change');
+  }
 
   // Asynchronously update organizer's TrustSphere profile when event is completed or cancelled
   if (['completed', 'cancelled'].includes(status) && event.organizer) {
