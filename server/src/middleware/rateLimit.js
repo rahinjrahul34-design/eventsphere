@@ -57,6 +57,17 @@ const aiLimiter = rateLimit({
   message: { success: false, message: 'AI rate limit reached, please wait a moment.' },
 });
 
+// SmartQueue action limiter (CORE FEATURE 41): protects accept/decline/promote
+// from abuse and rapid repeated requests while still allowing normal double-
+// click retries (idempotency handles those at the service layer).
+const smartQueueActionLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many waitlist actions. Please wait a few minutes and try again.' },
+});
+
 module.exports = {
   authLimiter,
   forgotPasswordLimiter,
@@ -65,4 +76,5 @@ module.exports = {
   resetPasswordLimiter,
   apiLimiter,
   aiLimiter,
+  smartQueueActionLimiter,
 };

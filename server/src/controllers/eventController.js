@@ -268,6 +268,21 @@ const setStatus = asyncHandler(async (req, res) => {
     scheduleEventPulseRecalc(event._id, 'status_change');
   }
 
+  // SmartQueue AI: on cancellation/completion, atomically release all active
+  // seat holds, notify affected users and stop future promotions (FEATURE 34/35)
+  if (['cancelled', 'completed'].includes(status)) {
+    try {
+      const smartQueue = require('../services/smartqueue');
+      await smartQueue.holdService.cancelAllActiveHolds({
+        eventId: event._id,
+        reason: status === 'cancelled' ? 'event_cancelled' : 'event_completed',
+        actor: req.userId.toString(),
+      });
+    } catch (sqErr) {
+      console.error('SmartQueue hold cleanup error on status change:', sqErr.message);
+    }
+  }
+
   // Asynchronously update organizer's TrustSphere profile when event is completed or cancelled
   if (['completed', 'cancelled'].includes(status) && event.organizer) {
     try {

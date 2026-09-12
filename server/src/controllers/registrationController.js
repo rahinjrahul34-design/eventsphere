@@ -134,13 +134,32 @@ const registerForEvent = asyncHandler(async (req, res) => {
       event: event._id,
       status: { $in: ['waiting', 'notified'] },
     })) + 1;
-    await Waitlist.findOneAndUpdate(
+    const waitlistEntry = await Waitlist.findOneAndUpdate(
       { event: event._id, user: req.user._id },
       { position, status: 'waiting', registration: registration._id },
-      { upsert: true, setDefaultsOnInsert: true }
+      { upsert: true, setDefaultsOnInsert: true, new: true }
     );
     event.waitlistCount = position;
     await event.save();
+
+    // SmartQueue audit trail (CORE FEATURE 32) — new joins only
+    if (waitlistEntry) {
+      try {
+        const SmartQueueAudit = require('../models/SmartQueueAudit');
+        const { AUDIT_ACTIONS } = require('../services/smartqueue/config');
+        await SmartQueueAudit.create({
+          eventId: event._id,
+          userId: req.user._id,
+          waitlistEntryId: waitlistEntry._id,
+          action: AUDIT_ACTIONS.WAITLIST_JOINED,
+          details: { position, ticketType: registration.ticketType },
+          actor: 'user',
+        });
+      } catch (auditErr) {
+        // Audit failure must never block joining the waitlist (FEATURE 33)
+      }
+    }
+
     return created(res, { waitlisted: true, position, registration });
   }
 
@@ -305,31 +324,23 @@ const eventRegistrations = asyncHandler(async (req, res) => {
 });
 
 // POST /api/waitlist/:id/promote (manual)
+// Delegates to the SmartQueue promotion engine so manual promotion passes the
+// SAME eligibility, atomic capacity-lock, hold, notification and audit pipeline
+// as automatic promotion (CORE FEATURES 16/43 — never bypass safety rules).
 const promoteWaitlist = asyncHandler(async (req, res) => {
   const entry = await Waitlist.findById(req.params.id);
   if (!entry) throw ApiError.notFound();
   const event = await Event.findById(entry.event);
   if (event.organizer.toString() !== req.userId.toString() && req.user.role !== 'admin') throw ApiError.forbidden();
-  const reg = await Registration.findById(entry.registration);
-  const user = await require('../models/User').findById(entry.user);
-  if (!reg || !user) throw ApiError.badRequest('Waitlist entry invalid');
-  let ticket = null;
-  if ((reg.ticketType?.price || 0) === 0) {
-    entry.status = 'promoted';
-    entry.promotedAt = new Date();
-    await entry.save();
-    ticket = await confirmRegistration({ event, registration: reg, user });
-  } else {
-    entry.status = 'notified';
-    entry.notifiedAt = new Date();
-    await entry.save();
-    await notificationService.notify({
-      user: user._id, type: 'waitlist',
-      title: `A seat opened for ${event.title}!`, message: 'Complete payment to claim your spot.',
-      link: `/events/${event.slug}`,
-    });
-  }
-  ok(res, { promoted: true, ticket });
+
+  const smartQueue = require('../services/smartqueue');
+  const result = await smartQueue.promotionEngine.promoteCandidateManually(
+    event._id,
+    entry._id,
+    req.userId
+  );
+
+  ok(res, { promoted: true, hold: result.hold });
 });
 
 module.exports = {

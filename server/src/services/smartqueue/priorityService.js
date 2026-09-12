@@ -59,7 +59,8 @@ async function getNextEligibleCandidate({ eventId, eventDoc = null, ticketTypeNa
 }
 
 /**
- * Recalculates contiguous waitlist positions for an event.
+ * Recalculates contiguous waitlist positions for an event and pushes real-time
+ * position updates to every attendee whose position changed (CORE FEATURES 2/26).
  *
  * @param {string|mongoose.Types.ObjectId} eventId
  * @returns {Promise<number>} Number of active waiting participants
@@ -73,8 +74,22 @@ async function recalculatePositions(eventId) {
   for (let idx = 0; idx < activeEntries.length; idx++) {
     const expectedPosition = idx + 1;
     if (activeEntries[idx].position !== expectedPosition) {
+      const previousPosition = activeEntries[idx].position;
       activeEntries[idx].position = expectedPosition;
       await activeEntries[idx].save();
+
+      // Real-time position update to the affected attendee (REST/fallback
+      // polling still works when sockets are offline)
+      try {
+        emitToUser(activeEntries[idx].user.toString(), 'smartqueue:position', {
+          eventId: String(eventId),
+          waitlistEntryId: activeEntries[idx]._id,
+          previousPosition,
+          position: expectedPosition,
+        });
+      } catch (e) {
+        // Socket failures must never break position recalculation
+      }
     }
   }
 
