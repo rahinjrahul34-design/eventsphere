@@ -117,6 +117,34 @@ Public event pages dynamically inject:
    - `offers`: Ticket tiers with price, `priceCurrency: "INR"`, and stock status
    - `organizer`: Organization/Person
 
+### Server-Side SEO Infrastructure (`server/src/routes/seo.routes.js`):
+EventSphere is a client-rendered SPA — social scrapers (Facebook, LinkedIn,
+WhatsApp, X) and non-JS crawlers do not execute the React bundle, so
+client-side injection alone is invisible to them. A root-level router
+(mounted **before** the SPA fallback in `app.js`) closes that gap:
+
+1. **`GET /events/:slug` head injection**: the server looks up the event and
+   injects `<title>`, meta description, Open Graph, Twitter card, canonical
+   link, robots directives, and the same `Event` JSON-LD shape (id
+   `eventsphere-schema-jsonld`) directly into the served HTML *before* the
+   client bundle loads. The client-side `EventSeoHead` then updates the same
+   nodes on hydration — no duplicate tags. All user-generated content is
+   HTML-escaped (XSS-safe). Non-public, unapproved, draft and unlisted events
+   resolve to **generic tags only** — their details are never rendered into
+   crawler-visible markup.
+2. **`GET /robots.txt`**: `Allow: /` with disallow rules for authenticated
+   areas (`/dashboard/`, `/admin/`, `/my-tickets/`, `/profile/`, `/api/`) and
+   a `Sitemap:` reference.
+3. **`GET /sitemap.xml`**: static routes plus every publicly indexable event
+   (`public` + `approved` + `published|live|completed`), capped at 5,000
+   URLs, cached in memory for 15 minutes to avoid per-crawler DB load.
+
+Indexability policy (identical on client and server): only
+`visibility: public` + `approvalStatus: approved` + status
+`published|live|completed` events emit `index, follow`. Cancelled public
+events emit `noindex, nofollow` with `eventStatus: EventCancelled` so search
+results are cleaned up without breaking existing links.
+
 ---
 
 ## 6. API Endpoints & RBAC Security
