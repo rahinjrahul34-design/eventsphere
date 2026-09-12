@@ -16,6 +16,38 @@
 
 const config = require('../../config');
 
+// ---------------------------------------------------------------------------
+// Executive Brief Cache (performance guard)
+//
+// Spec §21: the LLM must NOT be called on every dashboard refresh. Briefs are
+// cached per event in memory and reused while (a) the TTL has not expired AND
+// (b) the structured fact fingerprint is unchanged. Any material change to the
+// underlying intelligence (health score/status, alert counts, top actions,
+// registration volume) produces a new fingerprint and forces regeneration.
+// ---------------------------------------------------------------------------
+const BRIEF_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const briefCache = new Map(); // eventId -> { fingerprint, brief, generatedAt }
+
+function computeBriefFingerprint(context) {
+  const { event, health, actions = [], shieldAlerts = [], pulseData, queueData } = context;
+  return JSON.stringify([
+    event?._id?.toString(),
+    health?.score,
+    health?.status,
+    actions.slice(0, 3).map((a) => a.id),
+    (shieldAlerts || []).filter((a) => a.status === 'active').length,
+    event?.registrationCount || 0,
+    queueData?.metrics?.waitingCount || 0,
+    pulseData?.attendance?.expectedNoShows ?? null,
+  ]);
+}
+
+/** Clears the in-memory brief cache (used by tests and manual refresh flows). */
+function clearBriefCache(eventId) {
+  if (eventId) briefCache.delete(String(eventId));
+  else briefCache.clear();
+}
+
 /**
  * Deterministic template-based fallback generator.
  * Produces complete, structured executive briefs without external AI dependency.
@@ -42,7 +74,10 @@ function generateDeterministicBrief({
   let situation = `${title} is currently operating at a ${status.toUpperCase()} level with an overall Event Health Score of ${score}/100. `;
   situation += `Registrations are at ${regs} of ${capacity} capacity (${fillPct}% fill rate). `;
   if (pulseData?.attendance?.expectedAttendees) {
-    situation += `Forecasted attendee turnout is approximately ${pulseData.attendance.expectedAttendees} (${pulseData.attendance.attendanceRate || 75}% conversion rate).`;
+    const ratePart = pulseData.attendance.attendanceRate !== undefined
+      ? ` (${pulseData.attendance.attendanceRate}% conversion rate)`
+      : '';
+    situation += `Forecasted attendee turnout is approximately ${pulseData.attendance.expectedAttendees}${ratePart}.`;
   } else {
     situation += `Operational readiness and attendee pacing are currently tracking according to schedule.`;
   }
@@ -145,10 +180,19 @@ function generateDeterministicBrief({
 async function generateExecutiveBrief(context) {
   const { event, health, actions = [], pulseData, shieldData, shieldAlerts, queueData, boostProfile, trustProfile } = context;
 
+  // Cache lookup: reuse the brief while facts are unchanged (LLM cost control).
+  const cacheKey = event?._id?.toString() || 'unknown';
+  const fingerprint = computeBriefFingerprint(context);
+  const cached = briefCache.get(cacheKey);
+  if (cached && cached.fingerprint === fingerprint && Date.now() - cached.generatedAt < BRIEF_CACHE_TTL_MS) {
+    return { ...cached.brief, cached: true };
+  }
+
+  let brief;
   // Fallback check
   if (!config.gemini.apiKey) {
-    return generateDeterministicBrief(context);
-  }
+    brief = generateDeterministicBrief(context);
+  } else {
 
   try {
     const structuredSummary = {
@@ -203,13 +247,13 @@ Return ONLY a JSON object with this exact schema:
 
     if (!resp.ok) {
       console.warn('Gemini API call returned non-200, falling back to deterministic brief');
-      return generateDeterministicBrief(context);
-    }
-
+      brief = generateDeterministicBrief(context);
+    } else {
     const data = await resp.json();
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!rawText) return generateDeterministicBrief(context);
-
+    if (!rawText) {
+      brief = generateDeterministicBrief(context);
+    } else {
     const parsed = JSON.parse(rawText.replace(/```json|```/g, '').trim());
 
     // Enrich topAction link if missing
@@ -218,18 +262,28 @@ Return ONLY a JSON object with this exact schema:
       parsed.topAction.cta = actions[0].ctaText || 'Take Action';
     }
 
-    return {
+    brief = {
       engine: 'gemini',
       generatedAt: new Date().toISOString(),
       ...parsed,
     };
+    }
+    }
   } catch (err) {
     console.warn('Error generating Gemini executive brief:', err.message);
-    return generateDeterministicBrief(context);
+    brief = generateDeterministicBrief(context);
   }
+  }
+
+  // Store in cache keyed by the fact fingerprint, then return.
+  briefCache.set(cacheKey, { fingerprint, brief, generatedAt: Date.now() });
+  return brief;
 }
 
 module.exports = {
   generateDeterministicBrief,
   generateExecutiveBrief,
+  clearBriefCache,
+  computeBriefFingerprint,
+  BRIEF_CACHE_TTL_MS,
 };

@@ -1,6 +1,7 @@
 const OrganizerTrustProfile = require('../../models/OrganizerTrustProfile');
 const OrganizerTrustSnapshot = require('../../models/OrganizerTrustSnapshot');
 const AuditLog = require('../../models/AuditLog');
+const { emitToUser } = require('../../sockets');
 const metricExtractor = require('./metricExtractor');
 const scoringEngine = require('./scoringEngine');
 const aiInsightsService = require('./aiInsightsService');
@@ -63,6 +64,23 @@ async function calculateAndSaveTrustProfile(organizerId, trigger = 'MANUAL_RECAL
       scoreVersion: SCORE_VERSION,
       calculatedAt: new Date(),
     });
+  }
+
+  // Real-time organizer dashboard update (CORE FEATURE 36).
+  // Only non-sensitive score metadata is broadcast — never moderation details.
+  try {
+    emitToUser(String(organizerId), 'trust:updated', {
+      organizerId,
+      trustScore: profile.trustScore,
+      trustLevel: profile.trustLevel,
+      confidenceLevel: profile.confidenceLevel,
+      scoreDelta,
+      trigger,
+      scoreVersion: SCORE_VERSION,
+      lastCalculatedAt: profile.lastCalculatedAt,
+    });
+  } catch (socketErr) {
+    // Socket failures must never break trust persistence
   }
 
   // Audit log entry

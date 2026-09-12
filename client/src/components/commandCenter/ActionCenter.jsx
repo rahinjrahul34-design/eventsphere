@@ -61,8 +61,13 @@ export default function ActionCenter({ actions = [], eventId, onActionResolved }
     if (!action.sourceId) return;
     setResolvingId(action.id);
     try {
-      await endpoints.commandCenter.updateAction(eventId, action.sourceId, { status: 'resolved' });
-      toast.success('Action marked as resolved');
+      const result = await endpoints.commandCenter.updateAction(eventId, action.sourceId, { status: 'resolved' });
+      if (result?.updated) {
+        toast.success('Action marked as resolved');
+      } else {
+        // Underlying source system does not support direct resolution — never fake it.
+        toast.info("This item's source module doesn't support direct resolution. Review it in the source module.");
+      }
       if (onActionResolved) onActionResolved(action.id);
     } catch (err) {
       toast.error(err.message || 'Failed to update action');

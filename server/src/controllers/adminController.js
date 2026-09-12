@@ -11,6 +11,23 @@ const audit = require('../services/auditService').log;
 const notificationService = require('../services/notificationService');
 const { slugify } = require('../utils/codes');
 
+/**
+ * TrustSphere async recalculation helper (CORE FEATURE 35): fires after
+ * meaningful verification/moderation events. Never blocks the admin response
+ * and never breaks the calling flow if the trust engine fails.
+ */
+function recalcTrustAsync(organizerId, trigger, reason) {
+  if (!organizerId) return;
+  try {
+    const trustProfileService = require('../services/trustsphere/trustProfileService');
+    trustProfileService
+      .calculateAndSaveTrustProfile(organizerId, trigger, reason)
+      .catch((err) => console.error(`[TrustSphere] async recalc (${trigger}) error:`, err.message));
+  } catch (err) {
+    // Non-blocking
+  }
+}
+
 // GET /api/admin/stats
 const dashboard = asyncHandler(async (req, res) => {
   const days = parseInt(req.query.days || '30', 10);
@@ -55,6 +72,7 @@ const updateUser = asyncHandler(async (req, res) => {
     });
   }
   if (organizerStatus && ['pending', 'approved', 'rejected'].includes(organizerStatus)) {
+    const verificationChanged = user.organizerStatus !== organizerStatus;
     user.organizerStatus = organizerStatus;
     if (organizerStatus === 'approved') user.role = 'organizer';
     await audit({ actor: req.user, action: `organizer.${organizerStatus}`, targetType: 'user', targetId: user._id, ip: req.ip });
@@ -64,6 +82,11 @@ const updateUser = asyncHandler(async (req, res) => {
       message: organizerStatus === 'approved' ? 'You can publish events immediately.' : 'Contact the admin team for details.',
       link: organizerStatus === 'approved' ? '/dashboard/events' : '',
     });
+
+    // TrustSphere: verification status feeds the verification component (CORE FEATURE 10/35)
+    if (verificationChanged) {
+      recalcTrustAsync(user._id, 'VERIFICATION_CHANGED', `Organizer verification status changed to ${organizerStatus}`);
+    }
   }
   await user.save();
   ok(res, user);
@@ -143,12 +166,39 @@ const listReports = asyncHandler(async (req, res) => {
 const resolveReport = asyncHandler(async (req, res) => {
   const report = await Report.findById(req.params.id);
   if (!report) throw ApiError.notFound();
+  const previousStatus = report.status;
   report.status = req.body.status || 'resolved';
   report.moderatorNote = req.body.note || '';
   report.resolvedBy = req.user._id;
   report.resolvedAt = new Date();
   await report.save();
   await audit({ actor: req.user, action: 'report.resolved', targetType: report.targetType, targetId: report.target, ip: req.ip });
+
+  // TrustSphere: a moderation decision changes the organizer's verified
+  // compliance record — recalculate their trust profile asynchronously
+  // (CORE FEATURES 9/35). Event reports map to the event's organizer;
+  // user reports target the organizer directly.
+  if (['resolved', 'dismissed'].includes(report.status) && previousStatus !== report.status) {
+    try {
+      let organizerId = null;
+      if (report.targetType === 'user') {
+        organizerId = report.target;
+      } else if (report.targetType === 'event') {
+        const ev = await Event.findById(report.target).select('organizer');
+        organizerId = ev?.organizer || null;
+      }
+      if (organizerId) {
+        recalcTrustAsync(
+          organizerId,
+          'REPORT_RESOLVED',
+          `Report ${report.status} (${report.reason}) by platform moderation`
+        );
+      }
+    } catch (trustErr) {
+      // Non-blocking
+    }
+  }
+
   ok(res, report);
 });
 

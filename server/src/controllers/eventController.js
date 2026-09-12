@@ -9,6 +9,7 @@ const ApiError = require('../utils/ApiError');
 const { asyncHandler, ok, created } = require('../utils/response');
 const { slugify } = require('../utils/codes');
 const { getRecommendedEvents, getSimilarEvents } = require('../services/recommendationService');
+const { scheduleEventPulseRecalc } = require('../services/eventpulse/recalcScheduler');
 
 const eventCardFields = '_id title slug shortDescription coverImage categorySlug tags eventType startDate endDate venue capacity registrationCount checkedInCount price ticketTypes organizer featured status approvalStatus';
 
@@ -261,6 +262,26 @@ const setStatus = asyncHandler(async (req, res) => {
 
   const { emitToEvent } = require('../sockets');
   emitToEvent(event._id.toString(), 'event:status', { eventId: event._id, status });
+
+  // EventPulse AI: lifecycle transitions (published/live/completed) → recalculation
+  if (['published', 'live', 'completed'].includes(status)) {
+    scheduleEventPulseRecalc(event._id, 'status_change');
+  }
+
+  // SmartQueue AI: on cancellation/completion, atomically release all active
+  // seat holds, notify affected users and stop future promotions (FEATURE 34/35)
+  if (['cancelled', 'completed'].includes(status)) {
+    try {
+      const smartQueue = require('../services/smartqueue');
+      await smartQueue.holdService.cancelAllActiveHolds({
+        eventId: event._id,
+        reason: status === 'cancelled' ? 'event_cancelled' : 'event_completed',
+        actor: req.userId.toString(),
+      });
+    } catch (sqErr) {
+      console.error('SmartQueue hold cleanup error on status change:', sqErr.message);
+    }
+  }
 
   // Asynchronously update organizer's TrustSphere profile when event is completed or cancelled
   if (['completed', 'cancelled'].includes(status) && event.organizer) {

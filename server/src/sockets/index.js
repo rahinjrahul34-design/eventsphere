@@ -94,6 +94,10 @@ const getIO = () => {
   return io;
 };
 
+// Non-throwing readiness probe for aggregation layers that must report
+// realtime availability without assuming sockets are up (e.g. tests).
+const isSocketInitialized = () => Boolean(io);
+
 // Emit helpers (safe no-ops before socket init, e.g. in tests)
 const emitToUser = (userId, event, payload) => {
   if (io && userId) io.to(userRoom(userId)).emit(event, payload);
@@ -102,4 +106,4 @@ const emitToEvent = (eventId, event, payload) => {
   if (io && eventId) io.to(eventRoom(eventId)).emit(event, payload);
 };
 
-module.exports = { initSocket, getIO, emitToUser, emitToEvent, userRoom, eventRoom };
+module.exports = { initSocket, getIO, emitToUser, emitToEvent, userRoom, eventRoom, isSocketInitialized };

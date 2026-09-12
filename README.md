@@ -112,11 +112,26 @@ error `{ "success": false, "message": "", "errors": [] }`.
 `/networking`, `/messages` · `/notifications` · `/search` ·
 speakers/sessions/volunteers/sponsors · `/admin/*`.
 
-### Data models (23)
+### 🧠 AI systems (each with a dedicated doc)
+| System | Purpose | Doc |
+|---|---|---|
+| **EventPulse AI** | Predictive attendance, no-show, engagement & event-health intelligence with confidence, drivers, risk alerts, action center, what-if simulator & NL Q&A | [docs/EVENTPULSE.md](./docs/EVENTPULSE.md) |
+| EventShield AI | Operational & crowd-safety risk scoring | — |
+| AI Recommendation 2.0 | Personalized event discovery | — |
+| AI Event Copilot | Generative planning & insights for organizers | — |
+| TrustSphere | Organizer credibility scoring | [docs/TRUSTSPHERE.md](./docs/TRUSTSPHERE.md) |
+| Command Center | Unified executive intelligence aggregating the above | [docs/COMMAND_CENTER.md](./docs/COMMAND_CENTER.md) |
+| EventBoost / SmartQueue | Listing quality & waitlist conversion | [docs/EVENTBOOST.md](./docs/EVENTBOOST.md) |
+
+### Data models (37)
 User, Event, Category, Registration, Waitlist, Ticket, Payment, Session,
 Speaker, Sponsor, Volunteer, Announcement, Poll, Question, Message,
 Feedback, Certificate, Favorite, Connection, Notification, Report,
-AuditLog, Gamification ledger.
+AuditLog, Gamification ledger, PasswordReset, SeatHold, SmartQueueAudit,
+RecommendationInteraction, EventRiskAssessment, EventRiskAlert,
+RiskAssessmentHistory, EventSEOProfile, OrganizerTrustProfile,
+OrganizerTrustSnapshot, EventPrediction, EventPredictionSnapshot,
+PredictionOutcome, EventPulseAlert.
 
 ---
 

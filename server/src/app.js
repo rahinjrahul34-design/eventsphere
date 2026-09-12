@@ -31,6 +31,10 @@ app.use('/api', apiLimiter);
 
 app.use('/api', routes);
 
+// Server-side SEO (robots.txt, sitemap.xml, event-page head injection).
+// Mounted BEFORE the SPA fallback so crawler requests receive real metadata.
+app.use(require('./routes/seo.routes'));
+
 // Serve built React client (production / single-port demo).
 // Prefer the persistent build folder (server/web-static), fall back to client/dist.
 const possibleClients = [

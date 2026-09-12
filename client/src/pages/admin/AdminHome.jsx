@@ -16,6 +16,13 @@ export default function AdminHome() {
   usePageTitle('Admin Dashboard');
   const q = useQuery({ queryKey: ['admin-stats'], queryFn: () => endpoints.adminStats(30), refetchInterval: 60000 });
   const recQ = useQuery({ queryKey: ['recommendation-analytics'], queryFn: endpoints.recommendationAnalytics });
+  // EventPulse Model Accuracy (CORE FEATURE 32) — platform-wide prediction quality
+  const pulseQ = useQuery({
+    queryKey: ['eventpulse-admin-accuracy'],
+    queryFn: endpoints.eventPulse.getAdminAccuracy,
+    refetchInterval: 120000,
+    retry: false,
+  });
   if (q.isLoading) return <Spinner />;
   const d = q.data;
   const cards = d.cards || {};
@@ -72,6 +79,48 @@ export default function AdminHome() {
         <CardHeader><CardTitle>Growth — registrations (30 days)</CardTitle></CardHeader>
         <CardContent>
           <TrendChart data={d.trend.map((t) => ({ date: t.date, registrations: t.count || t.registrations }))} lines={[{ key: 'registrations', color: COLORS[0] }]} />
+        </CardContent>
+      </Card>
+
+      {/* EventPulse AI — Model Accuracy Dashboard (admin-only, CORE FEATURE 32) */}
+      <Card className="border-primary/20">
+        <CardHeader className="flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="size-4 text-primary" /> EventPulse AI — Model Accuracy
+          </CardTitle>
+          <Badge variant="outline" className="text-[10px]">{pulseQ.data?.modelVersion || 'eventpulse-v1.0'}</Badge>
+        </CardHeader>
+        <CardContent>
+          {pulseQ.isLoading ? (
+            <p className="text-sm text-muted-foreground py-2">Loading prediction accuracy…</p>
+          ) : (pulseQ.data?.evaluatedEventsCount || 0) === 0 ? (
+            <p className="text-sm text-muted-foreground py-2">
+              No evaluated events yet. Prediction accuracy appears here after completed events are scored against their forecasts (MAE / MAPE).
+            </p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5 text-sm">
+              <div>
+                <p className="text-xs font-bold text-muted-foreground">Evaluated events</p>
+                <p className="font-display text-xl font-extrabold">{pulseQ.data.evaluatedEventsCount}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-muted-foreground">Registrations MAE</p>
+                <p className="font-display text-xl font-extrabold">±{pulseQ.data.registrationMAE}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-muted-foreground">Attendance MAE</p>
+                <p className="font-display text-xl font-extrabold">±{pulseQ.data.attendanceMAE}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-muted-foreground">Avg registration error</p>
+                <p className="font-display text-xl font-extrabold">{pulseQ.data.averageRegistrationErrorPct}%</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-muted-foreground">Avg attendance error</p>
+                <p className="font-display text-xl font-extrabold">{pulseQ.data.averageAttendanceErrorPct}%</p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

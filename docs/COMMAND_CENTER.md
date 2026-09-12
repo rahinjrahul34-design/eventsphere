@@ -107,6 +107,29 @@ The AI service synthesizes structured metrics into:
 - When `GEMINI_API_KEY` is present and operational: Uses Gemini with temperature 0.2 and strict JSON schema.
 - When `GEMINI_API_KEY` is absent or encounters API errors: Automatically delegates to a deterministic local template generator. The UI remains 100% functional.
 
+### Brief Caching (LLM Cost Control)
+Executive briefs are cached in memory per event and reused while **(a)** the
+10-minute TTL has not expired **and (b)** the structured fact fingerprint is
+unchanged (health score/status, top actions, active alert count, registration
+volume, waitlist depth, no-show forecast). Any material change to the
+underlying intelligence forces regeneration — the dashboard never calls the
+LLM on routine refreshes. Cached responses carry `cached: true`.
+
+### Honest Data Availability (No Fabricated Fallbacks)
+- Intelligence cards return explicit `available: false` + human-readable `reason`
+  when a source module has no data yet; missing metrics are `null`, never
+  substituted defaults (no `?? 75`, `?? 50` placeholders).
+- The Event Health breakdown flags every dimension computed from a neutral
+  baseline (`usedBaseline: true` + `baselineNote`) vs. computed from real module
+  data, plus a `dataCompleteness` summary (`availableModules`/`totalModules`).
+- `overallHealth.confidence` is `null` unless EventPulse actually reported one
+  (`confidenceBasis` documents the source when present).
+- Trend timeline points use only recorded snapshot values; absent datapoints are
+  `null` (chart gap), never interpolated or filled with constants.
+- `freshness.isRealtimeConnected` reflects the real Socket.IO initialization
+  state, and action resolution returns `updated: false` when the source system
+  does not support resolution (the UI surfaces this honestly).
+
 ---
 
 ## 5. What-If Scenario Simulator

@@ -136,3 +136,43 @@ Mounted at `/api/trust`:
 
 6. **`AdminTrustAnalytics.jsx` (`/admin/trust`)**
    - Platform average score, level distribution bars, flagged/at-risk table, and recalculation audit trail.
+
+---
+
+## Integration Matrix (hardening pass)
+
+### Recalculation triggers (event-driven, all async & non-blocking)
+
+| Trigger | Hook location | Snapshot created? |
+|---|---|---|
+| `EVENT_COMPLETED` / `EVENT_CANCELLED` | `eventController.setStatus` → TrustSphere async call | Yes (milestone) |
+| `FEEDBACK_SUBMITTED` | `feedbackController.submitFeedback` | Only if score changed |
+| `REPORT_RESOLVED` / report dismissed | `adminController.resolveReport` (event→organizer, user→organizer mapping) | Yes (milestone) |
+| `VERIFICATION_CHANGED` | `adminController.updateUser` (organizerStatus transitions) | Yes (milestone) |
+| `MANUAL_RECALCULATION` | `POST /api/trust/me/recalculate` | Only if score changed |
+| `SCHEDULED_RECALCULATION` | Cache expiry (1h TTL) on read | Only if score changed |
+
+### Real-time updates
+
+After every recalculation, `trust:updated` is emitted to the organizer's
+`user:<id>` Socket.IO room carrying **only non-sensitive metadata**
+(`trustScore`, `trustLevel`, `confidenceLevel`, `scoreDelta`, `trigger`,
+`scoreVersion`). Moderation details are never broadcast. The client hook
+(`useSocket.js`) invalidates the trust query caches and toasts score changes.
+
+### Recommendation 2.0 signal (bounded)
+
+`recommendation/rankingService.applyTrustSignal` applies a **±3-point maximum
+nudge** to `matchPercentage` based on the organizer's trust tier
+(≥90 → +3, ≥80 → +2, ≥70 → +1, <50 → −3; no profile → zero adjustment so
+cold-start organizers are never penalized). Trust can never overpower user
+relevance; the match percentage stays clamped to the existing 35–98 band and
+the nudge is recorded as an explainable reason entry
+(`type: 'trust' | 'trust_risk'`).
+
+### Admin score-band analytics
+
+`GET /api/trust/admin/analytics` returns `scoreBandDistribution` — a `$bucket`
+aggregation over `[0,40,60,70,80,90,101]` rendered as numeric bands
+(0–39 / 40–59 / 60–69 / 70–79 / 80–89 / 90–100) on the admin dashboard,
+complementing the level-based distribution.

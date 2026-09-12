@@ -107,6 +107,26 @@ const acceptHold = asyncHandler(async (req, res) => {
     });
   }
 
+  // Idempotency (CORE FEATURE 57/16): rapid duplicate "Complete Registration"
+  // calls must reuse the SAME payment order instead of creating duplicates.
+  // Only one open (created) order may exist per hold.
+  const existingOrder = await Payment.findOne({
+    holdId: hold._id,
+    status: 'created',
+    user: req.user._id,
+  });
+  if (existingOrder) {
+    return ok(res, {
+      accepted: false,
+      requiresPayment: true,
+      order: { provider: existingOrder.provider, orderId: existingOrder.orderId, amount: existingOrder.amount },
+      registration,
+      hold,
+      ticketType: hold.ticketType,
+      reusedOrder: true,
+    });
+  }
+
   const order = await paymentService.createOrder({
     amount: ticketPrice,
     receipt: `hold_${hold._id}`,
@@ -237,7 +257,49 @@ const updateSettings = asyncHandler(async (req, res) => {
   ok(res, { settings: event.settings.smartQueue });
 });
 
+// GET /api/waitlist/mine — Attendee's own waitlist dashboard (FEATURES 20/21/50)
+const getMyWaitlist = asyncHandler(async (req, res) => {
+  const entries = await Waitlist.find({ user: req.user._id })
+    .sort({ createdAt: -1 })
+    .populate('event', 'title slug capacity registrationCount activeHoldsCount startDate endDate status price coverImage')
+    .lean();
+
+  const holdIds = entries.map((e) => e.activeHold).filter(Boolean);
+  const activeHolds = await SeatHold.find({ _id: { $in: holdIds }, status: 'active' }).lean();
+  const holdById = Object.fromEntries(activeHolds.map((h) => [String(h._id), h]));
+
+  const data = entries
+    .filter((e) => e.event)
+    .map((e) => {
+      const hold = e.activeHold ? holdById[String(e.activeHold)] : null;
+      return {
+        _id: e._id,
+        event: e.event,
+        position: e.position,
+        status: e.status,
+        skipReason: e.skipReason,
+        ticketType: e.ticketType,
+        joinedAt: e.createdAt,
+        notifiedAt: e.notifiedAt,
+        promotedAt: e.promotedAt,
+        declinedAt: e.declaredAt || e.declinedAt,
+        peopleAhead: ['waiting', 'eligible'].includes(e.status) ? Math.max(0, e.position - 1) : 0,
+        activeHold: hold
+          ? {
+              _id: hold._id,
+              expiresAt: hold.holdExpiresAt,
+              secondsRemaining: Math.max(0, Math.floor((new Date(hold.holdExpiresAt).getTime() - Date.now()) / 1000)),
+              ticketType: hold.ticketType,
+            }
+          : null,
+      };
+    });
+
+  ok(res, data);
+});
+
 module.exports = {
+  getMyWaitlist,
   getActiveHold,
   acceptHold,
   declineHold,

@@ -45,8 +45,9 @@ In production: unmatched non-API GETs → web-static/index.html (SPA)
 | `routes/` | 18 route files | URL → controller; mount order in `routes/index.js` |
 | `middleware/` | `auth.js` `error.js` `rateLimit.js` `validate.js` | `requireAuth`, `requireRole`, `requireApprovedOrganizer`, `optionalAuth`; Zod validation; limiters; envelope error handler |
 | `controllers/` | 16 files | HTTP handlers only: auth check, call service/model, `ok/created(res,data)` |
-| `services/` | 10 files | Business & 3rd-party logic, each with a **demo-mode fallback** |
-| `models/` | 23 Mongoose schemas | Data + indexes |
+| `services/` | Business & 3rd-party logic, each with a **demo-mode fallback** |
+| `services/eventpulse/` | **EventPulse AI** — predictive registration/attendance/engagement engine: feature extraction → baseline+regression ensemble → confidence → drivers → risk alerts → AI narrative (see docs/EVENTPULSE.md) |
+| `models/` | 37 Mongoose schemas | Data + indexes |
 | `sockets/index.js` | Socket.IO | auth middleware; rooms `user:<id>` / `event:<id>`; realtime chat |
 | `seeders/seed.js` | demo data | 127 users, 15 events, ~1100 registrations/tickets, certs… |
 | `utils/` | helpers | `ApiError`, response envelope, code/slug generators, badge catalog |
@@ -59,7 +60,7 @@ In production: unmatched non-API GETs → web-static/index.html (SPA)
 plus `analyticsService`, `recommendationService`, `gamificationService`,
 `networkingService`, `notificationService`, `auditService`.
 
-### 23 models
+### 37 models
 User, Event, Category, Registration, Waitlist, Ticket, Payment, Session,
 Speaker, Sponsor, Volunteer, Announcement, Poll, Question, Message,
 Feedback, Certificate, Favorite, Connection, Notification, Report,
