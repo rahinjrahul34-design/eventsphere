@@ -331,7 +331,7 @@ function scoreEvent(event, userProfile, { maxBatchRegs = 1, weights = DEFAULT_WE
     recommendationSource = 'TRENDING';
   }
 
-  const topReason = reasons[0]?.detail || 'Matches your profile interests and upcoming availability.';
+  const topReason = reasons[0]?.detail || null;
 
   const result = {
     ...event,

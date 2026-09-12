@@ -30,7 +30,7 @@ export default function RecommendationFeedback({ eventId, onFeedbackDone }) {
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="relative flex items-center gap-2">
       <span className="text-[11px] text-muted-foreground">Relevant?</span>
       <button
         type="button"

@@ -16,7 +16,7 @@ const recommendationInteractionSchema = new mongoose.Schema(
     },
     interactionType: {
       type: String,
-      enum: ['view', 'click', 'dismiss', 'feedback', 'save'],
+      enum: ['view', 'click', 'dismiss', 'feedback', 'save', 'impression'],
       required: true,
     },
     feedbackType: {

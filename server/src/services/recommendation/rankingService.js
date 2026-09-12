@@ -53,6 +53,26 @@ async function generateRankedFeed(userProfile, { limit = 8, debug = false } = {}
     )
     .slice(0, 4);
 
+  const becauseYouLike = scoredEvents
+    .filter(
+      (e) =>
+        !e.isDismissed &&
+        !e.isRegistered &&
+        ((e.pastAttendedCount || 0) > 0 ||
+          e.isFavorite ||
+          (e.matchedInterests || []).length > 0)
+    )
+    .slice(0, 4);
+
+  const newEventsYouMayLike = scoredEvents
+    .filter((e) => {
+      if (e.isDismissed || e.isRegistered || e.isExpired) return false;
+      const created = new Date(e.createdAt || e.startDate).getTime();
+      const days = (Date.now() - created) / 86400000;
+      return days <= 14;
+    })
+    .slice(0, 4);
+
   // Dynamic summary string
   let summary = 'Personalized recommendations based on your preferences';
   if (userProfile.skills.length > 0 && userProfile.interests.length > 0) {
@@ -76,6 +96,8 @@ async function generateRankedFeed(userProfile, { limit = 8, debug = false } = {}
     nearYou,
     exploreSomethingNew,
     trendingInInterests,
+    becauseYouLike,
+    newEventsYouMayLike,
     userSkills: userProfile.skills,
     userInterests: userProfile.interests,
     isColdStart: !!userProfile.isColdStart,

@@ -100,16 +100,20 @@ async function checkAndSyncAlerts(event, assessment, context = {}) {
     organizerId: event.organizer,
   });
 
-  // 5. Outdoor weather exposure
+  // 5. Weather — only when a real forecast feed exists (never invent weather)
+  const forecast = context.weatherForecast ?? event.safetyConfig?.weatherForecast ?? null;
+  const severeWeather = Boolean(isOutdoor && forecast && (forecast.severe || forecast.alert));
   await handleCondition({
     eventId,
     type: 'weather_warning',
-    isActive: isOutdoor,
-    severity: 'medium',
-    message: 'Outdoor venue vulnerable to adverse weather; contingency shelters required.',
-    metricValue: 'outdoor',
-    threshold: 'indoor',
-    actionRequired: 'Confirm covered contingency tents or indoor backup hall.',
+    isActive: severeWeather,
+    severity: 'high',
+    message: severeWeather
+      ? 'Configured weather feed reports a severe-weather indicator for this outdoor event.'
+      : 'Weather data unavailable.',
+    metricValue: forecast ? 'forecast' : 'unavailable',
+    threshold: 'no_severe_alert',
+    actionRequired: 'Review official local forecasts; EventShield does not invent weather conditions.',
     newAlerts,
     organizerId: event.organizer,
   });

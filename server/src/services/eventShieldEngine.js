@@ -789,6 +789,27 @@ function analyzeWeather(event, ctx) {
   }
 
   const isOutdoor = ctx.isOutdoor ?? event.safetyConfig?.isOutdoor ?? false;
+  const forecast = ctx.weatherForecast ?? event.safetyConfig?.weatherForecast ?? null;
+
+  if (!forecast) {
+    return {
+      id: 'weather',
+      name: 'Weather & Environmental Impact',
+      score: isOutdoor ? 82 : 95,
+      riskLevel: 'low',
+      confidence: 0.35,
+      issues: [],
+      recommendations: isOutdoor
+        ? [
+            'Weather data unavailable. Review official local forecasts closer to event day and prepare covered/indoor backup if the venue is open-air.',
+          ]
+        : ['Indoor venue. Weather data unavailable — no live forecast provider is configured.'],
+      evidence: ['Weather data unavailable.'],
+      probability: 'low',
+      impact: isOutdoor ? 'medium' : 'low',
+      priority: 'low',
+    };
+  }
 
   if (!isOutdoor) {
     return {
@@ -799,35 +820,52 @@ function analyzeWeather(event, ctx) {
       confidence: 0.95,
       issues: [],
       recommendations: ['Indoor venue protected from precipitation and extreme temperature.'],
-      evidence: ['Indoor venue configuration.'],
+      evidence: ['Indoor venue configuration.', `Forecast source: ${forecast.source || 'configured'}.`],
       probability: 'low',
       impact: 'low',
       priority: 'low',
     };
   }
 
-  let score = 55;
-  let riskLevel = 'medium';
-  let probability = 'medium';
-  let impact = 'high';
-  let priority = 'medium';
-  const issues = [
-    'Outdoor event setup is vulnerable to precipitation, high winds, or extreme temperatures.',
-  ];
-  const recommendations = [
-    'Prepare rain tarps/tents, secure stage canopy rigging, and designate indoor backup space.',
-    'Weather telemetry: Simulated fallback active (monitor local meteorological alerts 24h prior).',
-  ];
+  const severe = Boolean(forecast.severe || forecast.alert);
+  const precip = Number(forecast.precipitationChance || 0);
+  let score = 80;
+  let riskLevel = 'low';
+  let probability = 'low';
+  let impact = 'medium';
+  let priority = 'low';
+  const issues = [];
+  const recommendations = [];
   const evidence = [
-    'Outdoor event flag enabled. Weather contingency plan required.',
+    `Outdoor venue. Forecast: ${forecast.summary || forecast.condition || 'available'}.`,
   ];
+
+  if (severe) {
+    score = 40;
+    riskLevel = 'high';
+    probability = 'high';
+    impact = 'high';
+    priority = 'high';
+    issues.push('Severe-weather indicator present in the configured forecast feed.');
+    recommendations.push('Activate indoor/covered contingency and brief staff on postponement criteria.');
+  } else if (precip >= 60) {
+    score = 55;
+    riskLevel = 'medium';
+    probability = 'medium';
+    impact = 'high';
+    priority = 'medium';
+    issues.push(`Elevated precipitation chance (${precip}%) in the configured forecast.`);
+    recommendations.push('Stage rain cover, protect electrical drops, and publish attendee weather guidance.');
+  } else {
+    recommendations.push('Outdoor forecast is within planning thresholds. Keep monitoring closer to show day.');
+  }
 
   return {
     id: 'weather',
     name: 'Weather & Environmental Impact',
     score: Math.min(100, Math.max(0, score)),
     riskLevel,
-    confidence: 0.9,
+    confidence: 0.7,
     issues,
     recommendations,
     evidence,
