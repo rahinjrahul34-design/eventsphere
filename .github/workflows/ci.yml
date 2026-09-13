@@ -24,7 +24,21 @@ jobs:
         run: npm ci
 
       - name: Run server test suite
-        run: npm test
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee test-output.log
+
+      - name: Publish Jest summary
+        if: always()
+        run: |
+          echo "=== Jest summary ==="
+          grep -E "^(Test Suites|Tests|Snapshots|Time):" test-output.log || echo "no summary found"
+          grep -E "^(Test Suites|Tests|Snapshots|Time):" test-output.log | while IFS= read -r line; do
+            echo "::notice title=Jest::${line}"
+          done
+          grep -E "^FAIL " test-output.log | while IFS= read -r line; do
+            echo "::error title=Failed suite::${line}"
+          done || true
 
   client-build:
     name: Client build (Vite)
