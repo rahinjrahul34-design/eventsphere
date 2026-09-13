@@ -59,6 +59,7 @@ export default {
       boxShadow: {
         soft: '0 2px 12px -2px hsl(var(--shadow-color) / 0.08), 0 4px 24px -4px hsl(var(--shadow-color) / 0.06)',
         lift: '0 12px 40px -12px hsl(var(--shadow-color) / 0.25)',
+        pop: '0 8px 30px -6px hsl(var(--shadow-color) / 0.35), 0 20px 60px -20px hsl(var(--shadow-color) / 0.3)',
       },
       keyframes: {
         'fade-up': {
