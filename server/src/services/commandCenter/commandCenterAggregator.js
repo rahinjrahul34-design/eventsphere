@@ -10,17 +10,18 @@
 
 const mongoose = require('mongoose');
 const Event = require('../../models/Event');
+const EventPrediction = require('../../models/EventPrediction');
 const EventRiskAssessment = require('../../models/EventRiskAssessment');
 const EventPredictionSnapshot = require('../../models/EventPredictionSnapshot');
 const RiskAssessmentHistory = require('../../models/RiskAssessmentHistory');
 const RecommendationInteraction = require('../../models/RecommendationInteraction');
+const OrganizerTrustProfile = require('../../models/OrganizerTrustProfile');
 const ApiError = require('../../utils/ApiError');
 
 // Reused existing flagship services
-const { getOrComputePrediction, getPredictionHistory } = require('../eventpulse/eventPulseEngine');
+const { getPredictionHistory } = require('../eventpulse/eventPulseEngine');
 const { getEventAlerts } = require('../eventShieldAlerts');
 const { getEventSmartQueueMetrics } = require('../smartqueue/smartQueueAnalytics');
-const { getOrganizerTrustProfile } = require('../trustsphere/trustProfileService');
 const { getOrCreateProfile: getOrCreateBoostProfile } = require('../eventboost/eventBoostEngine');
 
 // Command center internal engines
@@ -63,7 +64,7 @@ async function aggregateCommandCenterData(eventId, user = {}) {
     riskHistorySettled,
   ] = await Promise.allSettled([
     // EventPulse Prediction
-    getOrComputePrediction(eventId, false),
+    EventPrediction.findOne({ eventId, expiresAt: { $gt: new Date() } }).lean(),
 
     // EventPulse History
     getPredictionHistory(eventId),
@@ -78,7 +79,7 @@ async function aggregateCommandCenterData(eventId, user = {}) {
     getEventSmartQueueMetrics(eventId),
 
     // TrustSphere Organizer Profile
-    organizerId ? getOrganizerTrustProfile(organizerId, { userRole: user.role, requestingUserId: user._id }) : Promise.resolve(null),
+    organizerId ? OrganizerTrustProfile.findOne({ organizer: organizerId }).lean() : Promise.resolve(null),
 
     // EventBoost SEO Profile
     getOrCreateBoostProfile(eventId),

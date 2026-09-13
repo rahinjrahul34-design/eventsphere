@@ -497,6 +497,8 @@ describe('EventBoost AI — Server-Side SEO Infrastructure', () => {
       eventType: 'offline',
       status: 'draft',
       visibility: 'public',
+      startDate: new Date(Date.now() + 12 * 86400000),
+      endDate: new Date(Date.now() + 13 * 86400000),
       organizer: new (require('mongoose').Types.ObjectId)(),
     });
   });

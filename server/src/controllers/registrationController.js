@@ -32,6 +32,12 @@ async function createTicket(registration, event, user) {
 
 // Confirm a registration (shared by free flow and payment verification).
 async function confirmRegistration({ event, registration, user, ticketType }) {
+  const wasConfirmed = ['confirmed', 'checked_in'].includes(registration.status);
+  if (wasConfirmed) {
+    const existingTicket = await Ticket.findOne({ registration: registration._id, status: { $ne: 'cancelled' } });
+    if (existingTicket) return existingTicket;
+  }
+
   if (seatsLeft(event) <= 0 && registration.status !== 'waitlisted') {
     throw ApiError.conflict('This event is fully booked');
   }
@@ -39,8 +45,8 @@ async function confirmRegistration({ event, registration, user, ticketType }) {
   if (ticketType) registration.ticketType = ticketType;
   await registration.save();
 
-  event.registrationCount += 1;
-  if (ticketType) {
+  if (!wasConfirmed) event.registrationCount += 1;
+  if (ticketType && !wasConfirmed) {
     const tt = event.ticketTypes.find((t) => t.name === ticketType.name);
     if (tt) tt.soldCount += 1;
   }
@@ -136,7 +142,7 @@ const registerForEvent = asyncHandler(async (req, res) => {
     })) + 1;
     const waitlistEntry = await Waitlist.findOneAndUpdate(
       { event: event._id, user: req.user._id },
-      { position, status: 'waiting', registration: registration._id },
+      { position, status: 'waiting', registration: registration._id, ticketType },
       { upsert: true, setDefaultsOnInsert: true, new: true }
     );
     event.waitlistCount = position;
@@ -234,13 +240,6 @@ const verifyPayment = asyncHandler(async (req, res) => {
   registration.amountPaid = record.amount;
   await registration.save();
 
-  const ticket = await confirmRegistration({
-    event,
-    registration,
-    user: req.user,
-    ticketType: { name: record.ticketType, price: record.amount / Math.max(1, record.quantity) },
-  });
-
   if (record.holdId) {
     try {
       const smartQueue = require('../services/smartqueue');
@@ -250,6 +249,14 @@ const verifyPayment = asyncHandler(async (req, res) => {
     }
   }
 
+  const refreshedEvent = await Event.findById(record.event);
+  const ticket = await confirmRegistration({
+    event: refreshedEvent,
+    registration,
+    user: req.user,
+    ticketType: { name: record.ticketType, price: record.amount / Math.max(1, record.quantity) },
+  });
+
   ok(res, { success: true, ticket, registration });
 });
 
@@ -257,7 +264,11 @@ const verifyPayment = asyncHandler(async (req, res) => {
 const cancelRegistration = asyncHandler(async (req, res) => {
   const registration = await Registration.findById(req.params.id);
   if (!registration) throw ApiError.notFound('Registration not found');
-  if (registration.user.toString() !== req.userId.toString() && req.user.role !== 'admin') {
+  const event = await Event.findById(registration.event);
+  if (!event) throw ApiError.notFound('Event not found');
+  const isOwner = registration.user.toString() === req.userId.toString();
+  const isOrganizer = event.organizer.toString() === req.userId.toString();
+  if (!isOwner && !isOrganizer && req.user.role !== 'admin') {
     throw ApiError.forbidden();
   }
   const wasConfirmed = ['confirmed', 'checked_in'].includes(registration.status);
@@ -265,7 +276,6 @@ const cancelRegistration = asyncHandler(async (req, res) => {
   await registration.save();
   await Ticket.updateMany({ registration: registration._id }, { status: 'cancelled' });
 
-  const event = await Event.findById(registration.event);
   let promoted = null;
   if (wasConfirmed) {
     event.registrationCount = Math.max(0, event.registrationCount - 1);

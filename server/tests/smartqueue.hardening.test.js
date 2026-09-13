@@ -84,7 +84,7 @@ describe('SmartQueue AI — Hardening (idempotency, closure gates, audit parity)
 
   async function fillSeatAndJoin(user, token) {
     // Seat taken by organizer's helper attendee → event full → user joins waitlist
-    await Registration.create({
+    const fillerRegistration = await Registration.create({
       event: paidEvent._id,
       user: u2._id === user._id ? u1._id : u2._id,
       ticketType: { name: 'General', price: 499 },
@@ -98,6 +98,7 @@ describe('SmartQueue AI — Hardening (idempotency, closure gates, audit parity)
       .post(`/api/events/${paidEvent._id}/register`)
       .set('Authorization', `Bearer ${token}`)
       .send({});
+    res.fillerRegistration = fillerRegistration;
     return res;
   }
 
@@ -106,8 +107,7 @@ describe('SmartQueue AI — Hardening (idempotency, closure gates, audit parity)
     expect(joinRes.body.data.waitlisted).toBe(true);
 
     // Release the seat → auto-promotion creates a hold for u1
-    const reg = await Registration.findOne({ event: paidEvent._id, user: u1._id, status: 'confirmed' });
-    await request(app).post(`/api/registrations/${reg._id}/cancel`).set('Authorization', `Bearer ${organizerToken}`);
+    await request(app).post(`/api/registrations/${joinRes.fillerRegistration._id}/cancel`).set('Authorization', `Bearer ${organizerToken}`);
 
     const holdRes = await request(app)
       .get(`/api/events/${paidEvent._id}/smartqueue/hold`)
@@ -154,8 +154,7 @@ describe('SmartQueue AI — Hardening (idempotency, closure gates, audit parity)
     const joinRes = await fillSeatAndJoin(u1, u1Token);
     expect(joinRes.body.data.waitlisted).toBe(true);
 
-    const reg = await Registration.findOne({ event: paidEvent._id, user: u1._id, status: 'confirmed' });
-    await request(app).post(`/api/registrations/${reg._id}/cancel`).set('Authorization', `Bearer ${organizerToken}`);
+    await request(app).post(`/api/registrations/${joinRes.fillerRegistration._id}/cancel`).set('Authorization', `Bearer ${organizerToken}`);
 
     let hold = await SeatHold.findOne({ eventId: paidEvent._id, status: 'active' });
     expect(hold).toBeTruthy();
@@ -178,6 +177,8 @@ describe('SmartQueue AI — Hardening (idempotency, closure gates, audit parity)
   test('4. legacy manual promote route goes through SmartQueue (hold + audit, no direct confirm)', async () => {
     const joinRes = await fillSeatAndJoin(u1, u1Token);
     expect(joinRes.body.data.waitlisted).toBe(true);
+    await Event.findByIdAndUpdate(paidEvent._id, { 'settings.smartQueue.autoPromote': false });
+    await request(app).post(`/api/registrations/${joinRes.fillerRegistration._id}/cancel`).set('Authorization', `Bearer ${organizerToken}`);
 
     const entry = await Waitlist.findOne({ event: paidEvent._id, user: u1._id });
 

@@ -145,7 +145,7 @@ const getAdminTrustAnalytics = asyncHandler(async (req, res) => {
     totalProfiles,
     levelDistribution,
     verifiedStats,
-    scoreBands,
+    scoreBandDistribution,
     flaggedProfiles,
     recentSnapshots,
   ] = await Promise.all([

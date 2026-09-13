@@ -69,11 +69,32 @@ const googleLogin = asyncHandler(async (req, res) => {
   if (!googleToken) throw ApiError.badRequest('Google credential is required');
   if (!config.google.clientId) throw ApiError.badRequest('Google sign-in is not configured. Add GOOGLE_CLIENT_ID to your server/.env file.');
 
-  const ticket = await googleClient.verifyIdToken({
-    idToken: googleToken,
-    audience: config.google.clientId,
-  });
-  const payload = ticket.getPayload();
+  let payload;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: googleToken,
+      audience: config.google.clientId,
+    });
+    payload = ticket.getPayload();
+  } catch (err) {
+    // Decode token payload without verification to show the token's aud for debugging
+    let tokenAud = '';
+    try {
+      const parts = (googleToken || '').split('.');
+      if (parts.length >= 2) {
+        const payloadSegment = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const padded = payloadSegment + '='.repeat((4 - (payloadSegment.length % 4)) % 4);
+        const buf = Buffer.from(padded, 'base64');
+        const parsed = JSON.parse(buf.toString('utf8'));
+        tokenAud = parsed.aud || parsed.audience || '';
+      }
+    } catch (e) {
+      tokenAud = '';
+    }
+    throw ApiError.badRequest(
+      `Google token audience mismatch: token aud=${tokenAud} expected=${config.google.clientId}. Ensure GOOGLE_CLIENT_ID matches the client that issued the token.`
+    );
+  }
 
   if (!payload || !payload.email) throw ApiError.badRequest('Google account email is missing');
 
