@@ -6,9 +6,10 @@ import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { Avatar } from '../../components/ui/avatar';
-import { Spinner } from '../../components/ui/misc';
+
 import { EmptyState } from '../../components/ui/states';
 import { fmtDateTime } from '../../lib/format';
+import { TableSkeleton } from '../../components/ui/skeleton';
 
 const tone = (action) => {
   if (/approved|activated|resolved/.test(action)) return 'success';
@@ -20,7 +21,7 @@ const tone = (action) => {
 export default function AdminAudit() {
   const [filter, setFilter] = useState('');
   const q = useQuery({ queryKey: ['audit-logs'], queryFn: endpoints.auditLogs });
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <TableSkeleton rows={8} cols={5} />;
   const logs = (q.data || []).filter((l) =>
     !filter ||
     l.action.toLowerCase().includes(filter.toLowerCase()) ||

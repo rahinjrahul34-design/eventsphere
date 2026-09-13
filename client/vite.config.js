@@ -6,6 +6,8 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
+    // Sandbox/preview proxies (e.g. *.e2b.app) need to be allowed explicitly
+    allowedHosts: true,
     proxy: {
       '/api': { target: 'http://localhost:5000', changeOrigin: true },
       '/socket.io': { target: 'http://localhost:5000', ws: true, changeOrigin: true },

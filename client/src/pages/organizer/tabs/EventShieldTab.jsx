@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ShieldAlert, Sliders, CheckSquare, AlertCircle, Clock, LayoutGrid } from 'lucide-react';
 import { endpoints } from '../../../lib/api';
-import { Spinner, ErrorState } from '../../../components/ui/misc';
+import { ErrorState } from '../../../components/ui/misc';
 import { toast } from 'sonner';
 
 import DisclaimerBanner from '../../../components/eventshield/DisclaimerBanner';
@@ -143,7 +143,7 @@ export default function EventShieldTab() {
     onError: (e) => toast.error(e.message),
   });
 
-  if (assessmentQ.isLoading) return <Spinner />;
+  if (assessmentQ.isLoading) return <div className="space-y-6"><div className="skeleton h-44 rounded-xl" /><div className="grid gap-4 sm:grid-cols-2">{Array.from({ length: 2 }).map((_, i) => <div key={i} className="skeleton h-40 rounded-xl" />)}</div></div>;
   if (assessmentQ.isError) {
     return <ErrorState message={assessmentQ.error.message} onRetry={assessmentQ.refetch} />;
   }

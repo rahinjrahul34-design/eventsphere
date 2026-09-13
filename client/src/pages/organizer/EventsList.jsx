@@ -6,13 +6,13 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Dropdown, MenuItem } from '../../components/ui/misc';
-import { Spinner } from '../../components/ui/misc';
 import { EmptyState } from '../../components/ui/states';
 import { fmtDate, inr } from '../../lib/format';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ConfirmDialog } from '../../components/ui/dialog';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { ListSkeleton } from '../../components/ui/skeleton';
 
 export default function EventsList() {
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ export default function EventsList() {
     onSuccess: () => { toast.success('Status updated'); qc.invalidateQueries({ queryKey: ['my-events'] }); },
   });
 
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <ListSkeleton rows={5} />;
   const events = q.data || [];
 
   return (

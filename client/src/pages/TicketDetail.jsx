@@ -3,9 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, CalendarPlus } from 'lucide-react';
 import { endpoints } from '../lib/api';
 import TicketPass from '../components/tickets/TicketPass';
-import { Spinner, ErrorState } from '../components/ui/misc';
+import { ErrorState } from '../components/ui/misc';
 import { Button } from '../components/ui/button';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { CardSkeleton } from '../components/ui/skeleton';
 
 export default function TicketDetail() {
   usePageTitle('Ticket Details');
@@ -15,7 +16,7 @@ export default function TicketDetail() {
     queryFn: () => endpoints.ticket(id),
     enabled: !!id,
   });
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <div className="max-w-lg mx-auto space-y-4"><CardSkeleton /></div>;
   if (q.isError) return <ErrorState message={q.error.message} onRetry={q.refetch} />;
   const ticket = q.data;
   if (!ticket) return <ErrorState title="Ticket not found" message="It may belong to another account." />;

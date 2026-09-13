@@ -1,7 +1,4 @@
-import {
-  Users2, Building2, Clock, Ticket, Car, PhoneCall, ShieldCheck, Accessibility,
-  CloudSun, Activity, HelpCircle, TicketCheck, Stethoscope, Hand, ChevronDown,
-} from 'lucide-react';
+import { Users2, Building2, Clock, Ticket, Car, PhoneCall, ShieldCheck, Accessibility, CloudSun, Activity, HelpCircle, TicketCheck, Stethoscope, Hand, ChevronDown } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { CATEGORY_META, scoreToneClass, scoreStroke, riskBadgeVariant, riskLabel } from './shieldUtils';
 
@@ -29,7 +26,7 @@ export default function RiskCategoryGrid({ categories = [], expandedId, onToggle
           return (
             <article
               key={cat.id}
-              className={`overflow-hidden rounded-2xl border bg-gradient-to-br ${meta.accent} transition ${
+              className={`overflow-hidden rounded-xl border bg-gradient-to-br ${meta.accent} transition ${
                 open ? 'border-primary/50 shadow-md sm:col-span-2 xl:col-span-3' : 'hover:border-primary/30'
               }`}
             >
@@ -40,7 +37,7 @@ export default function RiskCategoryGrid({ categories = [], expandedId, onToggle
                 className="flex w-full items-start gap-3 p-4 text-left"
               >
                 <span
-                  className="grid size-11 shrink-0 place-items-center rounded-xl border bg-card font-display text-sm font-black"
+                  className="grid size-11 shrink-0 place-items-center rounded-xl border bg-card font-display text-sm font-extrabold"
                   style={{ color: scoreStroke(cat.score), borderColor: `${scoreStroke(cat.score)}44` }}
                 >
                   {cat.score}
@@ -66,8 +63,8 @@ export default function RiskCategoryGrid({ categories = [], expandedId, onToggle
                 <div className="space-y-3 border-t bg-card/70 px-4 py-4 text-xs">
                   {issues > 0 && (
                     <div>
-                      <p className="mb-1 font-extrabold uppercase tracking-wider text-rose-500">Issues</p>
-                      <ul className="list-disc space-y-1 pl-4 font-medium text-rose-600 dark:text-rose-400">
+                      <p className="mb-1 font-extrabold uppercase tracking-wider text-destructive">Issues</p>
+                      <ul className="list-disc space-y-1 pl-4 font-medium text-destructive dark:text-destructive">
                         {cat.issues.map((issue, i) => <li key={i}>{issue}</li>)}
                       </ul>
                     </div>

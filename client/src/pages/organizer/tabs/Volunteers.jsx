@@ -8,11 +8,12 @@ import { Button } from '../../../components/ui/button';
 import { Input, Textarea, Label, Select } from '../../../components/ui/input';
 import { Badge } from '../../../components/ui/badge';
 import { Avatar } from '../../../components/ui/avatar';
-import { Spinner } from '../../../components/ui/misc';
+
 import { EmptyState } from '../../../components/ui/states';
 import { Dialog, ConfirmDialog } from '../../../components/ui/dialog';
 import { fmtDateTime } from '../../../lib/format';
 import { toast } from 'sonner';
+import { ListSkeleton } from '../../../components/ui/skeleton';
 
 const ROLES = ['Registration Desk', 'Crowd Management', 'Tech Support', 'Stage & Backstage', 'Food & Hospitality', 'Photography', 'Security'];
 const blank = { name: '', email: '', phone: '', role: ROLES[0], task: '', zone: '', startTime: '', endTime: '' };
@@ -47,7 +48,7 @@ export default function Volunteers() {
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <ListSkeleton rows={5} />;
   const volunteers = q.data || [];
 
   return (

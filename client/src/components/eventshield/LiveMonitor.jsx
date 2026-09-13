@@ -32,7 +32,7 @@ export default function LiveMonitor({ event, assessment, alerts = [] }) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Radio className={`size-4 ${live ? 'text-rose-500 animate-pulse' : 'text-primary'}`} />
+              <Radio className={`size-4 ${live ? 'text-destructive animate-pulse' : 'text-primary'}`} />
               Live monitoring
             </CardTitle>
             <CardDescription className="text-xs">
@@ -53,7 +53,7 @@ export default function LiveMonitor({ event, assessment, alerts = [] }) {
               className="h-full rounded-full transition-all"
               style={{
                 width: `${Math.min(100, util)}%`,
-                background: util >= 100 ? '#f43f5e' : util >= 85 ? '#f59e0b' : '#10b981',
+                background: util >= 100 ? 'hsl(var(--destructive))' : util >= 85 ? 'hsl(var(--warning))' : 'hsl(var(--success))',
               }}
             />
           </div>
@@ -73,7 +73,7 @@ export default function LiveMonitor({ event, assessment, alerts = [] }) {
           ))}
         </div>
         {alerts.length > 0 && (
-          <p className="mt-3 text-xs font-semibold text-rose-500">
+          <p className="mt-3 text-xs font-semibold text-destructive">
             {alerts.length} live operational alert{alerts.length === 1 ? '' : 's'} require organizer review.
           </p>
         )}

@@ -36,7 +36,7 @@ export default function TicketPass({ ticket, size = 220 }) {
   return (
     <div className="mx-auto max-w-md overflow-hidden rounded-3xl border bg-card shadow-lift">
       {/* Header */}
-      <div className="relative h-32 bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-600 p-5 text-white">
+      <div className="relative h-32 bg-gradient-to-br from-primary via-primary to-info p-5 text-white">
         <p className="font-display text-lg font-extrabold">EventSphere Pass</p>
         <p className="mt-1 line-clamp-2 text-sm font-semibold">{event.title}</p>
         <div className="absolute -bottom-5 left-0 right-0 flex justify-between px-3">
@@ -65,7 +65,7 @@ export default function TicketPass({ ticket, size = 220 }) {
           </div>
           <p className="mt-3 font-mono text-base font-extrabold tracking-[0.25em]">{ticket.code}</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {ticket.status === 'used' ? '✓ Checked in' : 'Present this code at the entrance'}
+            {ticket.status === 'used' ? 'Checked in' : 'Present this code at the entrance'}
           </p>
         </div>
 

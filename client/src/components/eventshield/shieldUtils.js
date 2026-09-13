@@ -15,20 +15,20 @@ export function scoreBand(score = 0) {
 
 export function scoreToneClass(score) {
   const { tone } = scoreBand(score);
-  if (tone === 'excellent') return 'text-emerald-500';
-  if (tone === 'low') return 'text-teal-500';
-  if (tone === 'medium') return 'text-amber-500';
-  if (tone === 'high') return 'text-orange-500';
-  return 'text-rose-500';
+  if (tone === 'excellent') return 'text-success';
+  if (tone === 'low') return 'text-success';
+  if (tone === 'medium') return 'text-warning';
+  if (tone === 'high') return 'text-warning';
+  return 'text-destructive';
 }
 
 export function scoreStroke(score) {
   const { tone } = scoreBand(score);
-  if (tone === 'excellent') return '#10b981';
-  if (tone === 'low') return '#14b8a6';
-  if (tone === 'medium') return '#f59e0b';
-  if (tone === 'high') return '#f97316';
-  return '#f43f5e';
+  if (tone === 'excellent') return 'hsl(var(--success))';
+  if (tone === 'low') return 'hsl(var(--success))';
+  if (tone === 'medium') return 'hsl(var(--warning))';
+  if (tone === 'high') return 'hsl(var(--warning))';
+  return 'hsl(var(--destructive))';
 }
 
 export function riskBadgeVariant(level) {
@@ -48,21 +48,21 @@ export function riskLabel(level) {
 }
 
 export const CATEGORY_META = {
-  capacity: { icon: 'Users2', accent: 'from-violet-500/15 to-indigo-500/5' },
-  crowd: { icon: 'Users2', accent: 'from-fuchsia-500/15 to-pink-500/5' },
+  capacity: { icon: 'Users2', accent: 'from-primary/15 to-primary/5' },
+  crowd: { icon: 'Users2', accent: 'from-primary/15 to-primary/5' },
   staffing: { icon: 'Hand', accent: 'from-sky-500/15 to-cyan-500/5' },
-  venue: { icon: 'Building2', accent: 'from-amber-500/15 to-orange-500/5' },
-  schedule: { icon: 'Clock', accent: 'from-blue-500/15 to-indigo-500/5' },
-  registration: { icon: 'Ticket', accent: 'from-emerald-500/15 to-teal-500/5' },
+  venue: { icon: 'Building2', accent: 'from-warning/15 to-warning/5' },
+  schedule: { icon: 'Clock', accent: 'from-info/15 to-primary/5' },
+  registration: { icon: 'Ticket', accent: 'from-success/15 to-success/5' },
   parking: { icon: 'Car', accent: 'from-slate-500/15 to-zinc-500/5' },
-  emergency: { icon: 'PhoneCall', accent: 'from-rose-500/15 to-red-500/5' },
-  security: { icon: 'ShieldCheck', accent: 'from-indigo-500/15 to-violet-500/5' },
-  accessibility: { icon: 'Accessibility', accent: 'from-teal-500/15 to-emerald-500/5' },
-  weather: { icon: 'CloudSun', accent: 'from-sky-500/15 to-blue-500/5' },
-  operational: { icon: 'Activity', accent: 'from-purple-500/15 to-fuchsia-500/5' },
+  emergency: { icon: 'PhoneCall', accent: 'from-destructive/15 to-destructive/5' },
+  security: { icon: 'ShieldCheck', accent: 'from-primary/15 to-primary/5' },
+  accessibility: { icon: 'Accessibility', accent: 'from-success/15 to-success/5' },
+  weather: { icon: 'CloudSun', accent: 'from-sky-500/15 to-info/5' },
+  operational: { icon: 'Activity', accent: 'from-primary/15 to-primary/5' },
   communication: { icon: 'HelpCircle', accent: 'from-cyan-500/15 to-sky-500/5' },
-  ticketing: { icon: 'TicketCheck', accent: 'from-lime-500/15 to-green-500/5' },
-  medical: { icon: 'Stethoscope', accent: 'from-rose-500/15 to-pink-500/5' },
+  ticketing: { icon: 'TicketCheck', accent: 'from-lime-500/15 to-success/5' },
+  medical: { icon: 'Stethoscope', accent: 'from-destructive/15 to-primary/5' },
 };
 
 export function groupActions(categories = []) {

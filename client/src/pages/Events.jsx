@@ -9,7 +9,7 @@ import EventCalendarView from '../components/events/EventCalendarView';
 import { EmptyState, ErrorState } from '../components/ui/states';
 import { GridSkeleton } from '../components/ui/skeleton';
 import { Button } from '../components/ui/button';
-import { Select } from '../components/ui/input';
+import { Select, Input } from '../components/ui/input';
 import { Link } from 'react-router-dom';
 import { fmtDate, fmtTime, inr, typeLabel, categoryMeta } from '../lib/format';
 import FavoriteButton from '../components/events/FavoriteButton';
@@ -73,15 +73,20 @@ export default function Events() {
       {/* Search + sort bar */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <div className="relative min-w-[220px] flex-1">
-          <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-          <input
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
             value={filters.q}
             onChange={(e) => updateFilters({ ...filters, q: e.target.value })}
             placeholder="Search events…"
-            className="h-10 w-full rounded-lg border border-input bg-card pl-9 pr-9 text-sm outline-none focus:ring-2 focus:ring-ring"
+            className="h-9 pl-9 pr-9"
+            aria-label="Search events"
           />
           {filters.q && (
-            <button className="absolute right-3 top-2.5 text-muted-foreground" onClick={() => updateFilters({ ...filters, q: '' })} aria-label="Clear">
+            <button
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+              onClick={() => updateFilters({ ...filters, q: '' })}
+              aria-label="Clear search"
+            >
               <X className="size-4" />
             </button>
           )}
@@ -89,11 +94,11 @@ export default function Events() {
         <FilterDrawer filters={filters} setFilters={updateFilters} onClear={() => updateFilters({ ...EMPTY })} />
         <div className="flex items-center gap-2">
           <div className="relative">
-            <ArrowDownWideNarrow className="pointer-events-none absolute left-3 top-2.5 size-4 text-muted-foreground" />
+            <ArrowDownWideNarrow className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Select
               value={filters.sort}
               onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
-              className="pl-9 w-auto"
+              className="h-9 pl-9 w-auto"
             >
               <option value="date">Date</option>
               <option value="popular">Most popular</option>
@@ -170,7 +175,7 @@ export default function Events() {
 function EventRow({ event }) {
   const cat = categoryMeta(event.categorySlug);
   return (
-    <Link to={`/events/${event.slug}`} className="group flex gap-4 rounded-xl border bg-card p-3 shadow-soft hover:shadow-lift transition">
+    <Link to={`/events/${event.slug}`} className="group flex gap-4 rounded-xl border bg-card p-3 shadow-soft transition-all duration-200 hover:border-border-strong hover:shadow-lift">
       <img src={event.coverImage} alt="" className="hidden sm:block size-28 rounded-lg object-cover" />
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-3">

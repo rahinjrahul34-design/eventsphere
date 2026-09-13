@@ -4,13 +4,14 @@ import { Users, CheckCircle2, IndianRupee, Activity, Star, MessageSquare, Thumbs
 import { endpoints } from '../../../lib/api';
 import StatCard from '../../../components/dashboard/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import { Spinner } from '../../../components/ui/misc';
+
 import { TrendChart, BarsChart, DonutChart, GaugeChart, COLORS } from '../../../components/charts/Charts';
+import { StatsSkeleton, ChartSkeleton } from '../../../components/ui/skeleton';
 
 export default function Analytics() {
   const { event } = useOutletContext();
   const q = useQuery({ queryKey: ['analytics', event._id, 'full'], queryFn: () => endpoints.analytics(event._id, 120) });
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <div className="space-y-6"><StatsSkeleton /><ChartSkeleton /></div>;
   const d = q.data;
   const c = d.cards;
 
@@ -26,7 +27,7 @@ export default function Analytics() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={Users} label="Confirmed registrations" value={c.confirmed} sub={`${c.totalRegistrations} total incl. waitlist/cancelled`} />
         <StatCard icon={CheckCircle2} label="Check-ins" value={c.checkIns} accent="success" sub={`${c.noShows} no-shows · ${c.waitlist} waitlisted`} />
-        <StatCard icon={IndianRupee} label="Revenue" value={`₹${c.revenue.toLocaleString('en-IN')}`} accent="blue" />
+        <StatCard icon={IndianRupee} label="Revenue" value={`₹${c.revenue.toLocaleString('en-IN')}`} accent="info" />
         <StatCard icon={Activity} label="Engagement score" value={`${c.engagement}/100`} accent="warning" sub={`${c.messages} chat msgs · ${c.pollVotes} poll votes`} />
       </div>
 

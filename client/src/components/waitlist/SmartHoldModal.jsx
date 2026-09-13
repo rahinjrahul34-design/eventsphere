@@ -1,16 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Clock,
-  Sparkles,
-  Ticket,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  Lock,
-  ArrowRight,
-} from 'lucide-react';
+
+import { Clock, Sparkles, Ticket, AlertTriangle, Loader2, Lock, ArrowRight } from 'lucide-react';
 import { Dialog } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -123,13 +113,13 @@ export default function SmartHoldModal({
     <Dialog open={open} onClose={onClose} title="">
       <div className="relative overflow-hidden p-1">
         {/* Glow Header */}
-        <div className="relative rounded-2xl bg-gradient-to-br from-indigo-500/15 via-purple-500/10 to-pink-500/5 p-6 border border-indigo-500/20 text-center">
-          <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-indigo-600/15 text-indigo-600 dark:text-indigo-400 shadow-inner">
+        <div className="relative rounded-xl bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 p-6 border border-primary/20 text-center">
+          <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-xl bg-primary/15 text-primary dark:text-primary shadow-inner">
             <Sparkles className="size-7 animate-pulse" />
           </div>
 
-          <Badge variant="default" className="bg-indigo-600 text-white font-semibold text-xs tracking-wider uppercase">
-            ⚡ SmartQueue Priority Allocation
+          <Badge variant="default" className="bg-primary text-white font-semibold text-xs tracking-wider uppercase">
+            SmartQueue Priority Allocation
           </Badge>
 
           <h2 className="mt-3 font-display text-2xl font-bold tracking-tight text-foreground">
@@ -144,14 +134,14 @@ export default function SmartHoldModal({
           {/* Countdown Clock Display */}
           <div className="mt-5">
             <div
-              className={`inline-flex flex-col items-center justify-center px-6 py-3 rounded-2xl border transition-all ${
+              className={`inline-flex flex-col items-center justify-center px-6 py-3 rounded-xl border transition-all ${
                 isExpired
                   ? 'bg-destructive/10 border-destructive/30 text-destructive'
                   : isUrgent
-                  ? 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400 animate-pulse'
+                  ? 'bg-destructive/10 border-destructive/30 text-destructive dark:text-destructive animate-pulse'
                   : isWarning
-                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
-                  : 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300'
+                  ? 'bg-warning/10 border-warning/30 text-warning dark:text-warning'
+                  : 'bg-primary/[0.06] border-primary/25 text-primary'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -164,7 +154,7 @@ export default function SmartHoldModal({
                 {isExpired
                   ? 'Hold Expired'
                   : isUrgent
-                  ? '⚠️ Final Minute — Confirm Now!'
+                  ? 'Final minute — confirm now!'
                   : isWarning
                   ? 'Expiring in under 5 minutes'
                   : 'Reservation Window Remaining'}
@@ -188,7 +178,7 @@ export default function SmartHoldModal({
             </span>
             <span className="font-extrabold text-foreground">
               {isFree ? (
-                <Badge variant="outline" className="text-emerald-600 border-emerald-600/30 bg-emerald-500/10 font-bold">
+                <Badge variant="outline" className="text-success border-success/30 bg-success/10 font-bold">
                   Free Admission
                 </Badge>
               ) : (
@@ -199,7 +189,7 @@ export default function SmartHoldModal({
 
           <div className="pt-2 border-t text-xs text-muted-foreground">
             <p>
-              🔒 <strong>Fair Queue Rule:</strong> If unclaimed by expiration, this reservation is automatically released
+              <strong>Fair queue rule:</strong> If unclaimed by expiration, this reservation is automatically released
               and offered to the next waitlisted attendee.
             </p>
           </div>

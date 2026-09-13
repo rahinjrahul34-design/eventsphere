@@ -1,9 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  ShieldCheck, CheckCircle2, Star, Users, CalendarCheck, Info,
-  Award, Sparkles, ExternalLink, ShieldAlert, ChevronRight,
-} from 'lucide-react';
+import { ShieldCheck, CheckCircle2, Star, Users, CalendarCheck, Info, Award, ExternalLink, ChevronRight } from 'lucide-react';
 import { endpoints } from '../../lib/api';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -14,49 +11,49 @@ import { Link } from 'react-router-dom';
 function getTrustColor(score, confidence) {
   if (confidence === 'limited') {
     return {
-      bg: 'bg-amber-500/10 dark:bg-amber-500/20',
-      text: 'text-amber-600 dark:text-amber-400',
-      border: 'border-amber-500/30',
-      ring: '#f59e0b',
+      bg: 'bg-warning/10 dark:bg-warning/20',
+      text: 'text-warning dark:text-warning',
+      border: 'border-warning/30',
+      ring: 'hsl(var(--warning))',
     };
   }
   if (score >= 90) {
     return {
-      bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
-      text: 'text-emerald-600 dark:text-emerald-400',
-      border: 'border-emerald-500/30',
-      ring: '#10b981',
+      bg: 'bg-success/10 dark:bg-success/20',
+      text: 'text-success dark:text-success',
+      border: 'border-success/30',
+      ring: 'hsl(var(--success))',
     };
   }
   if (score >= 80) {
     return {
-      bg: 'bg-blue-500/10 dark:bg-blue-500/20',
-      text: 'text-blue-600 dark:text-blue-400',
-      border: 'border-blue-500/30',
-      ring: '#3b82f6',
+      bg: 'bg-info/10 dark:bg-info/20',
+      text: 'text-info dark:text-info',
+      border: 'border-info/30',
+      ring: 'hsl(var(--info))',
     };
   }
   if (score >= 70) {
     return {
-      bg: 'bg-indigo-500/10 dark:bg-indigo-500/20',
-      text: 'text-indigo-600 dark:text-indigo-400',
-      border: 'border-indigo-500/30',
-      ring: '#6366f1',
+      bg: 'bg-primary/10 dark:bg-primary/20',
+      text: 'text-primary dark:text-primary',
+      border: 'border-primary/30',
+      ring: 'hsl(var(--primary))',
     };
   }
   if (score >= 60) {
     return {
-      bg: 'bg-amber-500/10 dark:bg-amber-500/20',
-      text: 'text-amber-600 dark:text-amber-400',
-      border: 'border-amber-500/30',
-      ring: '#f59e0b',
+      bg: 'bg-warning/10 dark:bg-warning/20',
+      text: 'text-warning dark:text-warning',
+      border: 'border-warning/30',
+      ring: 'hsl(var(--warning))',
     };
   }
   return {
-    bg: 'bg-rose-500/10 dark:bg-rose-500/20',
-    text: 'text-rose-600 dark:text-rose-400',
-    border: 'border-rose-500/30',
-    ring: '#f43f5e',
+    bg: 'bg-destructive/10 dark:bg-destructive/20',
+    text: 'text-destructive dark:text-destructive',
+    border: 'border-destructive/30',
+    ring: 'hsl(var(--destructive))',
   };
 }
 
@@ -100,7 +97,7 @@ export default function OrganizerTrustCard({
   if (!profile) {
     if (query.isLoading) {
       return (
-        <div className={cn('rounded-2xl border border-border bg-card p-4 animate-pulse space-y-3', className)}>
+        <div className={cn('rounded-xl border border-border bg-card p-4 animate-pulse space-y-3', className)}>
           <div className="h-4 w-32 bg-muted rounded" />
           <div className="h-10 w-full bg-muted rounded" />
         </div>
@@ -175,7 +172,7 @@ export default function OrganizerTrustCard({
 
   return (
     <>
-      <div className={cn('rounded-2xl border border-border bg-card shadow-sm p-5 sm:p-6 space-y-5 transition hover:shadow-md', className)}>
+      <div className={cn('rounded-xl border border-border bg-card shadow-soft p-5 sm:p-6 space-y-5 transition-shadow duration-200 hover:shadow-lift', className)}>
         {/* Header Row */}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3.5">
@@ -232,7 +229,7 @@ export default function OrganizerTrustCard({
               </h4>
 
               <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <ShieldCheck className="size-3.5 text-emerald-500" />
+                <ShieldCheck className="size-3.5 text-success" />
                 <span>100% Verified Platform Behavior</span>
               </p>
             </div>
@@ -263,8 +260,8 @@ export default function OrganizerTrustCard({
 
         {/* Cold Start Explainer Banner */}
         {confidence === 'limited' && (
-          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-900 dark:text-amber-200 flex items-center gap-2.5">
-            <Info className="size-4 shrink-0 text-amber-500" />
+          <div className="rounded-xl border border-warning/20 bg-warning/5 p-3 text-xs text-warning flex items-center gap-2.5">
+            <Info className="size-4 shrink-0 text-warning" />
             <span>
               <strong>Building Trust History:</strong> This host is early in their hosting journey. Platform baseline protections are actively in effect.
             </span>
@@ -275,7 +272,7 @@ export default function OrganizerTrustCard({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
           <div className="rounded-xl border border-border/70 bg-muted/30 p-3">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-              <CalendarCheck className="size-3.5 text-emerald-500" />
+              <CalendarCheck className="size-3.5 text-success" />
               <span>Event Completion</span>
             </div>
             <p className="font-display text-lg font-extrabold text-foreground">
@@ -288,7 +285,7 @@ export default function OrganizerTrustCard({
 
           <div className="rounded-xl border border-border/70 bg-muted/30 p-3">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-              <Star className="size-3.5 text-amber-500 fill-amber-500" />
+              <Star className="size-3.5 text-warning fill-warning" />
               <span>Satisfaction</span>
             </div>
             <p className="font-display text-lg font-extrabold text-foreground">
@@ -301,7 +298,7 @@ export default function OrganizerTrustCard({
 
           <div className="rounded-xl border border-border/70 bg-muted/30 p-3">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-              <Users className="size-3.5 text-blue-500" />
+              <Users className="size-3.5 text-info" />
               <span>Attendees Served</span>
             </div>
             <p className="font-display text-lg font-extrabold text-foreground">
@@ -314,7 +311,7 @@ export default function OrganizerTrustCard({
 
           <div className="rounded-xl border border-border/70 bg-muted/30 p-3">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-              <ShieldCheck className="size-3.5 text-violet-500" />
+              <ShieldCheck className="size-3.5 text-primary" />
               <span>Safety Record</span>
             </div>
             <p className="font-display text-lg font-extrabold text-foreground">

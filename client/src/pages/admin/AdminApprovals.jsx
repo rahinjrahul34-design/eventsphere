@@ -7,11 +7,12 @@ import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Textarea, Label } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
-import { Spinner, Tabs } from '../../components/ui/misc';
+import { Tabs } from '../../components/ui/misc';
 import { EmptyState } from '../../components/ui/states';
-import { Dialog, ConfirmDialog } from '../../components/ui/dialog';
+import { Dialog } from '../../components/ui/dialog';
 import { fmtDate } from '../../lib/format';
 import { toast } from 'sonner';
+import { TableSkeleton } from '../../components/ui/skeleton';
 
 export default function AdminApprovals() {
   const [tab, setTab] = useState('events');
@@ -54,7 +55,7 @@ function EventsList({ filter }) {
     onError: (e) => toast.error(e.message),
   });
 
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <div className="space-y-4"><TableSkeleton rows={4} cols={4} /></div>;
   const events = q.data || [];
 
   if (!events.length) return (
@@ -115,7 +116,7 @@ function OrganizerApps() {
     mutationFn: ({ id, body }) => endpoints.updateUser(id, body),
     onSuccess: () => { toast.success('Updated'); qc.invalidateQueries({ queryKey: ['admin-users'] }); qc.invalidateQueries({ queryKey: ['admin-stats'] }); },
   });
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <div className="space-y-4"><TableSkeleton rows={4} cols={4} /></div>;
   const users = q.data || [];
   if (!users.length) return (
     <Card><CardContent><EmptyState icon={ShieldCheck} title="No applications" description="Organizer applications appear here." /></CardContent></Card>

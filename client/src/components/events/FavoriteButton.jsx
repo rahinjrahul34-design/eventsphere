@@ -33,7 +33,7 @@ export default function FavoriteButton({ eventId, favorite, size = 'md', classNa
         className
       )}
     >
-      <Heart className={cn(size === 'sm' ? 'size-4' : 'size-5', favorite && 'fill-rose-500 text-rose-400')} />
+      <Heart className={cn(size === 'sm' ? 'size-4' : 'size-5', favorite && 'fill-destructive text-destructive')} />
     </button>
   );
 }

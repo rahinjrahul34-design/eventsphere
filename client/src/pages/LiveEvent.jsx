@@ -2,10 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Radio, Megaphone, BarChart3, MessageCircle, HelpCircle, Trophy, Send,
-  Triangle, ThumbsUp, Users, CheckCircle2, ShieldAlert, ChevronLeft,
-} from 'lucide-react';
+import { Radio, Megaphone, BarChart3, MessageCircle, HelpCircle, Trophy, Send, Triangle, Users, CheckCircle2, ShieldAlert, ChevronLeft } from 'lucide-react';
 import { endpoints } from '../lib/api';
 import { useAuth } from '../store/auth';
 import { useEventSocket, eventSocket } from '../hooks/useSocket';
@@ -60,7 +57,7 @@ export default function LiveEvent() {
   return (
     <div className="min-h-screen bg-muted/30 pb-16">
       {/* Header */}
-      <div className={`${isLive ? 'bg-gradient-to-br from-rose-600 to-red-700' : 'bg-gradient-to-br from-indigo-700 to-violet-800'} text-white`}>
+      <div className={`${isLive ? 'bg-destructive' : 'bg-primary'} text-white`}>
         <div className="container py-8">
           <Link to={`/events/${slug}`} className="inline-flex items-center gap-1 text-sm text-white/80 hover:text-white">
             <ChevronLeft className="size-4" /> Event page
@@ -70,8 +67,8 @@ export default function LiveEvent() {
               <div className="flex items-center gap-3">
                 <h1 className="font-display text-2xl sm:text-4xl font-extrabold">{event.title}</h1>
                 {isLive && (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-extrabold text-rose-600 animate-pulse">
-                    <span className="size-2 rounded-full bg-rose-600" /> LIVE NOW
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-extrabold text-destructive animate-pulse">
+                    <span className="size-2 rounded-full bg-destructive" /> LIVE NOW
                   </span>
                 )}
               </div>
@@ -102,7 +99,7 @@ export default function LiveEvent() {
               <p className="text-sm font-bold">{liveToast.attendee} checked in</p>
               <p className="text-xs text-muted-foreground">Live attendance counter updated</p>
             </div>
-            <button className="ml-2 text-xs text-muted-foreground" onClick={() => setLiveToast(null)}>✕</button>
+            <button className="ml-2 grid size-5 place-items-center rounded text-xs text-muted-foreground transition-colors hover:text-foreground" onClick={() => setLiveToast(null)} aria-label="Dismiss">✕</button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -421,12 +418,12 @@ function ChatTab({ eventId, initial }) {
 }
 
 function LeaderboardTab({ query }) {
-  const medal = ['🥇', '🥈', '🥉'];
+  const medal = ['#1', '#2', '#3'];
   if (query.isLoading) return <Spinner />;
   const rows = query.data || [];
   return (
     <div className="mx-auto max-w-2xl space-y-2">
-      <div className="rounded-xl border bg-gradient-to-br from-amber-400 to-orange-500 p-5 text-white">
+      <div className="rounded-xl border bg-warning p-5 text-warning-foreground">
         <Trophy className="size-7" />
         <p className="mt-2 font-display text-xl font-extrabold">Event leaderboard</p>
         <p className="text-sm text-white/85">Earn points through check-in, polls, chat, sessions and networking.</p>

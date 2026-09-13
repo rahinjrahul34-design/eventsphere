@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Badge } from '../../../components/ui/badge';
-import { Spinner } from '../../../components/ui/misc';
+
 import { Avatar } from '../../../components/ui/avatar';
 import { fmtTime } from '../../../lib/format';
 import { cn } from '../../../lib/utils';
@@ -92,7 +92,7 @@ export default function CheckIn({ event: eventProp }) {
       const res = await endpoints.validateTicket({ code: code.toUpperCase(), eventId: event._id });
       setResult(res);
       beep(res.valid);
-      if (res.valid) toast.success(`${res.ticket.attendeeName} checked in ✓`);
+      if (res.valid) toast.success(`${res.ticket.attendeeName} checked in`);
       else if (res.reason === 'DUPLICATE') toast.warning('Already checked in');
       else toast.error(res.message);
       setRecents((prev) => [{ ...res, at: new Date().toISOString() }, ...prev].slice(0, 20));
@@ -133,7 +133,7 @@ export default function CheckIn({ event: eventProp }) {
             )}
           </CardHeader>
           <CardContent>
-            <div className="overflow-hidden rounded-2xl border bg-muted">
+            <div className="overflow-hidden rounded-xl border bg-muted">
               <div id="qr-reader-region" ref={scannerElRef} className="mx-auto w-full max-w-md [&_video]:rounded-xl [&_img]:hidden" />
               {!scanning && (
                 <div className="grid place-items-center gap-3 py-16 text-center">
@@ -198,7 +198,7 @@ function ResultCard({ result, onDismiss }) {
   return (
     <Card className={cn('border-2', tone === 'success' && 'border-success/50 bg-success/5', tone === 'warning' && 'border-warning/50 bg-warning/5', tone === 'destructive' && 'border-destructive/50 bg-destructive/5')}>
       <CardContent className="flex items-center gap-4 p-5">
-        <span className={cn('grid size-14 shrink-0 place-items-center rounded-2xl',
+        <span className={cn('grid size-14 shrink-0 place-items-center rounded-xl',
           tone === 'success' && 'bg-success/15 text-success',
           tone === 'warning' && 'bg-warning/15 text-warning',
           tone === 'destructive' && 'bg-destructive/15 text-destructive')}>

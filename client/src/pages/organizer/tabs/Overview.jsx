@@ -1,14 +1,12 @@
 import { useOutletContext, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Users, CheckCircle2, IndianRupee, Gauge, MessageSquare, Star, Award, Bot, Radio, Download, Activity, Sparkles,
-} from 'lucide-react';
+import { Users, CheckCircle2, IndianRupee, Gauge, MessageSquare, Star, Award, Bot, Radio, Download, Activity, Sparkles } from 'lucide-react';
 import { endpoints } from '../../../lib/api';
 import StatCard from '../../../components/dashboard/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
-import { Spinner } from '../../../components/ui/misc';
+
 import { TrendChart } from '../../../components/charts/Charts';
 import { toast } from 'sonner';
 import { useState } from 'react';
@@ -46,7 +44,7 @@ export default function Overview() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={Users} label="Confirmed registrations" value={c?.confirmed ?? event.registrationCount} sub={`${c?.totalRegistrations || 0} all-time`} />
         <StatCard icon={CheckCircle2} label="Check-ins" value={c?.checkIns ?? event.checkedInCount} accent="success" sub={`${c?.noShows || 0} no-shows`} />
-        <StatCard icon={IndianRupee} label="Revenue" value={`₹${(c?.revenue || 0).toLocaleString('en-IN')}`} accent="blue" />
+        <StatCard icon={IndianRupee} label="Revenue" value={`₹${(c?.revenue || 0).toLocaleString('en-IN')}`} accent="info" />
         <StatCard icon={Gauge} label="Capacity used" value={`${c?.capacityUtilization || 0}%`} accent="warning" sub={`${c?.seatsLeft ?? 0} seats left`} />
       </div>
 
@@ -54,12 +52,12 @@ export default function Overview() {
         <Card className="lg:col-span-2">
           <CardHeader><CardTitle>Registrations & check-ins</CardTitle></CardHeader>
           <CardContent>
-            {analyticsQ.isLoading ? <Spinner /> : (
+            {analyticsQ.isLoading ? <div className="skeleton h-[260px]" /> : (
               <TrendChart
                 data={analyticsQ.data.trend.slice(-21)}
                 lines={[
-                  { key: 'registrations', label: 'Registrations', color: '#7c3aed' },
-                  { key: 'checkIns', label: 'Check-ins', color: '#16a34a' },
+                  { key: 'registrations', label: 'Registrations', color: '#7c5cfc' },
+                  { key: 'checkIns', label: 'Check-ins', color: '#10b981' },
                 ]}
               />
             )}
@@ -112,7 +110,7 @@ export default function Overview() {
           <Badge variant="secondary" className="text-sm">{analyticsQ.data?.cards.avgRating || '—'} / 5</Badge>
         </CardHeader>
         <CardContent className="space-y-3">
-          {feedbackQ.isLoading ? <Spinner /> : (feedbackQ.data?.feedback || []).slice(0, 5).map((f) => (
+          {feedbackQ.isLoading ? <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="skeleton h-14 rounded-lg" />)}</div> : (feedbackQ.data?.feedback || []).slice(0, 5).map((f) => (
             <div key={f._id} className="rounded-xl border p-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold">{f.user?.name || 'Attendee'}</span>
@@ -138,8 +136,8 @@ function InsightsReport({ data }) {
         <p className="text-sm font-medium text-muted-foreground">{data.headline}</p>
       </CardHeader>
       <CardContent className="grid gap-6 md:grid-cols-2">
-        <InsightColumn title="✅ What went well" items={data.wentWell} tone="success" />
-        <InsightColumn title="⚠️ Problems" items={data.problems} tone="warning" />
+        <InsightColumn title="What went well" items={data.wentWell} tone="success" />
+        <InsightColumn title="Problems" items={data.problems} tone="warning" />
         <div>
           <p className="font-bold text-sm">Most popular session</p>
           <p className="mt-1 rounded-lg bg-card p-3 text-sm">{data.mostPopularSession}</p>
@@ -153,7 +151,7 @@ function InsightsReport({ data }) {
             ))}
           </div>
         </div>
-        <InsightColumn title="💡 Recommendations" items={data.recommendations} tone="primary" />
+        <InsightColumn title="Recommendations" items={data.recommendations} tone="primary" />
       </CardContent>
     </Card>
   );

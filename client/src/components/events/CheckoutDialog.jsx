@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import { CheckCircle2, Loader2, Lock, Ticket } from 'lucide-react';
+import { CheckCircle2, Loader2, Lock, Ticket, Hourglass } from 'lucide-react';
 import { Dialog } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input, Textarea, Label, Select, FieldError } from '../ui/input';
@@ -90,7 +90,7 @@ export default function CheckoutDialog({ event, open, onClose }) {
   };
 
   return (
-    <Dialog open={open} onClose={reset} title={step === 'done' ? 'You’re in! 🎉' : 'Complete registration'} size="lg">
+    <Dialog open={open} onClose={reset} title={step === 'done' ? 'You’re in!' : 'Complete registration'} size="lg">
       {step === 'form' && (
         <div className="space-y-5">
           <div className="rounded-xl bg-muted/50 p-4">
@@ -237,7 +237,7 @@ export default function CheckoutDialog({ event, open, onClose }) {
             <p className="text-sm text-muted-foreground">Your digital QR pass has been generated.</p>
           </div>
           {result?.ticket && (
-            <div className="rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 p-5">
+            <div className="rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 p-5">
               <QRCodeSVG value={result.ticket.code} size={148} level="M" />
               <p className="mt-2 font-mono text-sm font-bold tracking-widest">{result.ticket.code}</p>
             </div>
@@ -255,7 +255,7 @@ export default function CheckoutDialog({ event, open, onClose }) {
 
       {step === 'waitlist' && (
         <div className="flex flex-col items-center gap-4 py-8 text-center">
-          <div className="grid size-14 place-items-center rounded-2xl bg-warning/15 text-2xl">⏳</div>
+          <div className="grid size-14 place-items-center rounded-xl bg-warning/15"><Hourglass className="size-7 text-warning" aria-hidden="true" /></div>
           <p className="font-bold text-lg">You’re #{result?.position} on the waitlist</p>
           <p className="max-w-sm text-sm text-muted-foreground">
             If a seat opens up, the next eligible attendee is promoted automatically — you’ll get an instant notification and email.

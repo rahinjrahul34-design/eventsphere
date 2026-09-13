@@ -17,7 +17,10 @@ export default function MobileBottomNav() {
   ];
 
   return (
-    <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 border-t bg-card/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
+    <nav
+      className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:hidden"
+      aria-label="Mobile navigation"
+    >
       <div className="grid grid-cols-5">
         {items.map(({ to, icon: Icon, label }) => (
           <NavLink
@@ -25,13 +28,24 @@ export default function MobileBottomNav() {
             to={to}
             className={({ isActive }) =>
               cn(
-                'flex flex-col items-center gap-0.5 py-2 text-[10px] font-semibold transition',
+                'relative flex flex-col items-center gap-1 py-2 text-[10px] font-semibold transition-colors duration-150',
                 isActive ? 'text-primary' : 'text-muted-foreground'
               )
             }
           >
-            <Icon className="size-5" />
-            {label}
+            {({ isActive }) => (
+              <>
+                <span
+                  className={cn(
+                    'absolute top-0 h-0.5 w-8 rounded-full bg-primary transition-opacity duration-200',
+                    isActive ? 'opacity-100' : 'opacity-0'
+                  )}
+                  aria-hidden="true"
+                />
+                <Icon className="size-5" aria-hidden="true" />
+                {label}
+              </>
+            )}
           </NavLink>
         ))}
       </div>

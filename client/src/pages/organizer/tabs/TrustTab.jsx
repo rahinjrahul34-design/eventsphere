@@ -1,16 +1,13 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  ShieldCheck, RefreshCw, Sparkles, TrendingUp, Award, AlertTriangle,
-  CheckCircle2, Star, Users, CalendarCheck, Info, ArrowUpRight,
-  Lightbulb, ChevronRight, HelpCircle,
-} from 'lucide-react';
+import { ShieldCheck, RefreshCw, Sparkles, AlertTriangle, CheckCircle2, Lightbulb } from 'lucide-react';
 import { endpoints } from '../../../lib/api';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
 import OrganizerTrustCard from '../../../components/trustsphere/OrganizerTrustCard';
 import TrustSimulator from '../../../components/trustsphere/TrustSimulator';
-import { Spinner, ErrorState } from '../../../components/ui/misc';
+import { ErrorState } from '../../../components/ui/misc';
+import { StatsSkeleton } from '../../../components/ui/skeleton';
 
 export default function TrustTab() {
   const queryClient = useQueryClient();
@@ -46,7 +43,7 @@ export default function TrustTab() {
     },
   });
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return <div className="space-y-6"><div className="skeleton h-28 rounded-xl" /><StatsSkeleton count={3} /></div>;
   if (isError) return <ErrorState message={error?.message || 'Failed to load trust profile'} onRetry={refetch} />;
 
   const metrics = profile.metrics || {};
@@ -58,7 +55,7 @@ export default function TrustTab() {
   return (
     <div className="space-y-6">
       {/* Top Banner & Refresh Trigger */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-card p-6 shadow-soft">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -126,7 +123,7 @@ export default function TrustTab() {
       {activeSubTab === 'overview' && (
         <div className="space-y-6">
           {/* AI Advisor Card */}
-          <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-background p-6 space-y-5">
+          <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-background p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-border/50 pb-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="size-5 text-primary animate-pulse" />
@@ -156,13 +153,13 @@ export default function TrustTab() {
             {/* Strengths & Weaknesses Grid */}
             <div className="grid md:grid-cols-2 gap-4 pt-2">
               <div className="space-y-2 rounded-xl bg-card border border-border p-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-success dark:text-success flex items-center gap-1.5">
                   <CheckCircle2 className="size-4" /> Key Verified Strengths
                 </h4>
                 <ul className="space-y-1.5 text-xs text-muted-foreground">
                   {(aiInsights.strengths || []).map((s, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <span className="size-1.5 rounded-full bg-emerald-500 shrink-0 mt-1.5" />
+                      <span className="size-1.5 rounded-full bg-success shrink-0 mt-1.5" />
                       <span>{s}</span>
                     </li>
                   ))}
@@ -173,18 +170,18 @@ export default function TrustTab() {
               </div>
 
               <div className="space-y-2 rounded-xl bg-card border border-border p-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-warning dark:text-warning flex items-center gap-1.5">
                   <AlertTriangle className="size-4" /> Growth Opportunities & Risks
                 </h4>
                 <ul className="space-y-1.5 text-xs text-muted-foreground">
                   {(aiInsights.weaknesses || []).map((w, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <span className="size-1.5 rounded-full bg-amber-500 shrink-0 mt-1.5" />
+                      <span className="size-1.5 rounded-full bg-warning shrink-0 mt-1.5" />
                       <span>{w}</span>
                     </li>
                   ))}
                   {(!aiInsights.weaknesses || aiInsights.weaknesses.length === 0) && (
-                    <li className="text-emerald-600 dark:text-emerald-400 font-medium">
+                    <li className="text-success dark:text-success font-medium">
                       No significant reputation risks or negative signals detected.
                     </li>
                   )}
@@ -196,7 +193,7 @@ export default function TrustTab() {
             {(aiInsights.recommendations || []).length > 0 && (
               <div className="space-y-3 pt-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
-                  <Lightbulb className="size-4 text-amber-500" /> Actionable Reputation Growth Plan
+                  <Lightbulb className="size-4 text-warning" /> Actionable Reputation Growth Plan
                 </h4>
                 <div className="grid gap-2.5">
                   {aiInsights.recommendations.map((rec, i) => (
@@ -219,15 +216,15 @@ export default function TrustTab() {
           </div>
 
           {/* Factor Attributions Breakdown */}
-          <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+          <div className="rounded-xl border border-border bg-card p-6 space-y-4">
             <h3 className="font-display text-base font-bold">Scoring Factor Attributions</h3>
             <div className="grid sm:grid-cols-2 gap-3">
               {positiveFactors.map((f, i) => (
-                <div key={i} className="flex items-start gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3.5 text-xs">
-                  <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+                <div key={i} className="flex items-start gap-2.5 rounded-xl border border-success/20 bg-success/5 p-3.5 text-xs">
+                  <CheckCircle2 className="size-4 shrink-0 text-success dark:text-success mt-0.5" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-bold text-emerald-950 dark:text-emerald-200">{f.label}</p>
+                      <p className="font-bold text-success">{f.label}</p>
                       {f.value && <span className="font-mono text-[11px] text-muted-foreground">({f.value})</span>}
                     </div>
                     <p className="text-muted-foreground mt-0.5">{f.description}</p>
@@ -235,11 +232,11 @@ export default function TrustTab() {
                 </div>
               ))}
               {negativeFactors.map((f, i) => (
-                <div key={i} className="flex items-start gap-2.5 rounded-xl border border-rose-500/20 bg-rose-500/5 p-3.5 text-xs">
-                  <AlertTriangle className="size-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
+                <div key={i} className="flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/5 p-3.5 text-xs">
+                  <AlertTriangle className="size-4 shrink-0 text-destructive dark:text-destructive mt-0.5" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-bold text-rose-950 dark:text-rose-200">{f.label}</p>
+                      <p className="font-bold text-destructive">{f.label}</p>
                       {f.value && <span className="font-mono text-[11px] text-muted-foreground">({f.value})</span>}
                     </div>
                     <p className="text-muted-foreground mt-0.5">{f.description}</p>
@@ -258,7 +255,7 @@ export default function TrustTab() {
 
       {/* History Subtab */}
       {activeSubTab === 'history' && (
-        <div className="rounded-2xl border border-border bg-card p-6 space-y-4 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-6 space-y-4 shadow-soft">
           <div className="flex items-center justify-between border-b border-border pb-3">
             <div>
               <h3 className="font-display text-base font-bold">TrustScore Evolution Timeline</h3>
