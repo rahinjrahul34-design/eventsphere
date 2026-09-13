@@ -263,7 +263,7 @@ function PollsTab({ live, canManage, eventId }) {
                   <button key={o._id} disabled={p.closed || (p.myVote >= 0) || vote.isPending}
                     onClick={() => vote.mutate({ id: p._id, idx: i })}
                     className="relative block w-full overflow-hidden rounded-lg border px-4 py-2.5 text-left text-sm transition hover:border-primary disabled:cursor-default">
-                    <span className="absolute inset-y-0 left-0 bg-primary/12 transition-all" style={{ width: `${o.percent}%` }} />
+                    <span className="absolute inset-y-0 left-0 bg-primary/[12%] transition-all" style={{ width: `${o.percent}%` }} />
                     <span className="relative flex items-center justify-between font-medium">
                       <span>{o.text} {voted && <CheckCircle2 className="inline size-4 text-primary" />}</span>
                       <span className="text-xs text-muted-foreground">{o.percent}% · {o.votes}</span>

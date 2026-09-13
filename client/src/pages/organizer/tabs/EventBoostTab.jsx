@@ -539,7 +539,7 @@ export default function EventBoostTab() {
               )}
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+                <table className="table-premium text-xs">
                   <thead className="border-b bg-secondary/50 text-muted-foreground">
                     <tr>
                       <th className="p-2.5 font-bold">Keyword Term</th>
@@ -915,7 +915,7 @@ export default function EventBoostTab() {
       {/* Modal: Side-by-Side Before / After AI Optimization Review */}
       {showOptimizeModal && optimizeMutation.data && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm overflow-y-auto">
-          <div className="relative w-full max-w-4xl rounded-2xl border bg-card p-6 shadow-2xl space-y-6 my-8">
+          <div className="relative w-full max-w-4xl card-surface p-6 shadow-2xl space-y-6 my-8">
             <div className="flex items-center justify-between border-b pb-4">
               <div>
                 <div className="flex items-center gap-2">

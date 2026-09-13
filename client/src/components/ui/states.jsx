@@ -1,5 +1,6 @@
 import { AlertTriangle, Inbox, RefreshCw } from 'lucide-react';
 import { Button } from './button';
+import { PanelSkeleton } from './skeleton';
 
 export function EmptyState({ icon: Icon = Inbox, title = 'Nothing here yet', description = '', action = null, className = '' }) {
   return (
@@ -33,7 +34,7 @@ export function ErrorState({ title = 'Something went wrong', message, onRetry, c
 
 export function QueryState({ query, skeleton, empty, children, errorClassName = '' }) {
   const { isLoading, isError, error, data, refetch, isFetching } = query;
-  if (isLoading) return skeleton || <div className="py-10 text-sm text-muted-foreground">Loading…</div>;
+  if (isLoading) return skeleton || <PanelSkeleton />;
   if (isError) return <ErrorState message={error?.message} onRetry={refetch} className={errorClassName} />;
   const isEmpty = empty?.isEmpty?.(data);
   if (empty && isEmpty) return empty.view;

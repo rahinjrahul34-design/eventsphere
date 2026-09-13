@@ -83,7 +83,7 @@ export default function Registrations() {
               <EmptyState icon={UsersIcon} title="No registrations" description="Attendees will appear here as they register." />
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="table-premium">
                   <thead>
                     <tr className="border-b text-left text-xs uppercase text-muted-foreground">
                       <th className="p-3 font-semibold">Attendee</th>

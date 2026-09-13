@@ -22,22 +22,43 @@ export default function DashboardLayout() {
   const loc = useLocation();
   const { theme, toggle } = useTheme();
 
+  // Grouped navigation (spec §10): workspace vs AI intelligence sections.
   const organizerNav = [
-    { to: '/dashboard/overview', icon: LayoutDashboard, label: 'Overview' },
-    { to: '/dashboard/command-center', icon: Activity, label: 'AI Command Center' },
-    { to: '/dashboard/events', icon: CalendarDays, label: 'My Events' },
-    { to: '/dashboard/events/create', icon: Plus, label: 'Create Event' },
-    { to: '/dashboard/trust', icon: ShieldCheck, label: 'TrustSphere AI' },
-    { to: '/dashboard/copilot', icon: Bot, label: 'AI Copilot' },
+    {
+      label: 'Workspace',
+      items: [
+        { to: '/dashboard/overview', icon: LayoutDashboard, label: 'Overview' },
+        { to: '/dashboard/events', icon: CalendarDays, label: 'My Events' },
+        { to: '/dashboard/events/create', icon: Plus, label: 'Create Event' },
+      ],
+    },
+    {
+      label: 'Intelligence',
+      accent: true,
+      items: [
+        { to: '/dashboard/command-center', icon: Activity, label: 'AI Command Center' },
+        { to: '/dashboard/trust', icon: ShieldCheck, label: 'TrustSphere AI' },
+        { to: '/dashboard/copilot', icon: Bot, label: 'AI Copilot' },
+      ],
+    },
   ];
   const adminNav = [
-    { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
-    { to: '/admin/events', icon: CalendarDays, label: 'Event Approvals' },
-    { to: '/admin/users', icon: Users, label: 'Users & Organizers' },
-    { to: '/admin/trust', icon: ShieldCheck, label: 'Trust Intelligence' },
-    { to: '/admin/reports', icon: Flag, label: 'Reports' },
-    { to: '/admin/categories', icon: Tags, label: 'Categories' },
-    { to: '/admin/audit', icon: ScrollText, label: 'Audit Logs' },
+    {
+      label: 'Console',
+      items: [
+        { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
+        { to: '/admin/events', icon: CalendarDays, label: 'Event Approvals' },
+        { to: '/admin/users', icon: Users, label: 'Users & Organizers' },
+        { to: '/admin/reports', icon: Flag, label: 'Reports' },
+        { to: '/admin/categories', icon: Tags, label: 'Categories' },
+        { to: '/admin/audit', icon: ScrollText, label: 'Audit Logs' },
+      ],
+    },
+    {
+      label: 'Intelligence',
+      accent: true,
+      items: [{ to: '/admin/trust', icon: ShieldCheck, label: 'Trust Intelligence' }],
+    },
   ];
 
   const nav =
@@ -46,8 +67,8 @@ export default function DashboardLayout() {
       : user.role === 'organizer'
         ? organizerNav
         : user.role === 'volunteer'
-          ? [{ to: '/dashboard/assignments', icon: ClipboardList, label: 'My Assignments' }]
-          : [{ to: '/dashboard/speaking', icon: Mic2, label: 'My Sessions' }];
+          ? [{ label: 'Workspace', items: [{ to: '/dashboard/assignments', icon: ClipboardList, label: 'My Assignments' }] }]
+          : [{ label: 'Workspace', items: [{ to: '/dashboard/speaking', icon: Mic2, label: 'My Sessions' }] }];
 
   const title =
     user.role === 'admin' ? 'Admin Console'
@@ -60,29 +81,41 @@ export default function DashboardLayout() {
         <span className="grid size-8 place-items-center rounded-lg gradient-brand text-white"><Sparkles className="size-4" /></span>
         EventSphere
       </Link>
-      <div className="flex-1 overflow-y-auto p-3 space-y-1">
-        <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{title}</p>
-        {nav.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            onClick={() => setOpen(false)}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition',
-                (isActive || (item.to !== '/dashboard/events/create' && item.to.startsWith('/dashboard/events') && loc.pathname.startsWith('/dashboard/events/')))
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-              )
-            }
-          >
-            <item.icon className="size-4" />
-            {item.label}
-          </NavLink>
+      <div className="flex-1 overflow-y-auto p-3 space-y-4">
+        {nav.map((group) => (
+          <div key={group.label}>
+            <p className={cn(
+              'flex items-center gap-1.5 px-3 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-[0.12em]',
+              group.accent ? 'text-primary/80' : 'text-muted-foreground'
+            )}>
+              {group.accent && <Sparkles className="size-3" />}
+              {group.label}
+            </p>
+            <div className="space-y-0.5">
+              {group.items.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  onClick={() => setOpen(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      'relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors duration-150',
+                      (isActive || (item.to !== '/dashboard/events/create' && item.to.startsWith('/dashboard/events') && loc.pathname.startsWith('/dashboard/events/')))
+                        ? 'bg-primary/10 text-primary before:absolute before:left-0 before:top-1/2 before:h-5 before:w-0.5 before:-translate-y-1/2 before:rounded-full before:bg-primary'
+                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                    )
+                  }
+                >
+                  <item.icon className="size-4" />
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          </div>
         ))}
-        <div className="pt-3">
-          <Link to="/events" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-secondary">
+        <div className="pt-1 border-t">
+          <Link to="/events" className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
             <Home className="size-4" /> Back to site
           </Link>
         </div>
@@ -115,8 +148,8 @@ export default function DashboardLayout() {
       {/* Mobile drawer */}
       {open && (
         <div className="lg:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-72 bg-card animate-fade-in">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] animate-fade-in" onClick={() => setOpen(false)} />
+          <aside className="absolute inset-y-0 left-0 w-72 bg-card shadow-lift animate-slide-in-left">
             <button className="absolute right-3 top-4 z-10" onClick={() => setOpen(false)} aria-label="Close menu"><X className="size-5" /></button>
             <SidebarContent />
           </aside>

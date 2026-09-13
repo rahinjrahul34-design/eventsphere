@@ -13,7 +13,7 @@ export default function SafetyConfigModal({ form, setForm, onClose, onSave, savi
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="safety-config-title">
-      <div className="relative max-h-[90vh] w-full max-w-2xl space-y-5 overflow-y-auto rounded-2xl border bg-card p-6 shadow-2xl">
+      <div className="relative max-h-[90vh] w-full max-w-2xl space-y-5 overflow-y-auto card-surface p-6 shadow-2xl">
         <div className="flex items-center justify-between border-b pb-3">
           <div className="flex items-center gap-2">
             <Settings2 className="size-5 text-primary" />

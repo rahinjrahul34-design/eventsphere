@@ -14,7 +14,7 @@ export default function HealthTimelineChart({ trends = [] }) {
   const hasHistory = trends && trends.length > 1;
 
   return (
-    <div className="rounded-2xl border bg-card p-6 shadow-sm space-y-4">
+    <div className="card-surface p-6 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-4">
         <div>
           <h3 className="font-display text-base font-bold flex items-center gap-2">

@@ -51,7 +51,7 @@ export default function WhatIfSimulator({ eventId, baselineHealth }) {
   };
 
   return (
-    <div className="rounded-2xl border bg-card p-6 shadow-sm space-y-6">
+    <div className="card-surface p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4">
         <div className="flex items-center gap-2.5">

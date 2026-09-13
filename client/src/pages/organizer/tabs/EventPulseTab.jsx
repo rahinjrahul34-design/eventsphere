@@ -169,7 +169,7 @@ export default function EventPulseTab() {
   return (
     <div className="space-y-6">
       {/* Top Header Card */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-card p-5 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-4 card-surface p-5">
         <div className="flex items-center gap-3.5">
           <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white shadow-md">
             <Activity className="size-6" />
@@ -869,7 +869,7 @@ export default function EventPulseTab() {
           ) : (
             <Card>
               <CardContent className="p-0 overflow-x-auto">
-                <table className="w-full text-left text-xs">
+                <table className="table-premium text-xs">
                   <thead className="border-b bg-muted/40 font-bold text-muted-foreground">
                     <tr>
                       <th className="p-3">Snapshot Date</th>

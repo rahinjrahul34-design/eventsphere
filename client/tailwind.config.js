@@ -40,6 +40,11 @@ export default {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
+          hover: 'hsl(var(--card-hover))',
+        },
+        info: {
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))',
         },
       },
       borderRadius: {
@@ -60,6 +65,10 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(12px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        'slide-in-left': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
         'fade-in': { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
         'scale-in': {
           '0%': { opacity: '0', transform: 'scale(0.96)' },
@@ -79,6 +88,7 @@ export default {
       },
       animation: {
         'fade-up': 'fade-up 0.5s ease-out both',
+        'slide-in-left': 'slide-in-left 0.25s ease-out both',
         'fade-in': 'fade-in 0.3s ease-out both',
         'scale-in': 'scale-in 0.2s ease-out both',
         'pulse-ring': 'pulse-ring 1.8s ease-out infinite',

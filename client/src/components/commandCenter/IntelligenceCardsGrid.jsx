@@ -27,7 +27,7 @@ export default function IntelligenceCardsGrid({ data }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* 1. Attendance Intelligence (EventPulse) */}
-        <div className="rounded-2xl border bg-card p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4">
+        <div className="card-interactive p-5 hover:shadow-md transition flex flex-col justify-between space-y-4">
           <div className="space-y-3">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">
@@ -169,7 +169,7 @@ export default function IntelligenceCardsGrid({ data }) {
         </div>
 
         {/* 3. Queue Intelligence (SmartQueue) */}
-        <div className="rounded-2xl border bg-card p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4">
+        <div className="card-interactive p-5 hover:shadow-md transition flex flex-col justify-between space-y-4">
           <div className="space-y-3">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">
@@ -232,7 +232,7 @@ export default function IntelligenceCardsGrid({ data }) {
         </div>
 
         {/* 4. Organizer Trust (TrustSphere) */}
-        <div className="rounded-2xl border bg-card p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4">
+        <div className="card-interactive p-5 hover:shadow-md transition flex flex-col justify-between space-y-4">
           <div className="space-y-3">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">
@@ -290,7 +290,7 @@ export default function IntelligenceCardsGrid({ data }) {
         </div>
 
         {/* 5. EventBoost AI (SEO & Content) */}
-        <div className="rounded-2xl border bg-card p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4">
+        <div className="card-interactive p-5 hover:shadow-md transition flex flex-col justify-between space-y-4">
           <div className="space-y-3">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">
@@ -349,7 +349,7 @@ export default function IntelligenceCardsGrid({ data }) {
         </div>
 
         {/* 6. Recommendation 2.0 Discovery Signals */}
-        <div className="rounded-2xl border bg-card p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4">
+        <div className="card-interactive p-5 hover:shadow-md transition flex flex-col justify-between space-y-4">
           <div className="space-y-3">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">

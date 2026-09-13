@@ -17,7 +17,7 @@ export default function HealthFormulaModal({ isOpen, onClose, overallHealth }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border bg-card p-6 shadow-2xl space-y-6">
+      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto card-surface p-6 shadow-2xl space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between border-b pb-4">
           <div>

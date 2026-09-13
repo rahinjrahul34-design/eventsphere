@@ -128,7 +128,7 @@ export default function Landing() {
                 initial={{ opacity: 0, y: 30, scale: 0.95 }}
                 animate={{ opacity: 1, y: [0, -12, 0] }}
                 transition={{ delay: c.delay, y: { repeat: Infinity, duration: 5, ease: 'easeInOut' }, opacity: { duration: 0.5 } }}
-                className={`absolute w-72 overflow-hidden rounded-2xl border bg-card shadow-lift ${c.cls}`}
+                className={`absolute w-72 overflow-hidden card-surface shadow-lift ${c.cls}`}
               >
                 <img src={c.img} alt={c.t} className="h-36 w-full object-cover" />
                 <div className="p-3">
@@ -211,7 +211,7 @@ export default function Landing() {
             { icon: Users, n: '04', t: 'Connect', d: 'Meet compatible attendees, earn badges and collect certificates.' },
           ].map((s, i) => (
             <motion.div key={s.n} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-              className="relative rounded-2xl border bg-card p-6 shadow-soft">
+              className="relative card-surface p-6 shadow-soft">
               <span className="absolute right-5 top-4 font-display text-4xl font-extrabold text-primary/10">{s.n}</span>
               <span className="grid size-12 place-items-center rounded-xl gradient-brand text-white"><s.icon className="size-6" /></span>
               <h3 className="mt-4 font-bold text-lg">{s.t}</h3>
@@ -246,7 +246,7 @@ export default function Landing() {
         <h2 className="text-center font-display text-3xl font-extrabold">Loved by organizers & attendees</h2>
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           {testimonials.map((t) => (
-            <figure key={t.name} className="rounded-2xl border bg-card p-6 shadow-soft">
+            <figure key={t.name} className="card-surface p-6 shadow-soft">
               <div className="flex gap-0.5 text-warning">
                 {Array.from({ length: t.rating }).map((_, i) => <Star key={i} className="size-4 fill-current" />)}
               </div>

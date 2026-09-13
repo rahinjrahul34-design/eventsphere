@@ -125,7 +125,7 @@ export default function SmartQueueConsole({ eventId }) {
   return (
     <div className="space-y-6">
       {/* Top Banner & Control Strip */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-card p-5 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 card-surface p-5">
         <div>
           <div className="flex items-center gap-2">
             <span className="flex size-7 items-center justify-center rounded-lg bg-indigo-600/15 text-indigo-600 dark:text-indigo-400">
@@ -543,7 +543,7 @@ export default function SmartQueueConsole({ eventId }) {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="table-premium text-xs">
                 <thead>
                   <tr className="border-b text-muted-foreground">
                     <th className="py-2.5 font-semibold">Rank</th>

@@ -158,7 +158,7 @@ export default function AdminTrustAnalytics() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="table-premium text-xs">
             <thead>
               <tr className="border-b border-border text-muted-foreground uppercase text-[10px] tracking-wider">
                 <th className="py-2.5 px-3">Organizer</th>

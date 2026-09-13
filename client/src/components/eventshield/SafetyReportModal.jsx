@@ -7,7 +7,7 @@ import { riskBadgeVariant, riskLabel } from './shieldUtils';
 export default function SafetyReportModal({ report, loading, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
-      <div className="relative max-h-[92vh] w-full max-w-4xl space-y-6 overflow-y-auto rounded-2xl border bg-card p-6 shadow-2xl sm:p-8 print:max-h-none print:p-0">
+      <div className="relative max-h-[92vh] w-full max-w-4xl space-y-6 overflow-y-auto card-surface p-6 shadow-2xl sm:p-8 print:max-h-none print:p-0">
         <div className="flex items-center justify-between border-b pb-4 print:hidden">
           <div className="flex items-center gap-2">
             <Printer className="size-5 text-primary" />
