@@ -1,13 +1,9 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import {
-  Sparkles, Sliders, ArrowRight, RotateCcw, AlertCircle, TrendingUp,
-  ShieldCheck, Award, CheckCircle2, ChevronRight,
-} from 'lucide-react';
+import { Sparkles, Sliders, ArrowRight, RotateCcw, AlertCircle, TrendingUp } from 'lucide-react';
 import { endpoints } from '../../lib/api';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { cn } from '../../lib/utils';
 
 export default function TrustSimulator({ currentProfile, onSimulationChange }) {
   const currentMetrics = currentProfile?.metrics || {};
@@ -55,7 +51,7 @@ export default function TrustSimulator({ currentProfile, onSimulationChange }) {
   const projectedLevel = simulationResult?.simulated?.trustLevel ?? currentProfile?.trustLevel;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 space-y-6 shadow-sm">
+    <div className="rounded-xl border border-border bg-card p-5 sm:p-6 space-y-6 shadow-soft">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/60 pb-4">
         <div className="space-y-1">
@@ -70,7 +66,7 @@ export default function TrustSimulator({ currentProfile, onSimulationChange }) {
           </p>
         </div>
 
-        <Badge variant="outline" className="gap-1 border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold text-xs">
+        <Badge variant="outline" className="gap-1 border-warning/30 bg-warning/10 text-warning dark:text-warning font-semibold text-xs">
           <AlertCircle className="size-3.5" /> Simulation Sandbox Only
         </Badge>
       </div>

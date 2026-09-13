@@ -1,10 +1,5 @@
-import { Fragment } from 'react';
-import {
-  ShieldCheck, CheckCircle2, AlertTriangle, Info, X, TrendingUp,
-  Award, Sparkles, UserCheck, CalendarCheck, HelpCircle, Shield,
-} from 'lucide-react';
-import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
+import { CheckCircle2, AlertTriangle, Info, TrendingUp, Shield } from 'lucide-react';
+import { Dialog } from '../ui/dialog';
 
 export default function TrustDetailsModal({ open, onClose, profile, history = [] }) {
   if (!open || !profile) return null;
@@ -31,7 +26,7 @@ export default function TrustDetailsModal({ open, onClose, profile, history = []
       score: components.completion ?? 70,
       description: 'Tracks successfully hosted events against cancellations or unexpected terminations.',
       metricText: `${metrics.completedEvents || 0} completed / ${metrics.cancelledEvents || 0} cancelled (${metrics.completionRate || 0}% rate)`,
-      color: 'bg-emerald-500',
+      color: 'bg-success',
     },
     {
       key: 'satisfaction',
@@ -40,7 +35,7 @@ export default function TrustDetailsModal({ open, onClose, profile, history = []
       score: components.satisfaction ?? 75,
       description: 'Bayesian smoothed satisfaction from verified attendee post-event ratings and reviews.',
       metricText: `${metrics.averageRating || 0}★ avg (${metrics.totalFeedbackCount || 0} reviews, ${metrics.satisfactionPercentage || 0}% positive)`,
-      color: 'bg-blue-500',
+      color: 'bg-info',
     },
     {
       key: 'attendance',
@@ -49,7 +44,7 @@ export default function TrustDetailsModal({ open, onClose, profile, history = []
       score: components.attendance ?? 75,
       description: 'Measures how many registered attendees physically or virtually attend verified events.',
       metricText: `${metrics.attendeesServed || 0} attendees checked in (${metrics.attendanceRate || 75}% attendance rate)`,
-      color: 'bg-violet-500',
+      color: 'bg-primary',
     },
     {
       key: 'compliance',
@@ -58,7 +53,7 @@ export default function TrustDetailsModal({ open, onClose, profile, history = []
       score: components.compliance ?? 100,
       description: 'Deductions apply only when moderators uphold verified policy violations or safety issues.',
       metricText: `${metrics.confirmedViolationsCount || 0} confirmed violation(s)`,
-      color: components.compliance < 80 ? 'bg-amber-500' : 'bg-emerald-500',
+      color: components.compliance < 80 ? 'bg-warning' : 'bg-success',
     },
     {
       key: 'verification',
@@ -76,37 +71,22 @@ export default function TrustDetailsModal({ open, onClose, profile, history = []
       score: components.experience ?? 30,
       description: 'Considers hosting volume, community footprint, and sustained activity over time.',
       metricText: `${metrics.completedEvents || 0} total events, ${metrics.attendeesServed || 0} total attendees`,
-      color: 'bg-indigo-500',
+      color: 'bg-primary',
     },
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="relative w-full max-w-3xl rounded-2xl border border-border bg-card shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-6 py-4 bg-muted/40">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <ShieldCheck className="size-5" />
-            </div>
-            <div>
-              <h3 className="font-display text-lg font-bold">TrustSphere Transparency & Breakdown</h3>
-              <p className="text-xs text-muted-foreground">Deterministic, Anti-Gaming Organizer Reputation Methodology</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition"
-          >
-            <X className="size-5" />
-          </button>
-        </div>
-
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+    <Dialog
+      open
+      onClose={onClose}
+      title="TrustSphere Transparency & Breakdown"
+      description="Deterministic, anti-gaming organizer reputation methodology."
+      size="xl"
+    >
+      <div className="space-y-6">
           {/* Transparency Guarantee Card */}
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-xs leading-relaxed text-emerald-950 dark:text-emerald-200 flex gap-3">
-            <Shield className="size-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+          <div className="rounded-xl border border-success/20 bg-success/5 p-4 text-xs leading-relaxed text-success flex gap-3">
+            <Shield className="size-5 shrink-0 text-success dark:text-success mt-0.5" />
             <div>
               <span className="font-bold text-sm block mb-1">100% Verified Platform Activity Guarantee</span>
               TrustSphere scores cannot be purchased, sponsored, or artificially boosted. All calculations are strictly derived from verified event outcomes, validated ticket check-ins, authentic attendee reviews, and platform moderation records.
@@ -115,8 +95,8 @@ export default function TrustDetailsModal({ open, onClose, profile, history = []
 
           {/* Cold-Start Notice if applicable */}
           {profile.confidenceLevel === 'limited' && (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-950 dark:text-amber-200 flex gap-3">
-              <Info className="size-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+            <div className="rounded-xl border border-warning/30 bg-warning/10 p-4 text-xs text-warning flex gap-3">
+              <Info className="size-5 shrink-0 text-warning dark:text-warning mt-0.5" />
               <div>
                 <span className="font-bold text-sm block mb-1">Building Trust History (Cold-Start Stage)</span>
                 This host has hosted fewer than 2 completed events or fewer than 15 attendees. Neutral baselines are used to avoid unfairly penalizing new hosts while protecting attendee safety.
@@ -170,19 +150,19 @@ export default function TrustDetailsModal({ open, onClose, profile, history = []
               <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Key Attribution Factors</h4>
               <div className="grid sm:grid-cols-2 gap-2.5">
                 {positiveFactors.map((f, i) => (
-                  <div key={i} className="flex items-start gap-2.5 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs">
-                    <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+                  <div key={i} className="flex items-start gap-2.5 rounded-lg border border-success/20 bg-success/5 p-3 text-xs">
+                    <CheckCircle2 className="size-4 shrink-0 text-success dark:text-success mt-0.5" />
                     <div>
-                      <p className="font-semibold text-emerald-950 dark:text-emerald-200">{f.label}</p>
+                      <p className="font-semibold text-success">{f.label}</p>
                       <p className="text-muted-foreground mt-0.5">{f.description}</p>
                     </div>
                   </div>
                 ))}
                 {negativeFactors.map((f, i) => (
-                  <div key={i} className="flex items-start gap-2.5 rounded-lg border border-rose-500/20 bg-rose-500/5 p-3 text-xs">
-                    <AlertTriangle className="size-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
+                  <div key={i} className="flex items-start gap-2.5 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-xs">
+                    <AlertTriangle className="size-4 shrink-0 text-destructive dark:text-destructive mt-0.5" />
                     <div>
-                      <p className="font-semibold text-rose-950 dark:text-rose-200">{f.label}</p>
+                      <p className="font-semibold text-destructive">{f.label}</p>
                       <p className="text-muted-foreground mt-0.5">{f.description}</p>
                     </div>
                   </div>
@@ -210,7 +190,7 @@ export default function TrustDetailsModal({ open, onClose, profile, history = []
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-bold">{snap.score}/100</span>
                       {snap.scoreDelta !== 0 && (
-                        <span className={`text-[11px] font-bold ${snap.scoreDelta > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        <span className={`text-[11px] font-bold ${snap.scoreDelta > 0 ? 'text-success' : 'text-destructive'}`}>
                           {snap.scoreDelta > 0 ? `+${snap.scoreDelta}` : snap.scoreDelta}
                         </span>
                       )}
@@ -220,18 +200,11 @@ export default function TrustDetailsModal({ open, onClose, profile, history = []
               </div>
             </div>
           )}
-        </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/20">
-          <span className="text-xs text-muted-foreground">
-            Calculated: {profile.lastCalculatedAt ? new Date(profile.lastCalculatedAt).toLocaleString() : 'Just now'}
-          </span>
-          <Button variant="default" size="sm" onClick={onClose}>
-            Close Breakdown
-          </Button>
-        </div>
+        <p className="border-t pt-3 text-[11px] text-muted-foreground">
+          Calculated {profile.lastCalculatedAt ? new Date(profile.lastCalculatedAt).toLocaleString() : 'just now'}
+        </p>
       </div>
-    </div>
+    </Dialog>
   );
 }

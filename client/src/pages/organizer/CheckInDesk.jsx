@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight } from 'lucide-react';
 import { endpoints } from '../../lib/api';
-import { Spinner, ErrorState } from '../../components/ui/misc';
+import { ErrorState } from '../../components/ui/misc';
 import CheckIn from './tabs/CheckIn';
 
 // Standalone check-in desk, used by volunteers via their assignment.
@@ -18,7 +18,7 @@ export default function CheckInDesk() {
     },
   });
 
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <div className="space-y-6"><div className="skeleton h-24 rounded-xl" /><div className="skeleton h-64 rounded-xl" /></div>;
   if (q.isError) return <ErrorState message={q.error.message} onRetry={q.refetch} />;
 
   return (

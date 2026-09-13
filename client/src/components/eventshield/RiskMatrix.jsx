@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui
 import { Badge } from '../ui/badge';
 import { riskBadgeVariant, riskLabel } from './shieldUtils';
 
-const tone = (v) => (v === 'high' ? 'text-rose-500' : v === 'medium' ? 'text-amber-500' : 'text-emerald-500');
+const tone = (v) => (v === 'high' ? 'text-destructive' : v === 'medium' ? 'text-warning' : 'text-success');
 
 export default function RiskMatrix({ matrix = [] }) {
   return (
@@ -13,17 +13,17 @@ export default function RiskMatrix({ matrix = [] }) {
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left text-xs">
+          <table className="w-full min-w-[540px] text-left text-xs">
             <thead>
-              <tr className="border-b bg-muted/40 font-bold uppercase text-muted-foreground">
-                <th className="p-3">Risk</th>
-                <th className="p-3">Probability</th>
-                <th className="p-3">Impact</th>
-                <th className="p-3">Priority</th>
-                <th className="p-3">Recommended action</th>
+              <tr className="border-b bg-muted/40 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                <th className="whitespace-nowrap px-4 py-3">Risk</th>
+                <th className="whitespace-nowrap px-4 py-3">Probability</th>
+                <th className="whitespace-nowrap px-4 py-3">Impact</th>
+                <th className="whitespace-nowrap px-4 py-3">Priority</th>
+                <th className="whitespace-nowrap px-4 py-3">Recommended action</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y">
               {matrix.map((m, idx) => (
                 <tr key={idx} className="border-b hover:bg-muted/10">
                   <td className="max-w-xs p-3 font-semibold">{m.risk}</td>

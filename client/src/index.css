@@ -2,55 +2,91 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   EventSphere Design Tokens
+   Light: clean paper surfaces, deep electric violet primary.
+   Dark: layered slate surfaces with tuned contrast per token.
+   All components must consume these tokens — no raw palette
+   colors in feature code.
+   ============================================================ */
 @layer base {
   :root {
-    --background: 240 20% 99%;
-    --foreground: 240 24% 12%;
+    /* Surfaces */
+    --background: 240 20% 98.5%;
+    --foreground: 240 22% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 240 24% 12%;
-    --primary: 256 80% 56%;
+    --card-foreground: 240 22% 10%;
+    --card-hover: 240 14% 97.5%;
+    --muted: 240 14% 95.5%;
+    --muted-foreground: 240 8% 42%;
+    --secondary: 240 15% 95.5%;
+    --secondary-foreground: 240 12% 26%;
+
+    /* Brand */
+    --primary: 258 70% 52%;
+    --primary-hover: 258 72% 46%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 16% 96%;
-    --secondary-foreground: 240 18% 20%;
-    --muted: 240 16% 96%;
-    --muted-foreground: 240 8% 44%;
-    --accent: 256 80% 95%;
-    --accent-foreground: 256 80% 36%;
-    --destructive: 0 74% 54%;
+    --accent: 256 65% 96.5%;
+    --accent-foreground: 258 65% 42%;
+
+    /* Semantic */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --success: 152 68% 36%;
+    --success: 160 78% 32%;
     --success-foreground: 0 0% 100%;
-    --warning: 32 92% 46%;
+    --warning: 32 95% 42%;
     --warning-foreground: 0 0% 100%;
+    --info: 201 94% 38%;
+    --info-foreground: 0 0% 100%;
+
+    /* Lines, focus, overlay */
     --border: 240 12% 90%;
-    --input: 240 12% 88%;
-    --ring: 256 80% 56%;
-    --radius: 0.85rem;
-    --shadow-color: 240 40% 20%;
+    --border-strong: 240 10% 82%;
+    --input: 240 12% 89%;
+    --ring: 258 70% 58%;
+    --overlay: 240 12% 8%;
+
+    /* Shape & depth */
+    --radius: 0.625rem;
+    --shadow-color: 245 35% 22%;
   }
 
   .dark {
-    --background: 240 18% 7%;
-    --foreground: 240 20% 96%;
-    --card: 240 16% 10%;
-    --card-foreground: 240 20% 96%;
-    --primary: 256 85% 70%;
-    --primary-foreground: 240 30% 8%;
-    --secondary: 240 12% 16%;
-    --secondary-foreground: 240 20% 92%;
-    --muted: 240 12% 16%;
-    --muted-foreground: 240 10% 62%;
-    --accent: 256 50% 22%;
-    --accent-foreground: 256 90% 90%;
-    --destructive: 0 70% 58%;
-    --destructive-foreground: 0 0% 100%;
-    --success: 152 55% 50%;
-    --success-foreground: 240 30% 8%;
-    --warning: 32 90% 58%;
-    --warning-foreground: 240 30% 8%;
-    --border: 240 12% 20%;
-    --input: 240 12% 24%;
-    --ring: 256 85% 70%;
+    /* Surfaces */
+    --background: 240 14% 6.5%;
+    --foreground: 240 14% 95%;
+    --card: 240 12% 9.5%;
+    --card-foreground: 240 14% 95%;
+    --card-hover: 240 10% 13%;
+    --muted: 240 10% 14.5%;
+    --muted-foreground: 240 8% 63%;
+    --secondary: 240 10% 14.5%;
+    --secondary-foreground: 240 10% 88%;
+
+    /* Brand — bright violet on dark surfaces, dark ink text on fills */
+    --primary: 257 90% 70%;
+    --primary-hover: 257 92% 78%;
+    --primary-foreground: 258 45% 10%;
+    --accent: 256 45% 20%;
+    --accent-foreground: 256 90% 88%;
+
+    /* Semantic */
+    --destructive: 0 80% 66%;
+    --destructive-foreground: 0 70% 8%;
+    --success: 158 66% 55%;
+    --success-foreground: 160 60% 8%;
+    --warning: 38 95% 58%;
+    --warning-foreground: 35 80% 10%;
+    --info: 199 95% 64%;
+    --info-foreground: 200 70% 8%;
+
+    /* Lines, focus, overlay */
+    --border: 240 10% 17%;
+    --border-strong: 240 8% 26%;
+    --input: 240 10% 19%;
+    --ring: 257 90% 70%;
+    --overlay: 240 20% 3%;
+
     --shadow-color: 0 0% 0%;
   }
 
@@ -69,19 +105,21 @@
     @apply font-display tracking-tight;
   }
   ::selection {
-    background: hsl(var(--primary) / 0.25);
+    background: hsl(var(--primary) / 0.22);
   }
-  /* Focus visibility */
+
+  /* Keyboard focus — visible, consistent, only for keyboard users */
   :focus-visible {
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
     border-radius: 4px;
   }
+
   /* Scrollbar */
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.25);
+    background: hsl(var(--muted-foreground) / 0.28);
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: content-box;
@@ -99,31 +137,61 @@
 }
 
 @layer components {
+  /* Frosted navigation surface */
   .glass {
-    @apply bg-card/75 backdrop-blur-xl border border-border/70;
+    @apply bg-background/80 backdrop-blur-xl;
   }
+
+  /* Brand gradient — reserved for the logo mark and AI accents only */
   .gradient-text {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(110deg, hsl(256 85% 60%), hsl(222 90% 58%), hsl(280 80% 55%));
+    background-image: linear-gradient(110deg, hsl(var(--primary)), hsl(var(--info)));
   }
   .gradient-brand {
-    background-image: linear-gradient(120deg, hsl(256 85% 58%), hsl(226 90% 56%));
+    background-image: linear-gradient(135deg, hsl(258 75% 55%), hsl(240 85% 60%));
   }
+
+  /* Interactive card — border sharpens and shadow lifts on hover */
   .card-hover {
-    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lift;
+    @apply transition-all duration-200 ease-out;
   }
+  .card-hover:hover {
+    @apply -translate-y-0.5 border-border-strong shadow-lift;
+  }
+
+  /* Featured (AI) card — 1px gradient hairline border on card surface */
+  .card-featured {
+    position: relative;
+    border: 1px solid transparent;
+    background:
+      linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
+      linear-gradient(135deg, hsl(var(--primary) / 0.45), hsl(var(--info) / 0.25) 55%, hsl(var(--border))) border-box;
+  }
+
+  /* Skeleton shimmer */
   .skeleton {
     @apply relative overflow-hidden bg-muted rounded-md;
   }
   .skeleton::after {
     content: '';
     @apply absolute inset-0;
-    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.06), transparent);
+    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.05), transparent);
     transform: translateX(-100%);
     animation: shimmer 1.6s infinite;
   }
+
+  /* Horizontal scroll strips (tab bars) fade out at the edges */
+  .scroll-fade-x {
+    -webkit-mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+    mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+  }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Numeric emphasis — aligned digits for dashboards */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 /* Leaflet (map) dark tweaks */

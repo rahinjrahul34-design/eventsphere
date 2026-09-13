@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Users, UserPlus, Check, X, Send, MessageCircle, Sparkles, Target, XCircle } from 'lucide-react';
 import { endpoints } from '../lib/api';
 import { useAuth } from '../store/auth';
-import { connectSocket, getSocket } from '../lib/socket';
+import { connectSocket } from '../lib/socket';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
@@ -13,6 +13,7 @@ import { ErrorState } from '../components/ui/states';
 import { GOALS } from '../lib/format';
 import { toast } from 'sonner';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { ListSkeleton } from '../components/ui/skeleton';
 
 export default function Network() {
   usePageTitle('Network');
@@ -105,7 +106,7 @@ function SuggestionCard({ person }) {
     onError: (e) => toast.error(e.message),
   });
   return (
-    <div className="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-lift transition">
+    <div className="rounded-xl border bg-card p-5 shadow-soft hover:shadow-lift transition">
       <div className="flex items-start justify-between">
         <Avatar name={person.name} src={person.avatar} className="size-14" fallbackClass="text-lg" />
         <MatchRing score={person.score} />
@@ -135,7 +136,7 @@ function ConnectionCard({ connection, accepted }) {
   });
   const u = connection.user;
   return (
-    <div className="rounded-2xl border bg-card p-5">
+    <div className="rounded-xl border bg-card p-5">
       <div className="flex items-center gap-3">
         <Avatar name={u.name} src={u.avatar} className="size-12" />
         <div className="min-w-0">
@@ -179,10 +180,10 @@ function MessagesPanel({ threads, loading }) {
     window.addEventListener('open-dm', open);
     return () => window.removeEventListener('open-dm', open);
   }, []);
-  if (loading) return <Spinner />;
+  if (loading) return <div className="space-y-4"><ListSkeleton rows={5} /></div>;
   if (threads.length === 0) return <EmptyState icon={MessageCircle} title="No conversations" description="Connect with people and start chatting." />;
   return (
-    <div className="grid h-[65vh] grid-cols-1 overflow-hidden rounded-2xl border bg-card md:grid-cols-[280px_1fr]">
+    <div className="grid h-[65vh] grid-cols-1 overflow-hidden rounded-xl border bg-card md:grid-cols-[280px_1fr]">
       <div className="overflow-y-auto border-b md:border-b-0 md:border-r">
         {threads.map((t) => (
           <button key={t.user._id} onClick={() => setActiveUser(t.user)}

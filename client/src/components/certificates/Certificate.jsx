@@ -1,5 +1,5 @@
 import { QRCodeSVG } from 'qrcode.react';
-import { Award, Download, ShieldCheck, CheckCircle2, Sparkles, ExternalLink } from 'lucide-react';
+import { Award, Download, ShieldCheck, CheckCircle2, ExternalLink } from 'lucide-react';
 import { fmtDate } from '../../lib/format';
 import { Button } from '../ui/button';
 
@@ -199,7 +199,7 @@ export default function Certificate({ cert }) {
 
       {/* Action Buttons (Print / Download & Direct Verify) */}
       <div className="no-print flex flex-wrap justify-center items-center gap-3 pt-2">
-        <Button size="lg" onClick={print} className="gradient-brand text-white shadow-lift font-bold">
+        <Button size="lg" onClick={print} className="font-bold">
           <Download className="size-4" /> Download / Print Certificate
         </Button>
         <a href={verifyUrl} target="_blank" rel="noreferrer">

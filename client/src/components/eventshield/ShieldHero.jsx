@@ -16,18 +16,18 @@ export default function ShieldHero({
   const live = event?.status === 'live';
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border bg-gradient-to-br from-violet-600/15 via-card to-indigo-600/10 p-5 sm:p-7 shadow-soft">
-      <div className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-violet-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-16 -left-10 size-56 rounded-full bg-indigo-500/10 blur-3xl" />
+    <section className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-primary/12 via-card to-primary/8 p-5 sm:p-7 shadow-soft">
+      <div className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-16 -left-10 size-56 rounded-full bg-primary/10 blur-3xl" />
 
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex size-10 items-center justify-center rounded-2xl gradient-brand text-white shadow-md">
+            <span className="inline-flex size-10 items-center justify-center rounded-xl gradient-brand text-white shadow-soft">
               <ShieldAlert className="size-5" aria-hidden />
             </span>
             <div>
-              <h1 className="font-display text-2xl font-black tracking-tight sm:text-3xl">EventShield AI</h1>
+              <h1 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">EventShield AI</h1>
               <p className="text-xs font-semibold text-muted-foreground">
                 Safety &amp; operations intelligence · hybrid rule engine + AI reasoning
               </p>
@@ -69,7 +69,7 @@ export default function ShieldHero({
               size="sm"
               onClick={onAnalyze}
               disabled={analyzing}
-              className="gradient-brand font-bold text-white shadow-md"
+              className="font-bold"
             >
               <RefreshCw className={`size-4 ${analyzing ? 'animate-spin' : ''}`} />
               {analyzing ? 'Analyzing…' : 'Run AI analysis'}

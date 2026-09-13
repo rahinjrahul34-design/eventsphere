@@ -2,14 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import {
-  ArrowRight, Compass, TicketCheck, QrCode, Users, Sparkles, Radio, Bot, Trophy,
-  Award, CalendarCheck, Search, MapPin, Star,
-} from 'lucide-react';
+import { ArrowRight, Compass, TicketCheck, QrCode, Users, Sparkles, Radio, Bot, Trophy, Award, CalendarCheck, Search, MapPin, Star, Code2, Wrench, Mic2, Palmtree, Presentation, Briefcase, Coffee, Cpu } from 'lucide-react';
 import { endpoints } from '../lib/api';
 import { Button } from '../components/ui/button';
 import EventCard from '../components/events/EventCard';
-import { EVENT_CATEGORIES, fmtDate } from '../lib/format';
+import { CardSkeleton } from '../components/ui/skeleton';
+import { EVENT_CATEGORIES } from '../lib/format';
 import { usePageTitle } from '../hooks/usePageTitle';
 
 const stats = [
@@ -167,9 +165,9 @@ export default function Landing() {
           </Link>
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {(events.length ? events : Array.from({ length: 6 }).map((_, i) => ({ _id: `sk${i}`, slug: '' }))).slice(0, 6).map((e, i) =>
-            e.slug ? <EventCard key={e._id} event={e} index={i} /> : <div key={i} className="h-80 rounded-xl border bg-muted/40 animate-pulse" />
-          )}
+          {events.length
+            ? events.slice(0, 6).map((e, i) => <EventCard key={e._id} event={e} index={i} />)
+            : Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
         </div>
       </section>
 
@@ -187,7 +185,7 @@ export default function Landing() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.04 }}
                 onClick={() => navigate(`/events?category=${c.slug}`)}
-                className="group flex flex-col items-center gap-3 rounded-2xl border bg-background p-5 text-center transition hover:-translate-y-1 hover:shadow-lift"
+                className="group flex flex-col items-center gap-3 rounded-xl border bg-background p-5 text-center shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-lift"
               >
                 <span className="grid size-12 place-items-center rounded-2xl text-white transition group-hover:scale-110" style={{ backgroundColor: c.color }}>
                   <CategoryIcon name={c.icon} />
@@ -211,9 +209,9 @@ export default function Landing() {
             { icon: Users, n: '04', t: 'Connect', d: 'Meet compatible attendees, earn badges and collect certificates.' },
           ].map((s, i) => (
             <motion.div key={s.n} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-              className="relative rounded-2xl border bg-card p-6 shadow-soft">
+              className="relative rounded-xl border bg-card p-6 shadow-soft">
               <span className="absolute right-5 top-4 font-display text-4xl font-extrabold text-primary/10">{s.n}</span>
-              <span className="grid size-12 place-items-center rounded-xl gradient-brand text-white"><s.icon className="size-6" /></span>
+              <span className="grid size-12 place-items-center rounded-xl bg-primary text-primary-foreground shadow-soft"><s.icon className="size-6" /></span>
               <h3 className="mt-4 font-bold text-lg">{s.t}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{s.d}</p>
             </motion.div>
@@ -231,7 +229,7 @@ export default function Landing() {
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {innovations.map((f, i) => (
               <motion.div key={f.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: (i % 4) * 0.06 }}
-                className="rounded-2xl border bg-background p-5 hover:shadow-lift transition">
+                className="rounded-xl border bg-background p-5 shadow-soft transition-all duration-200 hover:border-border-strong hover:shadow-lift">
                 <f.icon className="size-7 text-primary" />
                 <h3 className="mt-3 font-bold">{f.title}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{f.text}</p>
@@ -246,7 +244,7 @@ export default function Landing() {
         <h2 className="text-center font-display text-3xl font-extrabold">Loved by organizers & attendees</h2>
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           {testimonials.map((t) => (
-            <figure key={t.name} className="rounded-2xl border bg-card p-6 shadow-soft">
+            <figure key={t.name} className="rounded-xl border bg-card p-6 shadow-soft">
               <div className="flex gap-0.5 text-warning">
                 {Array.from({ length: t.rating }).map((_, i) => <Star key={i} className="size-4 fill-current" />)}
               </div>
@@ -265,7 +263,7 @@ export default function Landing() {
 
       {/* ─── CTA ─── */}
       <section className="container pb-20">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-700 via-indigo-700 to-blue-700 p-10 text-center text-white sm:p-16">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-info p-10 text-center text-white sm:p-16">
           <div className="absolute -right-20 -top-20 size-72 rounded-full bg-white/10 blur-2xl" />
           <h2 className="relative font-display text-3xl sm:text-4xl font-extrabold">Ready to create your next event?</h2>
           <p className="relative mx-auto mt-3 max-w-xl text-white/85">
@@ -283,14 +281,10 @@ export default function Landing() {
 }
 
 function CategoryIcon({ name }) {
-  // lucide icons mapped via dynamic import alternative
   const icons = {
-    Code2: <span className="text-lg font-black">&lt;/&gt;</span>,
-    Wrench: <span className="text-lg">🔧</span>, Mic2: <span className="text-lg">🎤</span>,
-    Palmtree: <span className="text-lg">🌴</span>, Trophy: <span className="text-lg">🏆</span>,
-    Users: <span className="text-lg">🤝</span>, Presentation: <span className="text-lg">📊</span>,
-    Briefcase: <span className="text-lg">💼</span>, Coffee: <span className="text-lg">☕</span>,
-    Cpu: <span className="text-lg">🧠</span>,
+    Code2: Code2, Wrench: Wrench, Mic2: Mic2, Palmtree: Palmtree, Trophy: Trophy,
+    Users: Users, Presentation: Presentation, Briefcase: Briefcase, Coffee: Coffee, Cpu: Cpu,
   };
-  return icons[name] || <Sparkles className="size-6" />;
+  const Icon = icons[name] || Sparkles;
+  return <Icon className="size-6" aria-hidden="true" />;
 }

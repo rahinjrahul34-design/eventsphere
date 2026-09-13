@@ -3,12 +3,12 @@ import { Button } from './button';
 
 export function EmptyState({ icon: Icon = Inbox, title = 'Nothing here yet', description = '', action = null, className = '' }) {
   return (
-    <div className={`flex flex-col items-center justify-center text-center py-14 px-6 ${className}`}>
-      <div className="mb-4 grid size-16 place-items-center rounded-2xl bg-muted text-muted-foreground">
-        <Icon className="size-7" />
+    <div className={`flex flex-col items-center justify-center rounded-xl border border-dashed px-6 py-14 text-center ${className}`}>
+      <div className="mb-4 grid size-12 place-items-center rounded-xl border bg-muted/50 text-muted-foreground">
+        <Icon className="size-5" aria-hidden="true" />
       </div>
-      <h3 className="text-lg font-bold">{title}</h3>
-      {description && <p className="mt-1 max-w-sm text-sm text-muted-foreground">{description}</p>}
+      <h3 className="text-base font-bold tracking-tight">{title}</h3>
+      {description && <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-muted-foreground">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   );
@@ -16,12 +16,14 @@ export function EmptyState({ icon: Icon = Inbox, title = 'Nothing here yet', des
 
 export function ErrorState({ title = 'Something went wrong', message, onRetry, className = '' }) {
   return (
-    <div className={`flex flex-col items-center justify-center text-center py-14 px-6 ${className}`}>
-      <div className="mb-4 grid size-16 place-items-center rounded-2xl bg-destructive/10 text-destructive">
-        <AlertTriangle className="size-7" />
+    <div className={`flex flex-col items-center justify-center rounded-xl border border-destructive/25 bg-destructive/[0.04] px-6 py-14 text-center ${className}`}>
+      <div className="mb-4 grid size-12 place-items-center rounded-xl border border-destructive/25 bg-destructive/10 text-destructive">
+        <AlertTriangle className="size-5" aria-hidden="true" />
       </div>
-      <h3 className="text-lg font-bold">{title}</h3>
-      <p className="mt-1 max-w-sm text-sm text-muted-foreground">{message || 'Please check your connection and try again.'}</p>
+      <h3 className="text-base font-bold tracking-tight">{title}</h3>
+      <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-muted-foreground">
+        {message || 'Please check your connection and try again.'}
+      </p>
       {onRetry && (
         <Button variant="outline" className="mt-5" onClick={onRetry}>
           <RefreshCw /> Retry

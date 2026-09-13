@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, Bot, Compass, ShieldCheck } from 'lucide-react';
+import { Sparkles, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, Bot, Compass } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { Link } from 'react-router-dom';
 import { endpoints } from '../../lib/api';
@@ -28,7 +28,7 @@ export default function AiExecutiveBrief({ initialBrief, eventId }) {
   const { situation, positiveSignals = [], problems = [], topAction, outlook, engine, generatedAt } = brief;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border bg-card p-6 shadow-sm space-y-5">
+    <div className="card-featured relative overflow-hidden rounded-xl p-5 shadow-soft space-y-5 sm:p-6">
       {/* Subtle background glow */}
       <div className="absolute top-0 right-0 -mt-8 -mr-8 size-48 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 
@@ -54,7 +54,7 @@ export default function AiExecutiveBrief({ initialBrief, eventId }) {
             type="button"
             onClick={handleRefreshBrief}
             disabled={isGenerating}
-            className="inline-flex items-center gap-1.5 rounded-xl border bg-secondary/80 px-3 py-1 text-xs font-bold text-foreground hover:bg-secondary transition disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground shadow-soft transition-colors hover:bg-secondary disabled:opacity-50"
           >
             <RefreshCw className={cn('size-3', isGenerating && 'animate-spin')} />
             <span>{isGenerating ? 'Synthesizing...' : 'Regenerate'}</span>
@@ -73,15 +73,15 @@ export default function AiExecutiveBrief({ initialBrief, eventId }) {
       {/* Two-Column Breakdown: Positive Signals vs Problems */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Positive Signals */}
-        <div className="rounded-xl border bg-emerald-500/5 border-emerald-500/20 p-4 space-y-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+        <div className="rounded-xl border border-success/20 bg-success/[0.05] p-4 space-y-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-success">
             <CheckCircle2 className="size-4" />
             <span>Positive Operational Signals</span>
           </div>
           <ul className="space-y-1.5 text-xs text-muted-foreground">
             {positiveSignals.map((sig, i) => (
               <li key={i} className="flex items-start gap-1.5 leading-relaxed">
-                <span className="text-emerald-500 font-bold">•</span>
+                <span className="font-bold text-success" aria-hidden="true">•</span>
                 <span>{sig}</span>
               </li>
             ))}
@@ -89,15 +89,15 @@ export default function AiExecutiveBrief({ initialBrief, eventId }) {
         </div>
 
         {/* Problems & Risks */}
-        <div className="rounded-xl border bg-amber-500/5 border-amber-500/20 p-4 space-y-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
+        <div className="rounded-xl border border-warning/25 bg-warning/[0.05] p-4 space-y-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-warning">
             <AlertTriangle className="size-4" />
             <span>Identified Vulnerabilities & Risks</span>
           </div>
           <ul className="space-y-1.5 text-xs text-muted-foreground">
             {problems.map((prob, i) => (
               <li key={i} className="flex items-start gap-1.5 leading-relaxed">
-                <span className="text-amber-500 font-bold">•</span>
+                <span className="font-bold text-warning" aria-hidden="true">•</span>
                 <span>{prob}</span>
               </li>
             ))}
@@ -122,7 +122,7 @@ export default function AiExecutiveBrief({ initialBrief, eventId }) {
 
           <Link
             to={topAction.link || `/dashboard/events/${eventId}/overview`}
-            className="inline-flex items-center gap-1.5 rounded-xl gradient-brand px-4 py-2 text-xs font-bold text-white shadow hover:opacity-90 transition shrink-0 self-start sm:self-auto"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-soft transition-all duration-150 hover:bg-primary-hover hover:shadow-lift shrink-0 self-start sm:self-auto"
           >
             <span>{topAction.cta || 'Execute Action'}</span>
             <ArrowRight className="size-3.5" />

@@ -1,13 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import {
-  ShieldCheck, AlertTriangle, Users, TrendingUp, CheckCircle2,
-  ExternalLink, BarChart3, AlertOctagon, History, Eye,
-} from 'lucide-react';
+import { ShieldCheck, AlertTriangle, Users, TrendingUp, CheckCircle2, ExternalLink, BarChart3, AlertOctagon, History } from 'lucide-react';
 import { endpoints } from '../../lib/api';
-import { Spinner, ErrorState } from '../../components/ui/misc';
+import { ErrorState } from '../../components/ui/misc';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Link } from 'react-router-dom';
+import { StatsSkeleton, ChartSkeleton } from '../../components/ui/skeleton';
 
 export default function AdminTrustAnalytics() {
   const { data: analytics, isLoading, isError, error, refetch } = useQuery({
@@ -16,7 +14,7 @@ export default function AdminTrustAnalytics() {
     staleTime: 30 * 1000,
   });
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return <div className="space-y-6"><StatsSkeleton count={4} /><ChartSkeleton /></div>;
   if (isError) return <ErrorState message={error?.message || 'Failed to load trust analytics'} onRetry={refetch} />;
 
   const distribution = analytics.distribution || {};
@@ -24,12 +22,12 @@ export default function AdminTrustAnalytics() {
   const snapshots = analytics.recentSnapshots || [];
 
   const tierColors = {
-    excellent: 'bg-emerald-500',
-    very_good: 'bg-blue-500',
-    good: 'bg-indigo-500',
-    fair: 'bg-amber-500',
-    needs_improvement: 'bg-orange-500',
-    low_trust: 'bg-rose-500',
+    excellent: 'bg-success',
+    very_good: 'bg-info',
+    good: 'bg-primary',
+    fair: 'bg-warning',
+    needs_improvement: 'bg-warning',
+    low_trust: 'bg-destructive',
   };
 
   return (
@@ -53,7 +51,7 @@ export default function AdminTrustAnalytics() {
 
       {/* KPI Stats Grid */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-border bg-card p-5 space-y-2 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-5 space-y-2 shadow-soft">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Evaluated Organizers</span>
             <Users className="size-4 text-primary" />
@@ -64,24 +62,24 @@ export default function AdminTrustAnalytics() {
           <p className="text-[11px] text-muted-foreground">Active hosting profiles scored</p>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-5 space-y-2 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-5 space-y-2 shadow-soft">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Platform Average Score</span>
-            <TrendingUp className="size-4 text-emerald-500" />
+            <TrendingUp className="size-4 text-success" />
           </div>
           <p className="font-mono text-3xl font-extrabold text-foreground">
             {analytics.platformAvgTrustScore || 0}
             <span className="text-sm font-normal text-muted-foreground"> / 100</span>
           </p>
-          <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+          <p className="text-[11px] text-success dark:text-success font-semibold">
             Standard platform benchmark
           </p>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-5 space-y-2 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-5 space-y-2 shadow-soft">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Verified Organizers</span>
-            <CheckCircle2 className="size-4 text-blue-500" />
+            <CheckCircle2 className="size-4 text-info" />
           </div>
           <p className="font-mono text-3xl font-extrabold text-foreground">
             {analytics.verifiedPercentage || 0}%
@@ -91,12 +89,12 @@ export default function AdminTrustAnalytics() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-5 space-y-2 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-5 space-y-2 shadow-soft">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Flagged / At-Risk</span>
-            <AlertOctagon className="size-4 text-rose-500" />
+            <AlertOctagon className="size-4 text-destructive" />
           </div>
-          <p className="font-mono text-3xl font-extrabold text-rose-500">
+          <p className="font-mono text-3xl font-extrabold text-destructive">
             {flagged.length}
           </p>
           <p className="text-[11px] text-muted-foreground">Below 60 or confirmed reports</p>
@@ -104,7 +102,7 @@ export default function AdminTrustAnalytics() {
       </div>
 
       {/* Trust Level Distribution */}
-      <div className="rounded-2xl border border-border bg-card p-6 space-y-4 shadow-sm">
+      <div className="rounded-xl border border-border bg-card p-6 space-y-4 shadow-soft">
         <h3 className="font-display text-base font-bold flex items-center gap-2">
           <BarChart3 className="size-4 text-primary" />
           <span>Trust Score Distribution Across Organizers</span>
@@ -131,10 +129,10 @@ export default function AdminTrustAnalytics() {
       </div>
 
       {/* Flagged / At-Risk Organizers Radar */}
-      <div className="rounded-2xl border border-border bg-card p-6 space-y-4 shadow-sm">
+      <div className="rounded-xl border border-border bg-card p-6 space-y-4 shadow-soft">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-display text-base font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2">
+            <h3 className="font-display text-base font-bold text-destructive dark:text-destructive flex items-center gap-2">
               <AlertTriangle className="size-4" />
               <span>Flagged & At-Risk Organizers Radar</span>
             </h3>
@@ -146,7 +144,7 @@ export default function AdminTrustAnalytics() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full min-w-[540px] text-left text-xs">
             <thead>
               <tr className="border-b border-border text-muted-foreground uppercase text-[10px] tracking-wider">
                 <th className="py-2.5 px-3">Organizer</th>
@@ -172,7 +170,7 @@ export default function AdminTrustAnalytics() {
                     <span className="font-semibold">{org.completionRate}%</span>
                     <span className="text-muted-foreground text-[11px] ml-1">({org.cancellationRate}% cancel)</span>
                   </td>
-                  <td className="py-3 px-3 font-mono font-bold text-rose-500">
+                  <td className="py-3 px-3 font-mono font-bold text-destructive">
                     {org.confirmedViolationsCount}
                   </td>
                   <td className="py-3 px-3 text-right">
@@ -201,7 +199,7 @@ export default function AdminTrustAnalytics() {
       </div>
 
       {/* Recent Trust Recalculation Audit Trail */}
-      <div className="rounded-2xl border border-border bg-card p-6 space-y-4 shadow-sm">
+      <div className="rounded-xl border border-border bg-card p-6 space-y-4 shadow-soft">
         <h3 className="font-display text-base font-bold flex items-center gap-2">
           <History className="size-4 text-primary" />
           <span>Recent TrustSnapshots Recalculation Log</span>

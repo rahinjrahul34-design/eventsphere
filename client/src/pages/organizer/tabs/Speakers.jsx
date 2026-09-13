@@ -8,10 +8,11 @@ import { Button } from '../../../components/ui/button';
 import { Input, Textarea, Label } from '../../../components/ui/input';
 import { Badge } from '../../../components/ui/badge';
 import { Avatar } from '../../../components/ui/avatar';
-import { Spinner } from '../../../components/ui/misc';
+
 import { EmptyState } from '../../../components/ui/states';
 import { Dialog, ConfirmDialog } from '../../../components/ui/dialog';
 import { toast } from 'sonner';
+import { GridSkeleton } from '../../../components/ui/skeleton';
 
 const blankForm = { name: '', title: '', company: '', bio: '', photo: '', skills: '', featured: false };
 
@@ -43,7 +44,7 @@ export default function Speakers() {
   const openEdit = (s) => { setEditing(s); setForm({ ...blankForm, ...s, skills: (s.skills || []).join(', ') }); setOpen(true); };
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <GridSkeleton count={4} />;
   const speakers = q.data || [];
 
   return (

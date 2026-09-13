@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Search, CalendarDays, Users, Tag, Mic2, Loader2 } from 'lucide-react';
 import { endpoints } from '../../lib/api';
 import { useUI } from '../../store/ui';
@@ -14,7 +15,7 @@ function Row({ icon: Icon, title, sub, to, onNavigate }) {
         navigate(to);
         onNavigate();
       }}
-      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-secondary transition"
+      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-secondary"
     >
       <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
         <Icon className="size-4" />
@@ -70,7 +71,18 @@ export default function GlobalSearch() {
     return () => clearTimeout(t);
   }, [q]);
 
-  if (!searchOpen) return null;
+  useEffect(() => {
+    if (!searchOpen) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e) => e.key === 'Escape' && setSearchOpen(false);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [searchOpen, setSearchOpen]);
+
   const close = () => setSearchOpen(false);
   const empty =
     results &&
@@ -81,9 +93,21 @@ export default function GlobalSearch() {
     !results.speakers.length;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-[12vh]" role="dialog" aria-label="Global search">
-      <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={close} />
-      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border bg-card shadow-lift animate-scale-in">
+    <AnimatePresence>
+      {searchOpen && (
+      <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-[10vh]" role="dialog" aria-modal="true" aria-label="Global search">
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          className="absolute inset-0 bg-[hsl(var(--overlay)/0.55)] backdrop-blur-[3px]"
+          onClick={close}
+        />
+        <motion.div
+          initial={{ opacity: 0, y: -12, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -8, scale: 0.98 }}
+          transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+          className="relative w-full max-w-xl overflow-hidden rounded-xl border bg-card shadow-pop">
         <div className="flex items-center gap-3 border-b px-4">
           {loading ? <Loader2 className="size-5 animate-spin text-muted-foreground" /> : <Search className="size-5 text-muted-foreground" />}
           <input
@@ -166,8 +190,10 @@ export default function GlobalSearch() {
             </Section>
           )}
         </div>
+      </motion.div>
       </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }
 

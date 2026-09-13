@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
-import {
-  Activity, Calendar, ChevronDown, Plus, Radio, Clock,
-  RefreshCw, ShieldCheck, Sparkles, AlertTriangle
-} from 'lucide-react';
+import { Activity, Plus, Radio, RefreshCw, ExternalLink } from 'lucide-react';
 import { endpoints } from '../../lib/api';
 import { getSocket } from '../../lib/socket';
-import { Spinner, ErrorState } from '../../components/ui/misc';
+import { ErrorState } from '../../components/ui/misc';
+import { DashboardSkeleton } from '../../components/ui/skeleton';
+import { EmptyState } from '../../components/ui/states';
+import { Button } from '../../components/ui/button';
 import ExecutiveSummaryCard from '../../components/commandCenter/ExecutiveSummaryCard';
 import IntelligenceCardsGrid from '../../components/commandCenter/IntelligenceCardsGrid';
 import ActionCenter from '../../components/commandCenter/ActionCenter';
@@ -15,7 +15,6 @@ import AiExecutiveBrief from '../../components/commandCenter/AiExecutiveBrief';
 import WhatIfSimulator from '../../components/commandCenter/WhatIfSimulator';
 import HealthTimelineChart from '../../components/commandCenter/HealthTimelineChart';
 import UnifiedAlertFeed from '../../components/commandCenter/UnifiedAlertFeed';
-import { Badge } from '../../components/ui/badge';
 import { toast } from 'sonner';
 
 export default function CommandCenter() {
@@ -46,10 +45,10 @@ export default function CommandCenter() {
 
   // 3. Socket.IO Realtime Integration
   useEffect(() => {
-    if (!selectedEventId) return;
+    if (!selectedEventId) return undefined;
 
     const socket = getSocket();
-    if (!socket) return;
+    if (!socket) return undefined;
 
     socket.emit('event:subscribe', selectedEventId);
     setIsLive(socket.connected);
@@ -59,15 +58,15 @@ export default function CommandCenter() {
 
     const onAlert = (alert) => {
       toast.warning(`Operational Alert: ${alert.message || 'Safety update'}`);
-      queryClient.invalidateQueries(['command-center', selectedEventId]);
+      queryClient.invalidateQueries({ queryKey: ['command-center', selectedEventId] });
     };
 
     const onAlertResolved = () => {
-      queryClient.invalidateQueries(['command-center', selectedEventId]);
+      queryClient.invalidateQueries({ queryKey: ['command-center', selectedEventId] });
     };
 
     const onPulseUpdate = () => {
-      queryClient.invalidateQueries(['command-center', selectedEventId]);
+      queryClient.invalidateQueries({ queryKey: ['command-center', selectedEventId] });
     };
 
     socket.on('connect', onConnect);
@@ -95,29 +94,24 @@ export default function CommandCenter() {
     toast.success('Command Center intelligence refreshed');
   };
 
-  if (eventsQuery.isLoading) return <Spinner />;
+  if (eventsQuery.isLoading) return <DashboardSkeleton />;
   if (eventsQuery.isError) return <ErrorState message={eventsQuery.error.message} onRetry={eventsQuery.refetch} />;
 
   if (events.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed py-16 px-6 text-center space-y-4 max-w-lg mx-auto">
-        <div className="grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary mx-auto">
-          <Activity className="size-6" />
-        </div>
-        <div className="space-y-1">
-          <h3 className="font-display text-lg font-bold text-foreground">No Events Created Yet</h3>
-          <p className="text-xs text-muted-foreground">
-            The AI Command Center connects predictive models, safety shields, waitlists, and SEO profiles for your active events.
-          </p>
-        </div>
-        <Link
-          to="/dashboard/events/create"
-          className="inline-flex items-center gap-2 rounded-xl gradient-brand px-5 py-2.5 text-xs font-bold text-white shadow hover:opacity-90 transition"
-        >
-          <Plus className="size-4" />
-          <span>Create Your First Event</span>
-        </Link>
-      </div>
+      <EmptyState
+        icon={Activity}
+        title="No events created yet"
+        description="The AI Command Center connects predictive models, safety shields, waitlists, and SEO profiles for your active events. Create your first event to activate the intelligence layer."
+        className="mx-auto max-w-lg"
+        action={
+          <Link to="/dashboard/events/create">
+            <Button>
+              <Plus /> Create your first event
+            </Button>
+          </Link>
+        }
+      />
     );
   }
 
@@ -125,60 +119,73 @@ export default function CommandCenter() {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Top Header & Event Selector Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-5">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-xl gradient-brand text-white shadow-sm">
-              <Activity className="size-4" />
+      {/* ── HEADER ─────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-4 border-b pb-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2.5">
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg gradient-brand text-white shadow-soft">
+              <Activity className="size-4.5" style={{ width: 18, height: 18 }} aria-hidden="true" />
             </span>
-            <h1 className="font-display text-2xl font-black tracking-tight text-foreground">
-              AI Command Center
-            </h1>
+            <h1 className="font-display text-2xl font-extrabold tracking-tight">AI Command Center</h1>
+            {isLive ? (
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-success/25 bg-success/10 px-2 py-0.5 text-[11px] font-bold text-success">
+                <span className="size-1.5 animate-pulse rounded-full bg-current" aria-hidden="true" />
+                LIVE
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-md border bg-secondary px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
+                <Radio className="size-3" aria-hidden="true" />
+                Connecting
+              </span>
+            )}
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Unified event intelligence, predictive risks, automated waitlists, and recommended actions in one place.
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Unified event intelligence — predictive risks, automated waitlists and recommended actions in one place.
           </p>
         </div>
 
-        {/* Event Selector & Controls */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Selector Dropdown */}
-          <div className="relative">
-            <select
-              value={selectedEventId || ''}
-              onChange={(e) => handleSelectEvent(e.target.value)}
-              className="appearance-none rounded-xl border bg-card pl-3 pr-9 py-2 text-xs font-bold text-foreground shadow-sm hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition cursor-pointer"
-            >
-              {events.map((e) => (
-                <option key={e._id} value={e._id}>
-                  {e.title} ({e.status})
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="size-3.5 text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
-
-          {/* Direct Link to Manage Event */}
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={selectedEventId || ''}
+            onChange={(e) => handleSelectEvent(e.target.value)}
+            aria-label="Select event"
+            className="h-9 max-w-[240px] cursor-pointer appearance-none rounded-lg border border-input bg-card pl-3 pr-9 text-sm font-semibold text-foreground shadow-soft transition-colors hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a1a1b5' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>\")",
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 0.65rem center',
+              backgroundSize: '14px',
+            }}
+          >
+            {events.map((e) => (
+              <option key={e._id} value={e._id}>
+                {e.title} ({e.status})
+              </option>
+            ))}
+          </select>
+          <Button variant="outline" size="sm" onClick={handleRefresh} loading={ccQuery.isRefetching}>
+            <RefreshCw /> Refresh
+          </Button>
           {selectedEventId && (
             <Link
               to={`/dashboard/events/${selectedEventId}`}
-              className="rounded-xl border bg-secondary/80 px-3 py-2 text-xs font-bold text-foreground hover:bg-secondary transition"
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-bold text-foreground shadow-soft transition-colors hover:bg-secondary"
             >
-              Manage Event
+              <ExternalLink className="size-3.5" aria-hidden="true" /> Manage
             </Link>
           )}
         </div>
       </div>
 
-      {/* Main Content Loading / Error / Data */}
+      {/* ── BODY ───────────────────────────────────────────────── */}
       {ccQuery.isLoading ? (
-        <Spinner />
+        <DashboardSkeleton />
       ) : ccQuery.isError ? (
         <ErrorState message={ccQuery.error.message} onRetry={ccQuery.refetch} />
       ) : !data ? null : (
         <div className="space-y-6">
-          {/* Executive Summary Card */}
+          {/* Event summary + health score */}
           <ExecutiveSummaryCard
             overallHealth={data.overallHealth}
             onRefresh={handleRefresh}
@@ -187,33 +194,23 @@ export default function CommandCenter() {
             lastUpdated={data.freshness?.aggregatedAt}
           />
 
-          {/* AI Executive Brief */}
-          <AiExecutiveBrief
-            initialBrief={data.summary}
-            eventId={selectedEventId}
-          />
-
-          {/* 6 Modular Intelligence Cards Grid */}
+          {/* Intelligence cards */}
           <IntelligenceCardsGrid data={data} />
 
-          {/* Action Center */}
-          <ActionCenter
-            actions={data.actions}
-            eventId={selectedEventId}
-            onActionResolved={() => ccQuery.refetch()}
-          />
+          {/* Critical alerts */}
+          <UnifiedAlertFeed alerts={data.alerts} />
 
-          {/* What-If Scenario Simulator */}
-          <WhatIfSimulator
-            eventId={selectedEventId}
-            baselineHealth={data.overallHealth}
-          />
+          {/* Recommended actions */}
+          <ActionCenter actions={data.actions} eventId={selectedEventId} onActionResolved={() => ccQuery.refetch()} />
 
-          {/* Bottom Grid: Health Timeline Chart + Unified Alert Feed */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <HealthTimelineChart trends={data.trends} />
-            <UnifiedAlertFeed alerts={data.alerts} />
-          </div>
+          {/* AI executive brief */}
+          <AiExecutiveBrief initialBrief={data.summary} eventId={selectedEventId} />
+
+          {/* Trends / timeline */}
+          <HealthTimelineChart trends={data.trends} />
+
+          {/* What-if simulator */}
+          <WhatIfSimulator eventId={selectedEventId} baselineHealth={data.overallHealth} />
         </div>
       )}
     </div>

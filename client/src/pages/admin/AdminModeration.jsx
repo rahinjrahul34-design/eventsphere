@@ -39,7 +39,7 @@ export default function AdminModeration() {
       ]} />
 
       {q.isLoading ? <Spinner /> : (q.data || []).length === 0 ? (
-        <Card><CardContent><EmptyState icon={Flag} title="No reports here" description="The community is looking clean. 🎉" /></CardContent></Card>
+        <Card><CardContent><EmptyState icon={Flag} title="No reports here" description="The community is looking clean." /></CardContent></Card>
       ) : (
         <div className="grid gap-3">
           {q.data.map((r) => (

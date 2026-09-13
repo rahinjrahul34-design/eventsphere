@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { User as UserIcon, Award, Shield, Sparkles, Briefcase } from 'lucide-react';
+import { User as UserIcon, Award, Shield, Sparkles, Briefcase, Trophy } from 'lucide-react';
 import { endpoints } from '../lib/api';
 import { useAuth } from '../store/auth';
 import { Button } from '../components/ui/button';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Tabs, Chip, Spinner } from '../components/ui/misc';
 import { Avatar } from '../components/ui/avatar';
 import { INTERESTS, SKILLS, GOALS } from '../lib/format';
-import { timeAgo, cn } from '../lib/utils';
+import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { usePageTitle } from '../hooks/usePageTitle';
 
@@ -147,8 +147,8 @@ function Rewards() {
             {catalogue.map((b) => {
               const earned = earnedCodes.has(b.code);
               return (
-                <div key={b.code} className={cn('rounded-xl border p-4 text-center', earned ? 'bg-amber-400/10 border-amber-400/40' : 'opacity-45 grayscale')}>
-                  <span className="text-3xl">🏅</span>
+                <div key={b.code} className={cn('rounded-xl border p-4 text-center', earned ? 'bg-warning/10 border-warning/40' : 'opacity-45 grayscale')}>
+                  <Trophy className="size-8 text-warning" aria-hidden="true" />
                   <p className="mt-1 text-xs font-bold leading-tight">{b.name}</p>
                   <p className="mt-0.5 text-[10px] text-muted-foreground">{b.description}</p>
                 </div>

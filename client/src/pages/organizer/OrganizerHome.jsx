@@ -1,14 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import {
-  CalendarDays, Users, CheckCircle2, IndianRupee, Plus, Bot, QrCode, Radio, ArrowRight, Star,
-} from 'lucide-react';
+import { Users, CheckCircle2, IndianRupee, Plus, Bot, QrCode, Radio, ArrowRight, Star } from 'lucide-react';
 import { endpoints } from '../../lib/api';
 import StatCard from '../../components/dashboard/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { Spinner } from '../../components/ui/misc';
+import { StatsSkeleton, ChartSkeleton, ListSkeleton } from '../../components/ui/skeleton';
 import { TrendChart } from '../../components/charts/Charts';
 import { fmtDate } from '../../lib/format';
 import { useMemo } from 'react';
@@ -49,13 +47,26 @@ export default function OrganizerHome() {
     return [...map.values()];
   }
 
-  if (eventsQ.isLoading) return <Spinner />;
+  if (eventsQ.isLoading)
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2"><div className="skeleton h-7 w-64" /><div className="skeleton h-4 w-80 max-w-full" /></div>
+          <div className="skeleton h-9 w-44 rounded-lg" />
+        </div>
+        <StatsSkeleton />
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2"><ChartSkeleton /></div>
+          <ListSkeleton rows={3} />
+        </div>
+      </div>
+    );
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-display text-2xl font-extrabold">Welcome back, organizer 👋</h2>
+          <h2 className="font-display text-2xl font-extrabold tracking-tight">Welcome back, organizer</h2>
           <p className="text-sm text-muted-foreground">Here’s what’s happening across your events.</p>
         </div>
         <div className="flex gap-2">
@@ -67,7 +78,7 @@ export default function OrganizerHome() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={Users} label="Total registrations" value={totals.registrations || events.reduce((a, e) => a + e.registrationCount, 0)} accent="primary" />
         <StatCard icon={CheckCircle2} label="Check-ins" value={totals.checkIns || events.reduce((a, e) => a + e.checkedInCount, 0)} accent="success" />
-        <StatCard icon={IndianRupee} label="Revenue (₹)" value={(totals.revenue || 0).toLocaleString('en-IN')} accent="blue" />
+        <StatCard icon={IndianRupee} label="Revenue (₹)" value={(totals.revenue || 0).toLocaleString('en-IN')} accent="info" />
         <StatCard icon={Star} label="Avg. feedback" value={totals.avgRating !== 'NaN' ? `${totals.avgRating}/5` : '—'} accent="warning" />
       </div>
 
@@ -75,8 +86,8 @@ export default function OrganizerHome() {
         <Card className="lg:col-span-2">
           <CardHeader><CardTitle>Registration trend (90 days)</CardTitle></CardHeader>
           <CardContent>
-            {statsQ.isLoading ? <Spinner /> : (
-              <TrendChart data={totals.trend.slice(-30)} lines={[{ key: 'registrations', label: 'Registrations', color: '#7c3aed' }, { key: 'checkIns', label: 'Check-ins', color: '#16a34a' }]} />
+            {statsQ.isLoading ? <div className="skeleton h-[260px]" /> : (
+              <TrendChart data={totals.trend.slice(-30)} lines={[{ key: 'registrations', label: 'Registrations', color: '#7c5cfc' }, { key: 'checkIns', label: 'Check-ins', color: '#10b981' }]} />
             )}
           </CardContent>
         </Card>
@@ -109,7 +120,7 @@ export default function OrganizerHome() {
               </div>
               <div className="hidden sm:block w-32">
                 <div className="h-1.5 rounded-full bg-muted">
-                  <div className="h-full rounded-full gradient-brand" style={{ width: `${Math.min(100, (e.registrationCount / e.capacity) * 100)}%` }} />
+                  <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, (e.registrationCount / e.capacity) * 100)}%` }} />
                 </div>
               </div>
               <StatusBadge e={e} />

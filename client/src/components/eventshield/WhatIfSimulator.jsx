@@ -107,19 +107,19 @@ export default function WhatIfSimulator({ eventId, event, initial }) {
         </div>
 
         {result && (
-          <div className="space-y-4 rounded-2xl border bg-muted/20 p-5">
+          <div className="space-y-4 rounded-xl border bg-muted/20 p-5">
             <p className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
               Current plan vs simulated plan {loading ? '· updating…' : ''}
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border bg-card p-4">
                 <p className="text-[11px] font-bold uppercase text-muted-foreground">Current plan</p>
-                <p className="mt-1 font-display text-3xl font-black">{result.baselineSafetyScore}<span className="text-sm font-semibold text-muted-foreground">/100</span></p>
+                <p className="mt-1 font-display text-3xl font-extrabold">{result.baselineSafetyScore}<span className="text-sm font-semibold text-muted-foreground">/100</span></p>
                 <p className="text-xs text-muted-foreground">Readiness {result.baselineReadinessScore}%</p>
               </div>
               <div className="rounded-xl border border-primary/30 bg-card p-4">
                 <p className="text-[11px] font-bold uppercase text-primary">Simulated plan</p>
-                <p className={`mt-1 font-display text-3xl font-black ${scoreToneClass(result.simulatedSafetyScore)}`}>
+                <p className={`mt-1 font-display text-3xl font-extrabold ${scoreToneClass(result.simulatedSafetyScore)}`}>
                   {result.simulatedSafetyScore}<span className="text-sm font-semibold text-muted-foreground">/100</span>
                 </p>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -138,7 +138,7 @@ export default function WhatIfSimulator({ eventId, event, initial }) {
                 {result.categoryDeltas.filter((d) => d.delta !== 0).map((d) => (
                   <li key={d.id} className="flex justify-between rounded-lg border bg-card px-2 py-1">
                     <span>{d.name}</span>
-                    <span className={d.delta > 0 ? 'font-bold text-emerald-500' : 'font-bold text-rose-500'}>
+                    <span className={d.delta > 0 ? 'font-bold text-success' : 'font-bold text-destructive'}>
                       {d.baselineScore} → {d.simulatedScore}
                     </span>
                   </li>

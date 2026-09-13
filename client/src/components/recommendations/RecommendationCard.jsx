@@ -1,17 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  CalendarDays,
-  MapPin,
-  Sparkles,
-  IndianRupee,
-  Building2,
-  Video,
-  Radio,
-  HelpCircle,
-  X,
-} from 'lucide-react';
+import { CalendarDays, MapPin, Sparkles, IndianRupee, Building2, Video, Radio, HelpCircle, X } from 'lucide-react';
 import FavoriteButton from '../events/FavoriteButton';
 import WhyThisEventModal from './WhyThisEventModal';
 import RecommendationFeedback from './RecommendationFeedback';
@@ -78,7 +68,7 @@ export default function RecommendationCard({ event, index = 0, onDismiss, debug 
         transition={{ duration: 0.4, delay: Math.min(index * 0.05, 0.3) }}
         className="h-full flex flex-col"
       >
-        <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift">
+        <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-lift">
           {/* Cover Image & Badges */}
           <Link to={`/events/${event.slug}`} onClick={handleCardClick} className="block relative aspect-[16/9] overflow-hidden">
             <img
@@ -98,8 +88,8 @@ export default function RecommendationCard({ event, index = 0, onDismiss, debug 
                 {cat.name}
               </span>
               {event.explorationTag && (
-                <span className="rounded-full px-2.5 py-1 text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm">
-                  🚀 {event.explorationTag}
+                <span className="rounded-full px-2.5 py-1 text-[10px] font-extrabold bg-warning text-warning-foreground shadow-soft">
+                  {event.explorationTag}
                 </span>
               )}
             </div>

@@ -2,10 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import {
-  MapPin, CalendarDays, Clock, Users, Building2, Radio, Video, Share2, Heart,
-  ChevronRight, Sparkles, CalendarPlus, AlertCircle, Star, Trophy, MessageSquare, Zap,
-} from 'lucide-react';
+import { MapPin, CalendarDays, Clock, Users, Building2, Radio, Video, Heart, ChevronRight, Sparkles, CalendarPlus, AlertCircle, Star, Trophy, MessageSquare, Zap } from 'lucide-react';
 import { endpoints } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -309,8 +306,8 @@ export default function EventDetail() {
             <Card className="overflow-hidden">
               <CardContent className="p-5">
                 {activeHold && (
-                  <div className="mb-4 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3.5 text-center space-y-2">
-                    <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                  <div className="mb-4 rounded-xl border border-primary/30 bg-primary/10 p-3.5 text-center space-y-2">
+                    <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-primary dark:text-primary">
                       <Zap className="size-4 animate-pulse" />
                       <span>Reserved Seat Waiting!</span>
                     </div>
@@ -318,7 +315,7 @@ export default function EventDetail() {
                       Promoted from waitlist! Seat reserved exclusively for you.
                     </p>
                     <Button
-                      className="w-full font-bold shadow-md shadow-indigo-500/20 bg-indigo-600 hover:bg-indigo-700 text-white text-xs"
+                      className="w-full font-bold text-xs"
                       size="sm"
                       onClick={() => setShowHoldModal(true)}
                     >
@@ -350,7 +347,7 @@ export default function EventDetail() {
                   {registered
                     ? 'Already registered'
                     : activeHold
-                    ? '⚡ Claim Reserved Seat'
+                    ? 'Claim reserved seat'
                     : waitlisted
                     ? 'On waitlist (Queue Active)'
                     : seatsLeft === 0
@@ -411,7 +408,7 @@ export default function EventDetail() {
 
             <button onClick={() => navigate(`/events/${event.slug}/live`)} className="flex w-full items-center justify-between rounded-xl border bg-card p-4 text-left hover:shadow-soft transition">
               <span>
-                <span className="block text-sm font-bold flex items-center gap-1.5"><Heart className="size-4 text-rose-500" /> Why you’ll love it</span>
+                <span className="block text-sm font-bold flex items-center gap-1.5"><Heart className="size-4 text-destructive" /> Why you’ll love it</span>
                 <span className="mt-0.5 block text-xs text-muted-foreground">QR pass · live polls · digital certificate · points</span>
               </span>
               <ChevronRight className="size-4 text-muted-foreground" />

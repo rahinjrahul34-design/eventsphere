@@ -22,7 +22,7 @@ export default function RiskHistory({ history = [] }) {
             xKey="date"
             lines={[
               { key: 'safety', label: 'Safety Score (0–100)', color: '#10b981' },
-              { key: 'readiness', label: 'Readiness (%)', color: '#3b82f6' },
+              { key: 'readiness', label: 'Readiness (%)', color: '#38b0f0' },
             ]}
             height={260}
           />

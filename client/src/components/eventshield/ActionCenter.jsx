@@ -20,7 +20,7 @@ export default function ActionCenter({ categories = [], onFix, onReviewed, revie
         <div className="flex items-center justify-between gap-3">
           <div>
             <CardTitle className="flex items-center gap-2 text-base">
-              <AlertTriangle className={`size-4 ${openHigh ? 'text-rose-500' : 'text-emerald-500'}`} />
+              <AlertTriangle className={`size-4 ${openHigh ? 'text-destructive' : 'text-success'}`} />
               Action Center
             </CardTitle>
             <CardDescription className="text-xs">
@@ -47,7 +47,7 @@ export default function ActionCenter({ categories = [], onFix, onReviewed, revie
                   return (
                     <li
                       key={item.id}
-                      className={`rounded-xl border p-3.5 ${done ? 'bg-emerald-500/[0.04] border-emerald-500/25' : 'bg-card'}`}
+                      className={`rounded-xl border p-3.5 ${done ? 'bg-success/[0.04] border-success/25' : 'bg-card'}`}
                     >
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="min-w-0">
