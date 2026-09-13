@@ -5,6 +5,7 @@
 
 const EventPulseAlert = require('../../models/EventPulseAlert');
 const config = require('./config');
+const notificationService = require('../notificationService');
 
 async function evaluateRiskAlerts(eventId, features, velocityData, attendanceData, engagementData) {
   const { event, registrations, timing } = features;
@@ -78,9 +79,14 @@ async function evaluateRiskAlerts(eventId, features, velocityData, attendanceDat
     }
   }
 
-  // Save / deduplicate active alerts in MongoDB
+  // Save / deduplicate active alerts in MongoDB. Notification policy
+  // (CORE FEATURE 18): an organizer is notified ONLY when an alert type
+  // transitions into its active state — updates to an already-active alert
+  // never re-notify, which acts as a natural cooldown per alert type.
+  const activeAlerts = [];
   for (const item of alertsToUpsert) {
-    await EventPulseAlert.findOneAndUpdate(
+    const existing = await EventPulseAlert.findOne({ eventId, type: item.type, status: 'active' }).lean();
+    const alert = await EventPulseAlert.findOneAndUpdate(
       { eventId, type: item.type, status: 'active' },
       {
         $set: {
@@ -91,12 +97,26 @@ async function evaluateRiskAlerts(eventId, features, velocityData, attendanceDat
           actionRecommended: item.actionRecommended,
         },
       },
-      { upsert: true, new: true }
-    );
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).lean();
+    activeAlerts.push(alert);
+
+    if (!existing && ['high', 'critical'].includes(item.severity) && event.organizer) {
+      notificationService
+        .notify({
+          user: event.organizer,
+          type: 'eventpulse_alert',
+          title: `⚠ ${item.type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())} — ${event.title}`,
+          message: `${item.message} Recommended: ${item.actionRecommended}`,
+          link: `/dashboard/events/${eventId}/eventpulse`,
+          data: { eventId: String(eventId), alertType: item.type, severity: item.severity },
+        })
+        .catch(() => {}); // alerts must never fail the prediction pipeline
+    }
   }
 
   // Return active alerts
-  return EventPulseAlert.find({ eventId, status: 'active' }).sort({ createdAt: -1 }).lean();
+  return activeAlerts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
 
 module.exports = {

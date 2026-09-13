@@ -1,7 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CalendarDays, MapPin, Sparkles, IndianRupee, Building2, Video, Radio, HelpCircle, X } from 'lucide-react';
+import {
+  CalendarDays,
+  MapPin,
+  Sparkles,
+  IndianRupee,
+  Building2,
+  Video,
+  Radio,
+  HelpCircle,
+  X,
+} from 'lucide-react';
 import FavoriteButton from '../events/FavoriteButton';
 import WhyThisEventModal from './WhyThisEventModal';
 import RecommendationFeedback from './RecommendationFeedback';
@@ -68,7 +78,7 @@ export default function RecommendationCard({ event, index = 0, onDismiss, debug 
         transition={{ duration: 0.4, delay: Math.min(index * 0.05, 0.3) }}
         className="h-full flex flex-col"
       >
-        <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-lift">
+        <div className="group relative flex h-full flex-col overflow-hidden card-interactive shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift">
           {/* Cover Image & Badges */}
           <Link to={`/events/${event.slug}`} onClick={handleCardClick} className="block relative aspect-[16/9] overflow-hidden">
             <img
@@ -88,8 +98,8 @@ export default function RecommendationCard({ event, index = 0, onDismiss, debug 
                 {cat.name}
               </span>
               {event.explorationTag && (
-                <span className="rounded-full px-2.5 py-1 text-[10px] font-extrabold bg-warning text-warning-foreground shadow-soft">
-                  {event.explorationTag}
+                <span className="rounded-full px-2.5 py-1 text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm">
+                  🚀 {event.explorationTag}
                 </span>
               )}
             </div>
@@ -149,7 +159,7 @@ export default function RecommendationCard({ event, index = 0, onDismiss, debug 
                 <button
                   type="button"
                   onClick={() => setModalOpen(true)}
-                  className="group/why flex w-full items-start gap-1.5 rounded-lg bg-primary/8 px-2.5 py-2 text-left text-xs font-medium text-primary transition hover:bg-primary/12"
+                  className="group/why flex w-full items-start gap-1.5 rounded-lg bg-primary/[8%] px-2.5 py-2 text-left text-xs font-medium text-primary transition hover:bg-primary/[12%]"
                 >
                   <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary transition-transform group-hover/why:rotate-12" />
                   <span className="flex-1 line-clamp-2">{event.topReason}</span>

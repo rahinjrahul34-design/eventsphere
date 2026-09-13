@@ -2,6 +2,9 @@ const Event = require('../../models/Event');
 const SeatHold = require('../../models/SeatHold');
 const Waitlist = require('../../models/Waitlist');
 const SmartQueueAudit = require('../../models/SmartQueueAudit');
+const User = require('../../models/User');
+const notificationService = require('../notificationService');
+const { emitToUser } = require('../../sockets');
 const { HOLD_STATUS, WAITLIST_STATUS, AUDIT_ACTIONS, DEFAULT_HOLD_DURATION_MINUTES } = require('./config');
 
 /**
@@ -199,6 +202,50 @@ async function acceptSeatHold({ holdId, userId }) {
 }
 
 /**
+ * Atomically releases ALL active holds for an event (CORE FEATURE 34/35).
+ * Used when an event is cancelled/completed or promotions must stop.
+ * Each release is an atomic conditional update — safe under concurrency.
+ * Does NOT trigger further promotions (the caller decides policy).
+ */
+async function cancelAllActiveHolds({ eventId, reason = 'event_cancelled', actor = 'system', notifyUsers = true }) {
+  const activeHolds = await SeatHold.find({ eventId, status: HOLD_STATUS.ACTIVE });
+  const released = [];
+
+  for (const hold of activeHolds) {
+    const result = await releaseSeatHold({ holdId: hold._id, reason, actor });
+    if (result.success) {
+      released.push(hold);
+
+      if (notifyUsers) {
+        try {
+          const user = await User.findById(hold.userId).select('name email');
+          const event = await Event.findById(eventId).select('title');
+          if (user && event) {
+            await notificationService.notify({
+              user: user._id,
+              type: 'waitlist',
+              title: `Seat reservation closed: ${event.title}`,
+              message: `Temporary seat reservations for ${event.title} were released because the event status changed (${reason.replace(/_/g, ' ')}).`,
+              data: { eventId, holdId: hold._id, reason },
+            });
+            emitToUser(user._id.toString(), 'smartqueue:hold_expired', {
+              eventId,
+              holdId: hold._id,
+              eventTitle: event.title,
+              reason,
+            });
+          }
+        } catch (notifyErr) {
+          // Notification failure must not block the release loop (FEATURE 33)
+        }
+      }
+    }
+  }
+
+  return { releasedCount: released.length, released };
+}
+
+/**
  * Returns active hold for a user and event with calculated remaining seconds.
  */
 async function getActiveHoldForUser(eventId, userId) {
@@ -223,4 +270,5 @@ module.exports = {
   releaseSeatHold,
   acceptSeatHold,
   getActiveHoldForUser,
+  cancelAllActiveHolds,
 };

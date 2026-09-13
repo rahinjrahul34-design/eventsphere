@@ -24,21 +24,9 @@ function ThemeSync() {
     <Toaster
       position="top-center"
       theme={theme}
-      closeButton
       toastOptions={{
-        duration: 4000,
         classNames: {
-          toast:
-            '!rounded-xl !border !border-border !bg-card !text-card-foreground !shadow-pop !text-sm !font-medium',
-          title: '!text-sm !font-semibold',
-          description: '!text-xs !text-muted-foreground',
-          actionButton: '!bg-primary !text-primary-foreground !rounded-md !font-semibold',
-          cancelButton: '!bg-secondary !text-secondary-foreground !rounded-md',
-          // Semantic accents — a colored icon area instead of a fully tinted card
-          success: '!border-success/30',
-          error: '!border-destructive/30',
-          warning: '!border-warning/35',
-          info: '!border-info/30',
+          toast: '!bg-card !text-card-foreground !border !border-border !shadow-lift !rounded-xl',
         },
       }}
     />

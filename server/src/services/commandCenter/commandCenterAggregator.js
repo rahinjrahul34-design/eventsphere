@@ -27,6 +27,7 @@ const { getOrCreateProfile: getOrCreateBoostProfile } = require('../eventboost/e
 const { calculateEventHealth } = require('./healthScoreEngine');
 const { extractModuleActions } = require('./actionEngine');
 const { generateExecutiveBrief } = require('./narrativeService');
+const { isSocketInitialized } = require('../../sockets');
 
 /**
  * Aggregates complete event intelligence from all 6 modules.
@@ -178,7 +179,8 @@ async function aggregateCommandCenterData(eventId, user = {}) {
   }, {});
 
   const recommendationIntelligence = {
-    available: true,
+    available: recInteractionsSettled.status === 'fulfilled',
+    reason: recInteractionsSettled.status === 'fulfilled' ? null : 'Recommendation interaction data unavailable',
     views: recMap.view || 0,
     clicks: recMap.click || 0,
     saves: recMap.save || 0,
@@ -195,14 +197,14 @@ async function aggregateCommandCenterData(eventId, user = {}) {
 
   if (snapshotCount > 0) {
     predictionSnapshots.forEach((snap, idx) => {
-      const correspondingRisk = riskHistory[idx] || {};
+      const correspondingRisk = riskHistory[idx];
       trends.push({
         timestamp: snap.recordedAt || snap.createdAt,
         date: new Date(snap.recordedAt || snap.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        healthScore: snap.health?.score !== undefined ? snap.health.score : health.score,
-        predictedAttendance: snap.attendance?.expectedAttendees || 0,
-        registrations: snap.registrations?.total || 0,
-        safetyScore: correspondingRisk.safetyScore || 75,
+        healthScore: snap.health?.score !== undefined ? snap.health.score : null,
+        predictedAttendance: snap.attendance?.expectedAttendees ?? null,
+        registrations: snap.registrations?.total ?? null,
+        safetyScore: correspondingRisk?.safetyScore !== undefined ? correspondingRisk.safetyScore : null,
       });
     });
   } else if (pulseHistory && pulseHistory.length > 0) {
@@ -210,21 +212,21 @@ async function aggregateCommandCenterData(eventId, user = {}) {
       trends.push({
         timestamp: item.recordedAt || item.timestamp,
         date: new Date(item.recordedAt || item.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        healthScore: item.healthScore || health.score,
-        predictedAttendance: item.attendance || 0,
-        registrations: item.registrations || 0,
-        safetyScore: 75,
+        healthScore: item.healthScore ?? null,
+        predictedAttendance: item.attendance ?? null,
+        registrations: item.registrations ?? null,
+        safetyScore: null,
       });
     });
   } else {
-    // Current point baseline
+    // Current point baseline (real, current data — not fabricated history)
     trends.push({
       timestamp: new Date(),
       date: 'Today',
       healthScore: health.score,
-      predictedAttendance: pulseData?.attendance?.expectedAttendees || event.registrationCount || 0,
+      predictedAttendance: pulseData?.attendance?.expectedAttendees ?? null,
       registrations: event.registrationCount || 0,
-      safetyScore: shieldData?.safetyScore || 75,
+      safetyScore: shieldData?.safetyScore ?? null,
     });
   }
 
@@ -263,28 +265,28 @@ async function aggregateCommandCenterData(eventId, user = {}) {
     attendance: {
       available: pulseData !== null,
       reason: pulseData ? null : 'EventPulse data unavailable or awaiting initial registrations',
-      expectedRegistrations: pulseData?.registrations?.predictedTotal ?? event.registrationCount ?? 0,
-      expectedAttendance: pulseData?.attendance?.expectedAttendees ?? Math.round((event.registrationCount || 0) * 0.75),
-      expectedNoShows: pulseData?.attendance?.expectedNoShows ?? 0,
+      expectedRegistrations: pulseData ? (pulseData.registrations?.predictedTotal ?? event.registrationCount ?? null) : null,
+      expectedAttendance: pulseData?.attendance?.expectedAttendees ?? null,
+      expectedNoShows: pulseData?.attendance?.expectedNoShows ?? null,
       currentRegistrations: event.registrationCount || 0,
-      registrationVelocity: pulseData?.registrations?.velocity24h ?? 0,
-      attendanceRate: pulseData?.attendance?.attendanceRate ?? 75,
-      confidence: pulseData?.health?.confidence ?? 75,
-      trend: pulseData?.registrations?.velocity24h > 3 ? 'up' : pulseData?.registrations?.velocity24h === 0 ? 'flat' : 'down',
-      lastUpdated: pulseData?.calculatedAt || new Date().toISOString(),
+      registrationVelocity: pulseData?.registrations?.velocity24h ?? null,
+      attendanceRate: pulseData?.attendance?.attendanceRate ?? null,
+      confidence: pulseData?.health?.confidence ?? null,
+      trend: pulseData ? (pulseData.registrations?.velocity24h > 3 ? 'up' : pulseData.registrations?.velocity24h === 0 ? 'flat' : pulseData.registrations?.velocity24h !== undefined ? 'down' : null) : null,
+      lastUpdated: pulseData?.calculatedAt || null,
       ctaText: 'View EventPulse',
       ctaLink: `/dashboard/events/${eventId}/eventpulse`,
     },
     safety: {
       available: shieldData !== null,
       reason: shieldData ? null : 'EventShield baseline awaiting evaluation',
-      safetyScore: shieldData?.safetyScore ?? 75,
-      currentRiskLevel: shieldData?.overallRiskLevel ?? 'low',
+      safetyScore: shieldData?.safetyScore ?? null,
+      currentRiskLevel: shieldData?.overallRiskLevel ?? null,
       criticalRisksCount: (shieldAlerts || []).filter((a) => a.severity === 'critical' && a.status === 'active').length,
       openAlertsCount: (shieldAlerts || []).filter((a) => a.status === 'active').length,
-      checklistCompletion: shieldData?.checklistCompletionRate ?? shieldData?.readinessScore ?? 100,
-      operationalReadiness: shieldData?.readinessScore ?? 80,
-      lastUpdated: shieldData?.lastEvaluatedAt || new Date().toISOString(),
+      checklistCompletion: shieldData?.checklistCompletionRate ?? shieldData?.readinessScore ?? null,
+      operationalReadiness: shieldData?.readinessScore ?? null,
+      lastUpdated: shieldData?.lastEvaluatedAt || null,
       ctaText: 'Review Safety',
       ctaLink: `/dashboard/events/${eventId}/eventshield`,
     },
@@ -296,36 +298,36 @@ async function aggregateCommandCenterData(eventId, user = {}) {
       activeHolds: queueData?.metrics?.activeHoldsCount ?? 0,
       pendingPromotions: queueData?.metrics?.pendingPromotions ?? 0,
       queuePressure: queueData?.metrics?.waitingCount > 10 ? 'High' : queueData?.metrics?.waitingCount > 0 ? 'Moderate' : 'Normal',
-      efficiencyScore: queueData?.metrics?.efficiencyScore ?? 85,
-      avgClaimTime: queueData?.metrics?.avgClaimTimeFormatted ?? 'N/A',
-      acceptanceRate: queueData?.metrics?.acceptanceRate ?? 0,
-      lastUpdated: new Date().toISOString(),
+      efficiencyScore: queueData?.metrics?.efficiencyScore ?? null,
+      avgClaimTime: queueData?.metrics?.avgClaimTimeFormatted ?? null,
+      acceptanceRate: queueData?.metrics?.acceptanceRate ?? null,
+      lastUpdated: queueData ? new Date().toISOString() : null,
       ctaText: 'Manage Queue',
       ctaLink: `/dashboard/events/${eventId}/smartqueue`,
     },
     trust: {
       available: trustData !== null,
       reason: trustData ? null : 'TrustSphere profile compiling',
-      trustScore: trustData?.trustScore ?? 70,
-      trustLevel: trustData?.trustLevel ?? 'Standard',
-      confidenceLevel: trustData?.confidenceLevel ?? 'Moderate',
-      verified: trustData?.verified ?? false,
-      strengths: trustData?.aiInsights?.keyStrengths ?? trustData?.factors?.strengths ?? ['Established event organizer'],
+      trustScore: trustData?.trustScore ?? null,
+      trustLevel: trustData?.trustLevel ?? null,
+      confidenceLevel: trustData?.confidenceLevel ?? null,
+      verified: trustData ? Boolean(trustData.verified) : null,
+      strengths: trustData?.aiInsights?.keyStrengths ?? trustData?.factors?.strengths ?? [],
       concerns: trustData?.aiInsights?.riskFactors ?? trustData?.factors?.concerns ?? [],
-      lastUpdated: trustData?.lastCalculatedAt || new Date().toISOString(),
+      lastUpdated: trustData?.lastCalculatedAt || null,
       ctaText: 'View Trust',
       ctaLink: `/dashboard/trust`,
     },
     seo: {
       available: boostData !== null,
       reason: boostData ? null : 'Run EventBoost analysis to see SEO intelligence',
-      seoScore: boostData?.seoScore ?? 50,
-      contentScore: boostData?.contentScore ?? 50,
-      readabilityScore: boostData?.readabilityScore ?? 70,
-      keywordScore: boostData?.keywordScore ?? 50,
-      primaryKeyword: boostData?.primaryKeyword || 'Not defined',
-      mainOpportunity: boostData?.seoIssues?.[0]?.title || 'Enhance description & meta tags with EventBoost AI',
-      lastUpdated: boostData?.lastAnalyzedAt || new Date().toISOString(),
+      seoScore: boostData?.seoScore ?? null,
+      contentScore: boostData?.contentScore ?? null,
+      readabilityScore: boostData?.readabilityScore ?? null,
+      keywordScore: boostData?.keywordScore ?? null,
+      primaryKeyword: boostData?.primaryKeyword || null,
+      mainOpportunity: boostData?.seoIssues?.[0]?.title || null,
+      lastUpdated: boostData?.lastAnalyzedAt || null,
       ctaText: 'Optimize Event',
       ctaLink: `/dashboard/events/${eventId}/eventboost`,
     },
@@ -336,7 +338,7 @@ async function aggregateCommandCenterData(eventId, user = {}) {
     freshness: {
       aggregatedAt: new Date().toISOString(),
       cacheTtlSeconds: 30,
-      isRealtimeConnected: true,
+      isRealtimeConnected: isSocketInitialized(),
     },
   };
 }

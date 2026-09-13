@@ -1,201 +1,416 @@
 import { Link } from 'react-router-dom';
-import { Users, ShieldCheck, Zap, Award, Sparkles, TrendingUp, ArrowRight, Clock, ShieldAlert, Eye } from 'lucide-react';
+import {
+  Users, ShieldCheck, Zap, Award, Sparkles, TrendingUp,
+  ArrowUpRight, AlertTriangle, ShieldAlert, CheckCircle2,
+  Clock, ArrowRight, Eye, MousePointerClick
+} from 'lucide-react';
 import { Badge } from '../ui/badge';
-import { StatTile } from '../ui/card';
-import { AiCard, ModuleHeading } from '../ui/ai';
 import { cn } from '../../lib/utils';
 
-function DetailRow({ label, value, tone }) {
-  return (
-    <div className="flex items-center justify-between text-xs">
-      <span className="text-muted-foreground">{label}</span>
-      <strong className={cn('tabular font-semibold', tone || 'text-foreground')}>{value}</strong>
-    </div>
-  );
-}
-
-function CardLink({ to, label }) {
-  return (
-    <Link
-      to={to}
-      className="inline-flex items-center gap-1 text-xs font-bold text-primary transition-colors hover:text-primary-hover"
-    >
-      {label}
-      <ArrowRight className="size-3.5" aria-hidden="true" />
-    </Link>
-  );
-}
-
-function FooterMeta({ icon: Icon = Clock, children }) {
-  return (
-    <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-      <Icon className="size-3" aria-hidden="true" />
-      {children}
-    </span>
-  );
-}
-
-/**
- * The six operational intelligence modules surfaced by the Command Center.
- * Data shape comes from GET /api/ai/command-center — see server services.
- */
 export default function IntelligenceCardsGrid({ data }) {
   if (!data) return null;
-  const { attendance, safety, queue, trust, seo, recommendations, event } = data;
-  const eventBase = `/dashboard/events/${event?._id}`;
 
-  const modules = [
-    {
-      key: 'pulse',
-      icon: Users,
-      title: 'Attendance Intelligence',
-      subtitle: 'EventPulse Predictive AI',
-      badge: <Badge variant={attendance?.available ? 'success' : 'secondary'} className="text-[10px]">{attendance?.available ? 'Active' : 'Awaiting data'}</Badge>,
-      stats: [
-        { label: 'Forecasted turnout', value: attendance?.expectedAttendance ?? '—', sub: attendance?.attendanceRate ? `${attendance.attendanceRate}% conversion` : 'Estimating' },
-        { label: 'Registered total', value: attendance?.currentRegistrations ?? 0, sub: `+${attendance?.registrationVelocity ?? 0} / 24h` },
-      ],
-      details: [
-        { label: 'Predicted no-shows', value: attendance?.expectedNoShows ?? 0 },
-        { label: 'Confidence level', value: `${attendance?.confidence ?? 75}%` },
-      ],
-      footer: <FooterMeta>{attendance?.lastUpdated ? 'Live synced' : 'Syncing'}</FooterMeta>,
-      link: { to: attendance?.ctaLink || `${eventBase}/eventpulse`, label: attendance?.ctaText || 'View EventPulse' },
-    },
-    {
-      key: 'shield',
-      icon: ShieldCheck,
-      title: 'Safety & Risk Shield',
-      subtitle: 'EventShield Real-Time',
-      danger: safety?.criticalRisksCount > 0,
-      badge: (
-        <Badge variant={safety?.criticalRisksCount > 0 ? 'destructive' : 'success'} className="text-[10px]">
-          {safety?.criticalRisksCount > 0 ? `${safety.criticalRisksCount} critical alert${safety.criticalRisksCount > 1 ? 's' : ''}` : `${safety?.safetyScore ?? 75}/100 safe`}
-        </Badge>
-      ),
-      stats: [
-        { label: 'Safety score', value: safety?.safetyScore ?? 75, sub: `${safety?.currentRiskLevel || 'Low'} risk level` },
-        { label: 'Checklist readiness', value: `${safety?.operationalReadiness ?? 80}%`, sub: `${safety?.openAlertsCount || 0} open alerts` },
-      ],
-      details: [
-        { label: 'Active safety alerts', value: safety?.openAlertsCount || 0, tone: (safety?.openAlertsCount || 0) > 0 ? 'text-warning' : undefined },
-        { label: 'Checklist protocol', value: `${safety?.checklistCompletion || 100}% completed` },
-      ],
-      footer: <FooterMeta icon={ShieldAlert}>{safety?.lastUpdated ? 'Live guard' : 'Active'}</FooterMeta>,
-      link: { to: safety?.ctaLink || `${eventBase}/eventshield`, label: safety?.ctaText || 'Review safety' },
-    },
-    {
-      key: 'queue',
-      icon: Zap,
-      title: 'Queue & Waitlist',
-      subtitle: 'SmartQueue Dynamic Holds',
-      badge: (
-        <Badge variant={queue?.queuePressure === 'High' ? 'warning' : 'secondary'} className="text-[10px]">
-          {queue?.queuePressure || 'Normal'} pressure
-        </Badge>
-      ),
-      stats: [
-        { label: 'Waitlist backlog', value: queue?.waitingCount ?? 0, sub: 'Waiting attendees' },
-        { label: 'Active holds', value: queue?.activeHolds ?? 0, sub: 'Temporary reservations' },
-      ],
-      details: [
-        { label: 'Queue efficiency', value: `${queue?.efficiencyScore ?? 85}/100` },
-        { label: 'Avg claim time', value: queue?.avgClaimTime || 'N/A' },
-      ],
-      footer: <FooterMeta>Dynamic auto-promotion</FooterMeta>,
-      link: { to: queue?.ctaLink || `${eventBase}/smartqueue`, label: queue?.ctaText || 'Manage queue' },
-    },
-    {
-      key: 'trust',
-      icon: Award,
-      title: 'Organizer Trust',
-      subtitle: 'TrustSphere Credibility',
-      badge: <Badge variant={trust?.verified ? 'success' : 'secondary'} className="text-[10px]">{trust?.verified ? 'Verified organizer' : 'Unverified'}</Badge>,
-      stats: [
-        { label: 'Trust score', value: trust?.trustScore ?? 70, sub: `${trust?.trustLevel || 'Standard'} tier` },
-        { label: 'Platform status', value: trust?.verified ? 'KYC verified' : 'Standard', sub: `${trust?.confidenceLevel || 'Moderate'} confidence`, textValue: true },
-      ],
-      details: [
-        { label: 'Credibility signal', value: `“${(trust?.strengths?.[0] || 'Good standing').slice(0, 42)}”` },
-      ],
-      footer: <FooterMeta>{trust?.verified ? 'Credibility guard' : 'Pending verification'}</FooterMeta>,
-      link: { to: trust?.ctaLink || '/dashboard/trust', label: trust?.ctaText || 'View trust' },
-    },
-    {
-      key: 'boost',
-      icon: Sparkles,
-      title: 'Content & SEO Boost',
-      subtitle: 'EventBoost Intelligence',
-      badge: <Badge variant={seo?.seoScore >= 70 ? 'success' : 'secondary'} className="text-[10px]">{seo?.seoScore ?? 50}/100 SEO</Badge>,
-      stats: [
-        { label: 'Content score', value: seo?.contentScore ?? 50, sub: 'Listing quality' },
-        { label: 'Readability', value: seo?.readabilityScore ?? 70, sub: 'Clarity index' },
-      ],
-      details: [
-        { label: 'Top opportunity', value: seo?.mainOpportunity || 'Enhance meta tags & headings with AI' },
-      ],
-      footer: <FooterMeta icon={Sparkles}>SEO Engine V1</FooterMeta>,
-      link: { to: seo?.ctaLink || `${eventBase}/eventboost`, label: seo?.ctaText || 'Optimize event' },
-    },
-    {
-      key: 'rec',
-      icon: TrendingUp,
-      title: 'Discovery Signals',
-      subtitle: 'Recommendation 2.0 Feed',
-      badge: <Badge variant="secondary" className="text-[10px]">{recommendations?.visibilitySignal || 'Emerging'} signal</Badge>,
-      stats: [
-        { label: 'Feed impressions', value: recommendations?.views ?? 0, sub: 'Attendee discovery' },
-        { label: 'Click-through rate', value: `${recommendations?.ctr ?? 0}%`, sub: `${recommendations?.clicks ?? 0} clicks` },
-      ],
-      details: [
-        { label: 'Attendee saves', value: recommendations?.saves ?? 0 },
-        { label: 'Positive feedback', value: recommendations?.feedbackScore ?? 0 },
-      ],
-      footer: <FooterMeta icon={Eye}>Feed visibility</FooterMeta>,
-      link: { to: '/events', label: 'Explore public feed' },
-    },
-  ];
+  const { attendance, safety, queue, trust, seo, recommendations, event } = data;
+
+  // Honest display helper: missing module data renders as an explicit dash,
+  // never as a fabricated default number (spec §22).
+  const fmt = (v) => (v === null || v === undefined ? '—' : v);
 
   return (
-    <section className="space-y-4">
-      <ModuleHeading count={6}>Operational Intelligence Modules</ModuleHeading>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {modules.map((m) => (
-          <AiCard
-            key={m.key}
-            icon={m.icon}
-            title={m.title}
-            subtitle={m.subtitle}
-            badge={m.badge}
-            danger={m.danger}
-            footer={
-              <>
-                {m.footer}
-                <CardLink to={m.link.to} label={m.link.label} />
-              </>
-            }
-          >
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                {m.stats.map((s) => (
-                  <StatTile
-                    key={s.label}
-                    label={s.label}
-                    value={s.value}
-                    sub={s.sub}
-                    valueClassName={s.textValue ? 'text-sm mt-1' : undefined}
-                  />
-                ))}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-base font-bold flex items-center gap-2">
+          <span>Operational Intelligence Modules</span>
+          <span className="text-xs font-semibold text-muted-foreground">(6 Active Systems)</span>
+        </h3>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* 1. Attendance Intelligence (EventPulse) */}
+        <div className="card-interactive p-5 hover:shadow-md transition flex flex-col justify-between space-y-4">
+          <div className="space-y-3">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="grid size-9 place-items-center rounded-xl bg-blue-500/10 text-blue-500">
+                  <Users className="size-5" />
+                </span>
+                <div>
+                  <h4 className="font-bold text-sm text-foreground">Attendance Intelligence</h4>
+                  <p className="text-[11px] text-muted-foreground">EventPulse Predictive AI</p>
+                </div>
               </div>
-              <div className="space-y-1.5 pt-0.5">
-                {m.details.map((d) => (
-                  <DetailRow key={d.label} label={d.label} value={d.value} tone={d.tone} />
-                ))}
+              <Badge variant={attendance?.available ? 'outline' : 'secondary'} className="text-[10px]">
+                {attendance?.available ? 'Active' : 'Awaiting Data'}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="rounded-xl bg-secondary/40 p-2.5">
+                <span className="text-[11px] font-semibold text-muted-foreground block">Forecasted Turnout</span>
+                <span className="text-lg font-black font-display text-foreground block">
+                  {attendance?.expectedAttendance ?? '—'}
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  {attendance?.attendanceRate ? `${attendance.attendanceRate}% conversion` : 'Estimating'}
+                </span>
+              </div>
+
+              <div className="rounded-xl bg-secondary/40 p-2.5">
+                <span className="text-[11px] font-semibold text-muted-foreground block">Registered Total</span>
+                <span className="text-lg font-black font-display text-foreground block">
+                  {attendance?.currentRegistrations ?? 0}
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  +{attendance?.registrationVelocity ?? 0} / 24h
+                </span>
               </div>
             </div>
-          </AiCard>
-        ))}
+
+            <div className="space-y-1.5 text-xs text-muted-foreground pt-1">
+              <div className="flex justify-between items-center">
+                <span>Predicted No-Shows:</span>
+                <strong className="text-foreground">{attendance?.expectedNoShows ?? 0}</strong>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>Confidence Level:</span>
+                <strong className="text-foreground">{attendance?.confidence ?? 75}%</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t flex items-center justify-between">
+            <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <Clock className="size-3" />
+              {attendance?.lastUpdated ? 'Live Synced' : 'Syncing'}
+            </span>
+            <Link
+              to={attendance?.ctaLink || `/dashboard/events/${event?._id}/eventpulse`}
+              className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+            >
+              <span>{attendance?.ctaText || 'View EventPulse'}</span>
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
+        </div>
+
+        {/* 2. Safety Intelligence (EventShield) */}
+        <div className={cn(
+          'rounded-2xl border p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4',
+          safety?.criticalRisksCount > 0 ? 'bg-destructive/5 border-destructive/30' : 'bg-card'
+        )}>
+          <div className="space-y-3">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className={cn(
+                  'grid size-9 place-items-center rounded-xl',
+                  safety?.criticalRisksCount > 0 ? 'bg-destructive/10 text-destructive' : 'bg-emerald-500/10 text-emerald-500'
+                )}>
+                  <ShieldCheck className="size-5" />
+                </span>
+                <div>
+                  <h4 className="font-bold text-sm text-foreground">Safety & Risk Shield</h4>
+                  <p className="text-[11px] text-muted-foreground">EventShield Real-Time</p>
+                </div>
+              </div>
+              <Badge variant={safety?.criticalRisksCount > 0 ? 'destructive' : safety?.available ? 'success' : 'secondary'} className="text-[10px]">
+                {safety?.criticalRisksCount > 0 ? `${safety.criticalRisksCount} Critical Alert` : safety?.available ? `${safety.safetyScore}/100 Safe` : 'No Safety Data'}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="rounded-xl bg-secondary/40 p-2.5">
+                <span className="text-[11px] font-semibold text-muted-foreground block">Safety Score</span>
+                <span className="text-lg font-black font-display text-foreground block">
+                  {fmt(safety?.safetyScore)}
+                </span>
+                <span className="text-[10px] text-muted-foreground capitalize">
+                  {safety?.currentRiskLevel ? `${safety.currentRiskLevel} Risk Level` : 'Risk Level Unavailable'}
+                </span>
+              </div>
+
+              <div className="rounded-xl bg-secondary/40 p-2.5">
+                <span className="text-[11px] font-semibold text-muted-foreground block">Checklist Readiness</span>
+                <span className="text-lg font-black font-display text-foreground block">
+                  {safety?.operationalReadiness ?? 80}%
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  {safety?.openAlertsCount || 0} Open Alerts
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 text-xs text-muted-foreground pt-1">
+              <div className="flex justify-between items-center">
+                <span>Active Safety Alerts:</span>
+                <strong className={safety?.openAlertsCount > 0 ? 'text-amber-500' : 'text-foreground'}>
+                  {safety?.openAlertsCount || 0}
+                </strong>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>Checklist Protocol:</span>
+                <strong className="text-foreground">{safety?.checklistCompletion || 100}% Completed</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t flex items-center justify-between">
+            <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <Clock className="size-3" />
+              {safety?.lastUpdated ? 'Live Guard' : 'Active'}
+            </span>
+            <Link
+              to={safety?.ctaLink || `/dashboard/events/${event?._id}/eventshield`}
+              className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+            >
+              <span>{safety?.ctaText || 'Review Safety'}</span>
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
+        </div>
+
+        {/* 3. Queue Intelligence (SmartQueue) */}
+        <div className="card-interactive p-5 hover:shadow-md transition flex flex-col justify-between space-y-4">
+          <div className="space-y-3">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="grid size-9 place-items-center rounded-xl bg-amber-500/10 text-amber-500">
+                  <Zap className="size-5" />
+                </span>
+                <div>
+                  <h4 className="font-bold text-sm text-foreground">Queue & Waitlist</h4>
+                  <p className="text-[11px] text-muted-foreground">SmartQueue Dynamic Holds</p>
+                </div>
+              </div>
+              <Badge variant={queue?.queuePressure === 'High' ? 'warning' : 'outline'} className="text-[10px]">
+                {queue?.queuePressure || 'Normal'} Pressure
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="rounded-xl bg-secondary/40 p-2.5">
+                <span className="text-[11px] font-semibold text-muted-foreground block">Waitlist Backlog</span>
+                <span className="text-lg font-black font-display text-foreground block">
+                  {queue?.waitingCount ?? 0}
+                </span>
+                <span className="text-[10px] text-muted-foreground">Waiting attendees</span>
+              </div>
+
+              <div className="rounded-xl bg-secondary/40 p-2.5">
+                <span className="text-[11px] font-semibold text-muted-foreground block">Active Holds</span>
+                <span className="text-lg font-black font-display text-foreground block">
+                  {queue?.activeHolds ?? 0}
+                </span>
+                <span className="text-[10px] text-muted-foreground">Temporary reservations</span>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 text-xs text-muted-foreground pt-1">
+              <div className="flex justify-between items-center">
+                <span>Queue Efficiency:</span>
+                <strong className="text-foreground">{fmt(queue?.efficiencyScore)}/100</strong>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>Avg Claim Time:</span>
+                <strong className="text-foreground">{queue?.avgClaimTime || 'N/A'}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t flex items-center justify-between">
+            <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <Clock className="size-3" />
+              Dynamic Auto-Promotion
+            </span>
+            <Link
+              to={queue?.ctaLink || `/dashboard/events/${event?._id}/smartqueue`}
+              className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+            >
+              <span>{queue?.ctaText || 'Manage Queue'}</span>
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
+        </div>
+
+        {/* 4. Organizer Trust (TrustSphere) */}
+        <div className="card-interactive p-5 hover:shadow-md transition flex flex-col justify-between space-y-4">
+          <div className="space-y-3">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="grid size-9 place-items-center rounded-xl bg-purple-500/10 text-purple-500">
+                  <Award className="size-5" />
+                </span>
+                <div>
+                  <h4 className="font-bold text-sm text-foreground">Organizer Trust</h4>
+                  <p className="text-[11px] text-muted-foreground">TrustSphere Credibility</p>
+                </div>
+              </div>
+              <Badge variant={trust?.verified ? 'success' : 'outline'} className="text-[10px]">
+                {trust?.verified ? 'Verified Organizer' : 'Unverified'}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="rounded-xl bg-secondary/40 p-2.5">
+                <span className="text-[11px] font-semibold text-muted-foreground block">Trust Score</span>
+                <span className="text-lg font-black font-display text-foreground block">
+                  {fmt(trust?.trustScore)}
+                </span>
+                <span className="text-[10px] text-muted-foreground">{trust?.trustLevel ? `${trust.trustLevel} Tier` : 'Tier Unavailable'}</span>
+              </div>
+
+              <div className="rounded-xl bg-secondary/40 p-2.5">
+                <span className="text-[11px] font-semibold text-muted-foreground block">Platform Status</span>
+                <span className="text-sm font-bold text-foreground block mt-1">
+                  {trust?.verified ? 'KYC Verified' : 'Standard'}
+                </span>
+                <span className="text-[10px] text-muted-foreground">{trust?.confidenceLevel || 'Moderate'} Confidence</span>
+              </div>
+            </div>
+
+            <div className="space-y-1 text-xs text-muted-foreground pt-1">
+              <p className="line-clamp-2 italic">
+                "{trust?.strengths?.[0] || 'Established event organizer with good standing'}"
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t flex items-center justify-between">
+            <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <CheckCircle2 className="size-3 text-purple-500" />
+              Credibility Guard
+            </span>
+            <Link
+              to={trust?.ctaLink || `/dashboard/trust`}
+              className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+            >
+              <span>{trust?.ctaText || 'View Trust'}</span>
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
+        </div>
+
+        {/* 5. EventBoost AI (SEO & Content) */}
+        <div className="card-interactive p-5 hover:shadow-md transition flex flex-col justify-between space-y-4">
+          <div className="space-y-3">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="grid size-9 place-items-center rounded-xl bg-pink-500/10 text-pink-500">
+                  <Sparkles className="size-5" />
+                </span>
+                <div>
+                  <h4 className="font-bold text-sm text-foreground">Content & SEO Boost</h4>
+                  <p className="text-[11px] text-muted-foreground">EventBoost Intelligence</p>
+                </div>
+              </div>
+              <Badge variant={seo?.seoScore >= 70 ? 'success' : 'outline'} className="text-[10px]">
+                {fmt(seo?.seoScore)}/100 SEO
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="rounded-xl bg-secondary/40 p-2.5">
+                <span className="text-[11px] font-semibold text-muted-foreground block">Content Score</span>
+                <span className="text-lg font-black font-display text-foreground block">
+                  {fmt(seo?.contentScore)}
+                </span>
+                <span className="text-[10px] text-muted-foreground">Listing quality</span>
+              </div>
+
+              <div className="rounded-xl bg-secondary/40 p-2.5">
+                <span className="text-[11px] font-semibold text-muted-foreground block">Readability</span>
+                <span className="text-lg font-black font-display text-foreground block">
+                  {fmt(seo?.readabilityScore)}
+                </span>
+                <span className="text-[10px] text-muted-foreground">Clarity index</span>
+              </div>
+            </div>
+
+            <div className="space-y-1 text-xs text-muted-foreground pt-1">
+              <span className="text-[11px] font-semibold text-muted-foreground block">Top Opportunity:</span>
+              <p className="line-clamp-2 text-foreground font-medium">
+                {seo?.mainOpportunity || 'Run EventBoost analysis to see optimization opportunities.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t flex items-center justify-between">
+            <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <Sparkles className="size-3 text-pink-500" />
+              SEO Engine V1
+            </span>
+            <Link
+              to={seo?.ctaLink || `/dashboard/events/${event?._id}/eventboost`}
+              className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+            >
+              <span>{seo?.ctaText || 'Optimize Event'}</span>
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
+        </div>
+
+        {/* 6. Recommendation 2.0 Discovery Signals */}
+        <div className="card-interactive p-5 hover:shadow-md transition flex flex-col justify-between space-y-4">
+          <div className="space-y-3">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="grid size-9 place-items-center rounded-xl bg-indigo-500/10 text-indigo-500">
+                  <TrendingUp className="size-5" />
+                </span>
+                <div>
+                  <h4 className="font-bold text-sm text-foreground">Discovery Signals</h4>
+                  <p className="text-[11px] text-muted-foreground">Recommendation 2.0 Feed</p>
+                </div>
+              </div>
+              <Badge variant="outline" className="text-[10px]">
+                {recommendations?.visibilitySignal || 'Emerging'} Signal
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="rounded-xl bg-secondary/40 p-2.5">
+                <span className="text-[11px] font-semibold text-muted-foreground block">Feed Impressions</span>
+                <span className="text-lg font-black font-display text-foreground block">
+                  {recommendations?.views ?? 0}
+                </span>
+                <span className="text-[10px] text-muted-foreground">Attendee discovery</span>
+              </div>
+
+              <div className="rounded-xl bg-secondary/40 p-2.5">
+                <span className="text-[11px] font-semibold text-muted-foreground block">Click-Through Rate</span>
+                <span className="text-lg font-black font-display text-foreground block">
+                  {recommendations?.ctr ?? 0}%
+                </span>
+                <span className="text-[10px] text-muted-foreground">{recommendations?.clicks ?? 0} clicks</span>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 text-xs text-muted-foreground pt-1">
+              <div className="flex justify-between items-center">
+                <span>Attendee Saves & Bookmarks:</span>
+                <strong className="text-foreground">{recommendations?.saves ?? 0}</strong>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>Positive Recommendation Feedback:</span>
+                <strong className="text-foreground">{recommendations?.feedbackScore ?? 0}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t flex items-center justify-between">
+            <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <Eye className="size-3" />
+              Feed Visibility
+            </span>
+            <Link
+              to="/events"
+              className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+            >
+              <span>Explore Public Feed</span>
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
   );
 }

@@ -99,7 +99,7 @@ const getMyAiInsights = asyncHandler(async (req, res) => {
     requestingUserId: req.user._id,
   });
 
-  if (forceRefresh || !profile.aiInsights || !profile.aiInsights.executiveSummary) {
+  if (forceRefresh || !profile.aiInsights || !profile.aiInsights.summary) {
     const aiInsights = await aiInsightsService.getAiTrustInsights(profile, { forceFresh: forceRefresh });
     await OrganizerTrustProfile.updateOne(
       { organizer: req.user._id },
@@ -145,6 +145,7 @@ const getAdminTrustAnalytics = asyncHandler(async (req, res) => {
     totalProfiles,
     levelDistribution,
     verifiedStats,
+    scoreBands,
     flaggedProfiles,
     recentSnapshots,
   ] = await Promise.all([
@@ -161,8 +162,19 @@ const getAdminTrustAnalytics = asyncHandler(async (req, res) => {
     OrganizerTrustProfile.aggregate([
       {
         $group: {
-          _id: '$verified.isPlatformVerified',
+          _id: '$verified',
           count: { $sum: 1 },
+        },
+      },
+    ]),
+    // Score-band distribution (90-100 / 80-89 / ... / below 60) — CORE FEATURE 37
+    OrganizerTrustProfile.aggregate([
+      {
+        $bucket: {
+          groupBy: '$trustScore',
+          boundaries: [0, 40, 60, 70, 80, 90, 101],
+          default: 'unknown',
+          output: { count: { $sum: 1 } },
         },
       },
     ]),
@@ -212,6 +224,7 @@ const getAdminTrustAnalytics = asyncHandler(async (req, res) => {
     verifiedCount,
     verifiedPercentage,
     distribution: levelsMap,
+    scoreBandDistribution,
     flaggedOrganizers: flaggedProfiles.map((p) => ({
       _id: p._id,
       organizer: p.organizer,

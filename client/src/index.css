@@ -2,91 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================================
-   EventSphere Design Tokens
-   Light: clean paper surfaces, deep electric violet primary.
-   Dark: layered slate surfaces with tuned contrast per token.
-   All components must consume these tokens — no raw palette
-   colors in feature code.
-   ============================================================ */
 @layer base {
   :root {
-    /* Surfaces */
-    --background: 240 20% 98.5%;
-    --foreground: 240 22% 10%;
+    --background: 240 20% 99%;
+    --foreground: 240 24% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 240 22% 10%;
-    --card-hover: 240 14% 97.5%;
-    --muted: 240 14% 95.5%;
-    --muted-foreground: 240 8% 42%;
-    --secondary: 240 15% 95.5%;
-    --secondary-foreground: 240 12% 26%;
-
-    /* Brand */
-    --primary: 258 70% 52%;
-    --primary-hover: 258 72% 46%;
+    --card-foreground: 240 24% 12%;
+    --primary: 256 80% 56%;
     --primary-foreground: 0 0% 100%;
-    --accent: 256 65% 96.5%;
-    --accent-foreground: 258 65% 42%;
-
-    /* Semantic */
-    --destructive: 0 72% 51%;
+    --secondary: 240 16% 96%;
+    --secondary-foreground: 240 18% 20%;
+    --muted: 240 16% 96%;
+    --muted-foreground: 240 8% 44%;
+    --accent: 256 80% 95%;
+    --accent-foreground: 256 80% 36%;
+    --destructive: 0 74% 54%;
     --destructive-foreground: 0 0% 100%;
-    --success: 160 78% 32%;
+    --success: 152 68% 36%;
     --success-foreground: 0 0% 100%;
-    --warning: 32 95% 42%;
+    --warning: 32 92% 46%;
     --warning-foreground: 0 0% 100%;
-    --info: 201 94% 38%;
+    --info: 199 89% 44%;
     --info-foreground: 0 0% 100%;
-
-    /* Lines, focus, overlay */
     --border: 240 12% 90%;
-    --border-strong: 240 10% 82%;
-    --input: 240 12% 89%;
-    --ring: 258 70% 58%;
-    --overlay: 240 12% 8%;
-
-    /* Shape & depth */
-    --radius: 0.625rem;
-    --shadow-color: 245 35% 22%;
+    --input: 240 12% 88%;
+    --ring: 256 80% 56%;
+    --radius: 0.75rem;
+    --shadow-color: 240 40% 20%;
   }
 
   .dark {
-    /* Surfaces */
-    --background: 240 14% 6.5%;
-    --foreground: 240 14% 95%;
-    --card: 240 12% 9.5%;
-    --card-foreground: 240 14% 95%;
-    --card-hover: 240 10% 13%;
-    --muted: 240 10% 14.5%;
-    --muted-foreground: 240 8% 63%;
-    --secondary: 240 10% 14.5%;
-    --secondary-foreground: 240 10% 88%;
-
-    /* Brand — bright violet on dark surfaces, dark ink text on fills */
-    --primary: 257 90% 70%;
-    --primary-hover: 257 92% 78%;
-    --primary-foreground: 258 45% 10%;
-    --accent: 256 45% 20%;
-    --accent-foreground: 256 90% 88%;
-
-    /* Semantic */
-    --destructive: 0 80% 66%;
-    --destructive-foreground: 0 70% 8%;
-    --success: 158 66% 55%;
-    --success-foreground: 160 60% 8%;
-    --warning: 38 95% 58%;
-    --warning-foreground: 35 80% 10%;
-    --info: 199 95% 64%;
-    --info-foreground: 200 70% 8%;
-
-    /* Lines, focus, overlay */
-    --border: 240 10% 17%;
-    --border-strong: 240 8% 26%;
-    --input: 240 10% 19%;
-    --ring: 257 90% 70%;
-    --overlay: 240 20% 3%;
-
+    --background: 240 18% 7%;
+    --foreground: 240 20% 96%;
+    --card: 240 16% 10%;
+    --card-foreground: 240 20% 96%;
+    --primary: 256 85% 70%;
+    --primary-foreground: 240 30% 8%;
+    --secondary: 240 12% 16%;
+    --secondary-foreground: 240 20% 92%;
+    --muted: 240 12% 16%;
+    --muted-foreground: 240 10% 62%;
+    --accent: 256 50% 22%;
+    --accent-foreground: 256 90% 90%;
+    --destructive: 0 70% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 55% 50%;
+    --success-foreground: 240 30% 8%;
+    --warning: 32 90% 58%;
+    --warning-foreground: 240 30% 8%;
+    --info: 199 90% 62%;
+    --info-foreground: 240 30% 8%;
+    --border: 240 12% 20%;
+    --input: 240 12% 24%;
+    --ring: 256 85% 70%;
     --shadow-color: 0 0% 0%;
   }
 
@@ -105,21 +73,19 @@
     @apply font-display tracking-tight;
   }
   ::selection {
-    background: hsl(var(--primary) / 0.22);
+    background: hsl(var(--primary) / 0.25);
   }
-
-  /* Keyboard focus — visible, consistent, only for keyboard users */
+  /* Focus visibility */
   :focus-visible {
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
     border-radius: 4px;
   }
-
   /* Scrollbar */
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.28);
+    background: hsl(var(--muted-foreground) / 0.25);
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: content-box;
@@ -137,61 +103,64 @@
 }
 
 @layer components {
-  /* Frosted navigation surface */
   .glass {
-    @apply bg-background/80 backdrop-blur-xl;
+    @apply bg-card/75 backdrop-blur-xl border border-border/70;
   }
-
-  /* Brand gradient — reserved for the logo mark and AI accents only */
   .gradient-text {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(110deg, hsl(var(--primary)), hsl(var(--info)));
+    background-image: linear-gradient(110deg, hsl(256 80% 58%), hsl(226 85% 56%));
   }
   .gradient-brand {
-    background-image: linear-gradient(135deg, hsl(258 75% 55%), hsl(240 85% 60%));
+    background-image: linear-gradient(135deg, hsl(256 78% 56%), hsl(230 80% 52%));
   }
-
-  /* Interactive card — border sharpens and shadow lifts on hover */
   .card-hover {
-    @apply transition-all duration-200 ease-out;
-  }
-  .card-hover:hover {
-    @apply -translate-y-0.5 border-border-strong shadow-lift;
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lift;
   }
 
-  /* Featured (AI) card — 1px gradient hairline border on card surface */
+  /* ---- Card hierarchy (spec §6): L1 surface / L2 interactive / L3 featured AI ---- */
+  .card-surface {
+    @apply rounded-xl border bg-card text-card-foreground shadow-soft;
+  }
+  .card-interactive {
+    @apply card-surface transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift;
+  }
   .card-featured {
-    position: relative;
-    border: 1px solid transparent;
-    background:
-      linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
-      linear-gradient(135deg, hsl(var(--primary) / 0.45), hsl(var(--info) / 0.25) 55%, hsl(var(--border))) border-box;
+    @apply card-surface relative overflow-hidden;
+  }
+  .card-featured::before {
+    content: '';
+    @apply absolute inset-x-0 top-0 h-px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.55), transparent);
   }
 
-  /* Skeleton shimmer */
+  /* ---- Premium table treatment (spec §12) ---- */
+  .table-premium {
+    @apply w-full text-sm;
+  }
+  .table-premium thead th {
+    @apply border-b bg-muted/40 px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground;
+  }
+  .table-premium tbody td {
+    @apply border-b border-border/60 px-4 py-3 align-middle;
+  }
+  .table-premium tbody tr {
+    @apply transition-colors hover:bg-muted/40;
+  }
+  .table-premium tbody tr:last-child td {
+    @apply border-b-0;
+  }
   .skeleton {
     @apply relative overflow-hidden bg-muted rounded-md;
   }
   .skeleton::after {
     content: '';
     @apply absolute inset-0;
-    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.05), transparent);
+    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.06), transparent);
     transform: translateX(-100%);
     animation: shimmer 1.6s infinite;
   }
-
-  /* Horizontal scroll strips (tab bars) fade out at the edges */
-  .scroll-fade-x {
-    -webkit-mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
-    mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
-  }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-  /* Numeric emphasis — aligned digits for dashboards */
-  .tabular {
-    font-variant-numeric: tabular-nums;
-  }
 }
 
 /* Leaflet (map) dark tweaks */

@@ -35,15 +35,77 @@ export function useGlobalSocket() {
       toast.message(`💬 ${m.senderName}`, { description: m.text });
     };
 
+    // ---- SmartQueue AI real-time events (FEATURES 2/8/26/68) ----
+    const onSeatHeld = (d) => {
+      qc.invalidateQueries({ queryKey: ['smartqueue-hold'] });
+      qc.invalidateQueries({ queryKey: ['event', d?.eventId] });
+      toast('⚡ A seat opened for you!', {
+        description: `${d?.eventTitle || 'An event'} — complete your claim before the countdown ends.`,
+        icon: '🎟',
+        duration: 15000,
+      });
+    };
+    const onHoldExpired = (d) => {
+      qc.invalidateQueries({ queryKey: ['smartqueue-hold'] });
+      qc.invalidateQueries({ queryKey: ['my-waitlist'] });
+      toast.error(`Seat reservation expired${d?.eventTitle ? ` — ${d.eventTitle}` : ''}`, {
+        description: 'The seat was released. You are back on the waitlist.',
+      });
+    };
+    const onReminder = (d) => {
+      toast(`⏳ Only ${d?.remainingMinutes ?? 'a few'} minute(s) left!`, {
+        description: 'Your temporary seat reservation is about to expire.',
+        duration: 10000,
+      });
+    };
+    const onPosition = (d) => {
+      qc.invalidateQueries({ queryKey: ['my-waitlist'] });
+      qc.invalidateQueries({ queryKey: ['events'] });
+      if (d?.position) {
+        toast.message(`Waitlist update: you are now #${d.position}`, {
+          description: d.previousPosition ? `Moved from #${d.previousPosition} → #${d.position}` : undefined,
+        });
+      }
+    };
+    const onQueueUpdate = () => {
+      qc.invalidateQueries({ queryKey: ['smartqueue-metrics'] });
+      qc.invalidateQueries({ queryKey: ['events'] });
+    };
+
+    // ---- TrustSphere real-time updates (CORE FEATURE 36) ----
+    const onTrustUpdated = (d) => {
+      qc.invalidateQueries({ queryKey: ['my-trust'] });
+      qc.invalidateQueries({ queryKey: ['my-trust-history'] });
+      qc.invalidateQueries({ queryKey: ['trust'] });
+      if (d?.scoreDelta) {
+        toast(d.scoreDelta > 0 ? `Trust score up ${d.scoreDelta} → ${d.trustScore}` : `Trust score down ${Math.abs(d.scoreDelta)} → ${d.trustScore}`, {
+          description: d.trigger ? `Trigger: ${d.trigger.replace(/_/g, ' ').toLowerCase()}` : undefined,
+          icon: d.scoreDelta > 0 ? '📈' : '📉',
+        });
+      }
+    };
+
     socket.on('notification:new', onNotification);
     socket.on('points:awarded', onPoints);
     socket.on('badge:awarded', onBadge);
     socket.on('dm:message', onDM);
+    socket.on('smartqueue:seat_held', onSeatHeld);
+    socket.on('smartqueue:hold_expired', onHoldExpired);
+    socket.on('smartqueue:reminder', onReminder);
+    socket.on('smartqueue:position', onPosition);
+    socket.on('smartqueue:update', onQueueUpdate);
+    socket.on('trust:updated', onTrustUpdated);
     return () => {
       socket.off('notification:new', onNotification);
       socket.off('points:awarded', onPoints);
       socket.off('badge:awarded', onBadge);
       socket.off('dm:message', onDM);
+      socket.off('smartqueue:seat_held', onSeatHeld);
+      socket.off('smartqueue:hold_expired', onHoldExpired);
+      socket.off('smartqueue:reminder', onReminder);
+      socket.off('smartqueue:position', onPosition);
+      socket.off('smartqueue:update', onQueueUpdate);
+      socket.off('trust:updated', onTrustUpdated);
     };
   }, [token, qc, user?.id]);
 }

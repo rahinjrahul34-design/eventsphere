@@ -55,20 +55,20 @@ export default function AdminUsers() {
         <CardContent className="p-0">
           {usersQ.isLoading ? <Spinner /> : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[540px] text-sm">
+              <table className="table-premium">
                 <thead>
-                  <tr className="border-b bg-muted/40 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    <th className="whitespace-nowrap px-4 py-3">User</th>
-                    <th className="whitespace-nowrap px-4 py-3">Role</th>
-                    <th className="whitespace-nowrap px-4 py-3">Organizer status</th>
-                    <th className="whitespace-nowrap px-4 py-3">Joined</th>
-                    <th className="whitespace-nowrap px-4 py-3">State</th>
+                  <tr className="border-b text-left text-xs uppercase text-muted-foreground">
+                    <th className="p-3">User</th>
+                    <th className="p-3">Role</th>
+                    <th className="p-3">Organizer status</th>
+                    <th className="p-3">Joined</th>
+                    <th className="p-3">State</th>
                     <th className="p-3" />
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody>
                   {(usersQ.data || []).map((u) => (
-                    <tr key={u._id} className="transition-colors duration-100 hover:bg-muted/40 hover:bg-muted/40">
+                    <tr key={u._id} className="border-b last:border-0 hover:bg-muted/40">
                       <td className="p-3">
                         <div className="flex items-center gap-2.5">
                           <Avatar name={u.name} src={u.avatar} className="size-9" />

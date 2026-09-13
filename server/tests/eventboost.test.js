@@ -465,3 +465,85 @@ describe('EventBoost AI — Comprehensive SEO & Content Intelligence Test Suite'
     expect(res.body.data.answer).toBeTruthy();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Server-side SEO infrastructure (robots.txt, sitemap.xml, head injection)
+// ---------------------------------------------------------------------------
+describe('EventBoost AI — Server-Side SEO Infrastructure', () => {
+  let publishedEvent;
+  let draftEvent;
+
+  beforeAll(async () => {
+    await connectDB();
+    publishedEvent = await Event.create({
+      title: 'EventBoost Sitemap Published Summit',
+      shortDescription: 'A published public event that must appear in sitemap and head injection.',
+      description: 'Published event body content for crawler verification tests.',
+      slug: 'eventboost-sitemap-published-summit',
+      eventType: 'offline',
+      status: 'published',
+      visibility: 'public',
+      approvalStatus: 'approved',
+      startDate: new Date(Date.now() + 10 * 86400000),
+      endDate: new Date(Date.now() + 11 * 86400000),
+      venue: { name: 'Summit Hall', city: 'Nashik' },
+      organizer: new (require('mongoose').Types.ObjectId)(),
+    });
+    draftEvent = await Event.create({
+      title: 'EventBoost Secret Draft Planning',
+      shortDescription: 'Draft event details must never leak into crawler-visible markup.',
+      description: 'Secret draft body.',
+      slug: 'eventboost-secret-draft-planning',
+      eventType: 'offline',
+      status: 'draft',
+      visibility: 'public',
+      organizer: new (require('mongoose').Types.ObjectId)(),
+    });
+  });
+
+  afterAll(async () => {
+    await Event.deleteMany({ slug: { $in: ['eventboost-sitemap-published-summit', 'eventboost-secret-draft-planning'] } });
+    await disconnectDB();
+  });
+
+  // 33. robots.txt
+  test('33. robots.txt is served with crawl directives and sitemap reference', async () => {
+    const res = await request(app).get('/robots.txt');
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('text/plain');
+    expect(res.text).toContain('User-agent: *');
+    expect(res.text).toContain('Disallow: /dashboard/');
+    expect(res.text).toContain('Sitemap:');
+  });
+
+  // 34. sitemap.xml
+  test('34. sitemap.xml includes published public events and excludes drafts', async () => {
+    const res = await request(app).get('/sitemap.xml');
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('application/xml');
+    expect(res.text).toContain('<urlset');
+    expect(res.text).toContain('/events/eventboost-sitemap-published-summit');
+    expect(res.text).not.toContain('eventboost-secret-draft-planning');
+  });
+
+  // 35. Server-side head injection for published event
+  test('35. Published event page HTML is injected with meta, OG and Event JSON-LD', async () => {
+    const res = await request(app).get(`/events/${publishedEvent.slug}`);
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('<!--eventboost-seo-->');
+    expect(res.text).toContain('<title>');
+    expect(res.text).toContain('property="og:title"');
+    expect(res.text).toContain('rel="canonical"');
+    expect(res.text).toContain('"@type":"Event"');
+    expect(res.text).toContain('content="index, follow"');
+  });
+
+  // 36. Draft events never leak into server-rendered head
+  test('36. Draft event page does not leak draft title or structured data', async () => {
+    const res = await request(app).get(`/events/${draftEvent.slug}`);
+    expect(res.status).toBe(200);
+    expect(res.text).not.toContain('EventBoost Secret Draft Planning');
+    expect(res.text).not.toContain('Secret draft body');
+    expect(res.text).not.toContain('"@type":"Event"');
+  });
+});

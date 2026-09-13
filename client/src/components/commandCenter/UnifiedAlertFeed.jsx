@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, AlertOctagon, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Bell, AlertOctagon, AlertTriangle, Info, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { cn } from '../../lib/utils';
 
@@ -15,7 +15,7 @@ export default function UnifiedAlertFeed({ alerts = [] }) {
   });
 
   return (
-    <div className="rounded-xl border bg-card p-5 shadow-soft space-y-4 sm:p-6">
+    <div className="card-surface p-6 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4">
         <div className="flex items-center gap-2.5">
           <span className="grid size-8 place-items-center rounded-xl bg-secondary text-foreground">
@@ -46,8 +46,8 @@ export default function UnifiedAlertFeed({ alerts = [] }) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed px-4 py-8 text-center space-y-1.5">
-          <ShieldCheck className="size-6 text-success mx-auto" />
+        <div className="rounded-xl border border-dashed py-8 px-4 text-center space-y-1.5">
+          <ShieldCheck className="size-6 text-emerald-500 mx-auto" />
           <p className="text-xs font-semibold text-foreground">Operational Clear</p>
           <p className="text-xs text-muted-foreground">Zero active alerts matching the selected filter.</p>
         </div>
@@ -58,13 +58,13 @@ export default function UnifiedAlertFeed({ alerts = [] }) {
               key={alert.id}
               className={cn(
                 'rounded-xl border p-3.5 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3',
-                alert.severity === 'critical' ? 'border-destructive/30 bg-destructive/[0.04]' : 'border-border bg-secondary/25'
+                alert.severity === 'critical' ? 'bg-destructive/5 border-destructive/30' : 'bg-secondary/20'
               )}
             >
               <div className="flex items-start gap-3">
                 <span className={cn(
                   'grid size-7 shrink-0 place-items-center rounded-lg mt-0.5',
-                  alert.severity === 'critical' ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning'
+                  alert.severity === 'critical' ? 'bg-destructive/10 text-destructive' : 'bg-amber-500/10 text-amber-500'
                 )}>
                   {alert.severity === 'critical' ? <AlertOctagon className="size-4" /> : <AlertTriangle className="size-4" />}
                 </span>

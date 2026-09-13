@@ -30,6 +30,12 @@ async function checkEligibility({ eventId, userId, waitlistEntry = null, eventDo
       return { eligible: false, reason: 'Event has already concluded' };
     }
 
+    // Registration closure gate (CORE FEATURE 35): never promote after the
+    // organizer's registration deadline has passed.
+    if (event.registrationDeadline && new Date(event.registrationDeadline) < new Date()) {
+      return { eligible: false, reason: 'Registration has closed for this event' };
+    }
+
     // Check user status
     const user = await User.findById(userId);
     if (!user) {

@@ -284,7 +284,7 @@ function extractModuleActions({
         actionType: 'low_seo_score',
         title: 'Search & Content Discoverability Below Target',
         problem: `Event SEO score is ${boostProfile.seoScore}/100. Missing key meta tags or primary keywords.`,
-        whyItMatters: 'Search-optimized event listings rank higher on Google SERP and attract 3x more organic registrations.',
+        whyItMatters: 'Search-optimized listings are easier for search engines and attendees to discover, directly supporting organic reach.',
         recommendedAction: 'Use EventBoost AI One-Click Optimize to generate meta tags and clear structured descriptions.',
         ctaText: 'Optimize with AI',
         ctaLink: `/dashboard/events/${eventId}/eventboost`,

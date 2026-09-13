@@ -6,9 +6,9 @@ export function Skeleton({ className = '' }) {
 
 export function CardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-xl border bg-card">
+    <div className="rounded-xl border bg-card overflow-hidden">
       <Skeleton className="h-44 rounded-none" />
-      <div className="space-y-3 p-5">
+      <div className="p-4 space-y-3">
         <Skeleton className="h-4 w-24" />
         <Skeleton className="h-5 w-3/4" />
         <Skeleton className="h-4 w-1/2" />
@@ -21,9 +21,39 @@ export function CardSkeleton() {
   );
 }
 
-export function GridSkeleton({ count = 6, className }) {
+export function TableSkeleton({ rows = 5, cols = 4 }) {
   return (
-    <div className={cn('grid gap-5 sm:grid-cols-2 lg:grid-cols-3', className)}>
+    <div className="card-surface overflow-hidden" aria-hidden="true">
+      <div className="border-b bg-muted/40 px-4 py-3 flex gap-4">
+        {Array.from({ length: cols }).map((_, i) => (
+          <Skeleton key={i} className="h-3 flex-1" />
+        ))}
+      </div>
+      {Array.from({ length: rows }).map((_, r) => (
+        <div key={r} className="border-b border-border/60 px-4 py-3.5 flex items-center gap-4 last:border-b-0">
+          {Array.from({ length: cols }).map((_, c) => (
+            <Skeleton key={c} className={cn('h-4 flex-1', c === 0 && 'max-w-[180px]')} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function PanelSkeleton({ lines = 4, className = '' }) {
+  return (
+    <div className={cn('card-surface p-5 space-y-3', className)} aria-hidden="true">
+      <Skeleton className="h-4 w-32" />
+      {Array.from({ length: lines }).map((_, i) => (
+        <Skeleton key={i} className={cn('h-4', i === lines - 1 ? 'w-2/3' : 'w-full')} />
+      ))}
+    </div>
+  );
+}
+
+export function GridSkeleton({ count = 6 }) {
+  return (
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: count }).map((_, i) => (
         <CardSkeleton key={i} />
       ))}
@@ -31,11 +61,12 @@ export function GridSkeleton({ count = 6, className }) {
   );
 }
 
+/** Stat-card row placeholder */
 export function StatsSkeleton({ count = 4 }) {
   return (
     <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="rounded-xl border bg-card p-5 shadow-soft">
+        <div key={i} className="card-surface p-5">
           <div className="flex items-start justify-between">
             <Skeleton className="size-10 rounded-lg" />
             <Skeleton className="h-4 w-12" />
@@ -48,31 +79,12 @@ export function StatsSkeleton({ count = 4 }) {
   );
 }
 
-/** Skeleton rows that match the shared table metrics */
-export function TableSkeleton({ rows = 5, cols = 4 }) {
-  return (
-    <div className="overflow-hidden rounded-xl border bg-card shadow-soft">
-      <div className="flex gap-4 border-b bg-muted/40 px-4 py-3">
-        {Array.from({ length: cols }).map((_, i) => (
-          <Skeleton key={i} className="h-3 flex-1" />
-        ))}
-      </div>
-      {Array.from({ length: rows }).map((_, r) => (
-        <div key={r} className="flex items-center gap-4 border-b px-4 py-3.5 last:border-0">
-          {Array.from({ length: cols }).map((_, c) => (
-            <Skeleton key={c} className={cn('h-4', c === 0 ? 'h-9 flex-[1.5]' : 'flex-1')} />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-
+/** Row-list placeholder (avatar + lines + action) */
 export function ListSkeleton({ rows = 4 }) {
   return (
     <div className="space-y-3">
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3.5 rounded-xl border bg-card p-4">
+        <div key={i} className="card-surface flex items-center gap-3.5 p-4">
           <Skeleton className="size-10 shrink-0 rounded-full" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-1/3" />
@@ -85,10 +97,10 @@ export function ListSkeleton({ rows = 4 }) {
   );
 }
 
-/** Chart placeholder with axes hint */
+/** Chart placeholder with bar hint */
 export function ChartSkeleton({ height = 260 }) {
   return (
-    <div className="rounded-xl border bg-card p-5 shadow-soft">
+    <div className="card-surface p-5">
       <Skeleton className="mb-4 h-4 w-40" />
       <div className="flex items-end gap-2" style={{ height }}>
         {[35, 55, 40, 70, 50, 85, 60, 75, 45, 65].map((h, i) => (

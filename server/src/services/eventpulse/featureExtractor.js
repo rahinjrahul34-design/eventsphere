@@ -123,6 +123,7 @@ async function extractEventFeatures(eventId) {
       _id: event._id,
       title: event.title,
       slug: event.slug,
+      organizer: event.organizer,
       categorySlug: event.categorySlug || 'technology',
       eventType: event.eventType || 'offline',
       capacity: currentCapacity,

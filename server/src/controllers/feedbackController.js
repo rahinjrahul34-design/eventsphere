@@ -3,6 +3,7 @@ const Event = require('../models/Event');
 const Registration = require('../models/Registration');
 const ApiError = require('../utils/ApiError');
 const { asyncHandler, ok, created } = require('../utils/response');
+const { scheduleEventPulseRecalc } = require('../services/eventpulse/recalcScheduler');
 
 const POSITIVE_WORDS = ['great', 'amazing', 'excellent', 'loved', 'awesome', 'fantastic', 'good', 'wonderful', 'inspiring', 'best', 'helpful'];
 const NEGATIVE_WORDS = ['bad', 'poor', 'terrible', 'worst', 'disappointed', 'late', 'broken', 'rude', 'chaos', 'awful'];
@@ -33,6 +34,9 @@ const submitFeedback = asyncHandler(async (req, res) => {
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
   created(res, feedback);
+
+  // EventPulse AI: feedback affects sentiment/engagement → debounced recalculation
+  scheduleEventPulseRecalc(event._id, 'feedback');
 
   // Asynchronously update organizer's TrustSphere profile when new feedback is received
   if (event.organizer) {

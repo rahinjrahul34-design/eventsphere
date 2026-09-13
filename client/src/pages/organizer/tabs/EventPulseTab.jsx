@@ -1,7 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Activity, TrendingUp, Users, UserX, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, BarChart3, Sliders, Send, Clock, ShieldCheck, Info, Zap } from 'lucide-react';
+import {
+  Activity, TrendingUp, Users, UserX, Flame, Sparkles, RefreshCw,
+  AlertTriangle, CheckCircle2, ChevronRight, HelpCircle, MessageSquare,
+  BarChart3, Sliders, Send, Clock, ShieldCheck, ArrowUpRight, ArrowDownRight,
+  Minus, Info, Check, Play, Zap,
+} from 'lucide-react';
 import { endpoints } from '../../../lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
@@ -14,19 +19,28 @@ import { toast } from 'sonner';
 export default function EventPulseTab() {
   const { event } = useOutletContext();
   const qc = useQueryClient();
+  const navigate = useNavigate();
+
+  // Maps each action trigger to the EventSphere tab where the organizer
+  // can actually execute it — the Action Center never shows dead buttons.
+  const ACTION_TARGETS = {
+    velocity_slowdown: 'eventboost',
+    high_noshow_rate: 'live',
+    capacity_pressure: 'registrations',
+    live_engagement_lag: 'live',
+    early_qa_warmup: 'live',
+    post_event_feedback: 'analytics',
+    healthy_pace: '',
+  };
 
   const [activeSubTab, setActiveSubTab] = useState('overview'); // 'overview' | 'engagement' | 'actions' | 'alerts' | 'timeline' | 'accuracy' | 'simulator' | 'qa'
   const [showSim, setShowSim] = useState(false);
 
-  // Natural Language Q&A state
+  // Natural Language Q&A state (never seeded with canned answers —
+  // every answer must come from the backend's verified prediction object)
   const [qaQuery, setQaQuery] = useState('');
   const [qaLoading, setQaLoading] = useState(false);
-  const [qaHistory, setQaHistory] = useState([
-    {
-      q: 'How many attendees should I expect?',
-      a: 'Current prediction is estimated around your attendance rate with expected no-shows factored into the likely range.',
-    },
-  ]);
+  const [qaHistory, setQaHistory] = useState([]);
 
   // Simulator state
   const [simForm, setSimForm] = useState({
@@ -39,6 +53,20 @@ export default function EventPulseTab() {
   });
   const [simResult, setSimResult] = useState(null);
   const [simLoading, setSimLoading] = useState(false);
+
+  // CORE FEATURE 8 — real-time prediction updates pushed by the backend over
+  // Socket.IO (emitted by the debounced recalculation scheduler). Falls back
+  // gracefully to the 30s polling refetchInterval when sockets are offline.
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+    const onPulseUpdate = () => {
+      qc.invalidateQueries({ queryKey: ['eventpulse-prediction', event._id] });
+      qc.invalidateQueries({ queryKey: ['eventpulse-history', event._id] });
+    };
+    socket.on('eventpulse:updated', onPulseUpdate);
+    return () => socket.off('eventpulse:updated', onPulseUpdate);
+  }, [event._id, qc]);
 
   // Queries
   const predQ = useQuery({
@@ -84,11 +112,11 @@ export default function EventPulseTab() {
     }
   };
 
-  // Q&A trigger
-  const submitQa = async (e) => {
-    e?.preventDefault();
-    if (!qaQuery.trim()) return;
-    const qText = qaQuery;
+  // Q&A trigger (accepts an explicit question so suggestion chips can auto-submit)
+  const submitQa = async (e, questionOverride) => {
+    e?.preventDefault?.();
+    const qText = (questionOverride || qaQuery).trim();
+    if (!qText) return;
     setQaQuery('');
     setQaLoading(true);
 
@@ -102,7 +130,7 @@ export default function EventPulseTab() {
     }
   };
 
-  if (predQ.isLoading) return <div className="space-y-6"><div className="skeleton h-24 rounded-xl" /><div className="grid gap-4 sm:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="skeleton h-40 rounded-xl" />)}</div></div>;
+  if (predQ.isLoading) return <Spinner />;
   if (predQ.isError) return <ErrorState message={predQ.error.message} onRetry={predQ.refetch} />;
 
   const p = predQ.data;
@@ -124,36 +152,36 @@ export default function EventPulseTab() {
 
   // Trend line styles
   const momentumBadgeVariant = {
-    accelerating: 'bg-success/10 text-success border-success/30',
-    growing: 'bg-info/10 text-info border-info/30',
+    accelerating: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30',
+    growing: 'bg-blue-500/10 text-blue-500 border-blue-500/30',
     stable: 'bg-muted text-muted-foreground border-border',
-    slowing: 'bg-warning/10 text-warning border-warning/30',
-    declining: 'bg-destructive/10 text-destructive border-destructive/30',
+    slowing: 'bg-amber-500/10 text-amber-500 border-amber-500/30',
+    declining: 'bg-rose-500/10 text-rose-500 border-rose-500/30',
   }[f.momentumState || 'stable'];
 
   const healthBadgeVariant = {
-    healthy: 'bg-success/10 text-success border-success/30',
-    good: 'bg-info/10 text-info border-info/30',
-    attention: 'bg-warning/10 text-warning border-warning/30',
-    at_risk: 'bg-destructive/10 text-destructive border-destructive/30',
+    healthy: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30',
+    good: 'bg-blue-500/10 text-blue-500 border-blue-500/30',
+    attention: 'bg-amber-500/10 text-amber-500 border-amber-500/30',
+    at_risk: 'bg-rose-500/10 text-rose-500 border-rose-500/30',
   }[h.status || 'healthy'];
 
   return (
     <div className="space-y-6">
       {/* Top Header Card */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-card p-5 shadow-soft">
+      <div className="flex flex-wrap items-center justify-between gap-4 card-surface p-5">
         <div className="flex items-center gap-3.5">
-          <span className="grid size-12 place-items-center rounded-2xl gradient-brand text-white shadow-soft">
+          <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white shadow-md">
             <Activity className="size-6" />
           </span>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-display text-xl font-extrabold">EventPulse AI</h3>
+              <h3 className="font-display text-xl font-black">EventPulse AI</h3>
               <Badge variant="outline" className="text-[11px] font-bold uppercase tracking-wider">
                 {p.modelVersion || 'v1.0'}
               </Badge>
               {p.isColdStart && (
-                <Badge variant="secondary" className="text-[10px] bg-warning/10 text-warning border-warning/20">
+                <Badge variant="secondary" className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-500/20">
                   Cold Start Baseline
                 </Badge>
               )}
@@ -201,7 +229,7 @@ export default function EventPulseTab() {
             </div>
           </CardHeader>
           <CardContent className="p-4 pt-1">
-            <div className="font-display text-2xl font-extrabold text-foreground">
+            <div className="font-display text-2xl font-black text-foreground">
               {f.predictedRegistrations || 0}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -220,11 +248,11 @@ export default function EventPulseTab() {
           <CardHeader className="p-4 pb-1">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-muted-foreground">Expected Attendance</span>
-              <Users className="size-4 text-success" />
+              <Users className="size-4 text-emerald-500" />
             </div>
           </CardHeader>
           <CardContent className="p-4 pt-1">
-            <div className="font-display text-2xl font-extrabold text-success">
+            <div className="font-display text-2xl font-black text-emerald-500">
               {att.expectedAttendees || 0}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -241,18 +269,18 @@ export default function EventPulseTab() {
           <CardHeader className="p-4 pb-1">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-muted-foreground">Expected No-Shows</span>
-              <UserX className="size-4 text-warning" />
+              <UserX className="size-4 text-amber-500" />
             </div>
           </CardHeader>
           <CardContent className="p-4 pt-1">
-            <div className="font-display text-2xl font-extrabold text-warning">
+            <div className="font-display text-2xl font-black text-amber-500">
               {att.expectedNoShows || 0}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               No-show rate: <b className="text-foreground">{att.noShowRate || 0}%</b>
             </p>
             <div className="mt-2 text-[11px] text-muted-foreground">
-              {att.noShowRate > 30 ? 'Above average risk' : 'Normal tolerance'}
+              {att.noShowRate > 30 ? '⚠ Above average risk' : '✓ Normal tolerance'}
             </div>
           </CardContent>
         </Card>
@@ -266,7 +294,7 @@ export default function EventPulseTab() {
             </div>
           </CardHeader>
           <CardContent className="p-4 pt-1">
-            <div className="font-display text-2xl font-extrabold text-primary">
+            <div className="font-display text-2xl font-black text-primary">
               {eng.score || 0}<span className="text-sm font-normal text-muted-foreground">/100</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -290,7 +318,7 @@ export default function EventPulseTab() {
             </div>
           </CardHeader>
           <CardContent className="p-4 pt-1">
-            <div className="font-display text-2xl font-extrabold text-foreground">
+            <div className="font-display text-2xl font-black text-foreground">
               {h.score || 0}<span className="text-sm font-normal text-muted-foreground">/100</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -305,13 +333,13 @@ export default function EventPulseTab() {
 
       {/* Simulator Drawer (Toggleable) */}
       {showSim && (
-        <Card className="border-primary/30 bg-primary/5 shadow-soft">
+        <Card className="border-primary/30 bg-primary/5 shadow-sm">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sliders className="size-4 text-primary" />
                 <CardTitle className="text-base font-extrabold">What-If Scenario Simulator</CardTitle>
-                <Badge variant="outline" className="text-[10px] font-bold bg-warning/10 text-warning border-warning/30">
+                <Badge variant="outline" className="text-[10px] font-bold bg-amber-500/10 text-amber-600 border-amber-500/30">
                   DEMO / SIMULATION MODE — SYNTHETIC DATA
                 </Badge>
               </div>
@@ -392,12 +420,12 @@ export default function EventPulseTab() {
                   </div>
                   <div>
                     <span className="text-muted-foreground">Expected Attendees:</span>{' '}
-                    <b className="text-success font-extrabold">{simResult.attendance?.expectedAttendees}</b>{' '}
+                    <b className="text-emerald-500 font-extrabold">{simResult.attendance?.expectedAttendees}</b>{' '}
                     ({simResult.attendance?.attendanceRate}%)
                   </div>
                   <div>
                     <span className="text-muted-foreground">Expected No-Shows:</span>{' '}
-                    <b className="text-warning font-extrabold">{simResult.attendance?.expectedNoShows}</b>{' '}
+                    <b className="text-amber-500 font-extrabold">{simResult.attendance?.expectedNoShows}</b>{' '}
                     ({simResult.attendance?.noShowRate}%)
                   </div>
                   <div>
@@ -449,12 +477,79 @@ export default function EventPulseTab() {
                     EventPulse AI Executive Synthesis
                   </span>
                   <Badge variant="outline" className="text-[10px] ml-auto">
-                    {p.engine === 'hybrid-gemini' ? 'Gemini Grounded' : 'Deterministic Rule Engine'}
+                    {p.engine === 'hybrid-gemini' ? '✨ Gemini Grounded' : 'Deterministic Rule Engine'}
                   </Badge>
                 </div>
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {p.aiSummary}
                 </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* CORE FEATURE 23 — Live Event Engagement Monitor */}
+          {p.features?.event?.isLive && (
+            <Card className="border-emerald-500/30 bg-emerald-500/5">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base font-bold flex items-center gap-2">
+                    <span className="relative flex size-2.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex size-2.5 rounded-full bg-emerald-500" />
+                    </span>
+                    Live Engagement Monitor
+                  </CardTitle>
+                  <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                    LIVE
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-xs">
+                <div>
+                  <div className="flex justify-between mb-1 font-semibold text-muted-foreground">
+                    <span>👥 Checked in</span>
+                    <span className="text-foreground">
+                      {p.features.registrations.currentCheckedIns} / {att.expectedAttendees} expected
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-500 transition-all"
+                      style={{ width: `${Math.min(100, Math.round((p.features.registrations.currentCheckedIns / Math.max(1, att.expectedAttendees)) * 100))}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    {p.features.registrations.currentCheckedIns} of {p.features.registrations.totalConfirmed} registered ({p.features.registrations.totalConfirmed > 0 ? Math.round((p.features.registrations.currentCheckedIns / p.features.registrations.totalConfirmed) * 100) : 0}%)
+                  </p>
+                </div>
+                <div>
+                  <div className="font-semibold text-muted-foreground mb-1">📊 Poll participation</div>
+                  <div className="font-display text-lg font-extrabold text-foreground">
+                    {p.features.registrations.currentCheckedIns > 0
+                      ? `${Math.min(100, Math.round((p.features.engagement.pollVotes / p.features.registrations.currentCheckedIns) * 100))}%`
+                      : '—'}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">{p.features.engagement.pollVotes} votes cast · per checked-in attendee</p>
+                </div>
+                <div>
+                  <div className="font-semibold text-muted-foreground mb-1">❓ Questions · 💬 Messages</div>
+                  <div className="font-display text-lg font-extrabold text-foreground">
+                    {p.features.engagement.questionsCount} · {p.features.engagement.chatMessages}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">{p.features.engagement.questionUpvotes} upvotes on Q&A</p>
+                </div>
+                <div>
+                  <div className="font-semibold text-muted-foreground mb-1">⭐ Engagement · Trend</div>
+                  <div className="font-display text-lg font-extrabold text-foreground">
+                    {eng.score}/100
+                    <span className="ml-2 text-xs font-bold">
+                      {eng.trend === 'rising' ? '📈' : eng.trend === 'declining' ? '📉' : '➡'} {eng.trend}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    {eng.trend === 'rising' ? 'Audience activity is accelerating' : eng.trend === 'declining' ? 'Activity is cooling — consider a poll' : 'Activity is holding steady'}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -506,13 +601,13 @@ export default function EventPulseTab() {
 
                 <div className="text-center font-extrabold text-muted-foreground text-xs">↓</div>
 
-                <div className="rounded-xl border bg-success/5 border-success/20 p-3.5 space-y-1">
-                  <div className="flex justify-between text-xs font-bold text-success">
+                <div className="rounded-xl border bg-emerald-500/5 border-emerald-500/20 p-3.5 space-y-1">
+                  <div className="flex justify-between text-xs font-bold text-emerald-600">
                     <span>2. Expected Attendees</span>
                     <span>{att.expectedAttendees || 0} ({att.attendanceRate || 0}%)</span>
                   </div>
                   <div className="h-2 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full bg-success" style={{ width: `${att.attendanceRate || 0}%` }} />
+                    <div className="h-full bg-emerald-500" style={{ width: `${att.attendanceRate || 0}%` }} />
                   </div>
                   <div className="text-[11px] text-muted-foreground pt-1">
                     90% prediction interval: <b>{att.lowerBound} – {att.upperBound}</b>
@@ -521,13 +616,13 @@ export default function EventPulseTab() {
 
                 <div className="text-center font-extrabold text-muted-foreground text-xs">↓</div>
 
-                <div className="rounded-xl border bg-warning/5 border-warning/20 p-3.5 space-y-1">
-                  <div className="flex justify-between text-xs font-bold text-warning">
+                <div className="rounded-xl border bg-amber-500/5 border-amber-500/20 p-3.5 space-y-1">
+                  <div className="flex justify-between text-xs font-bold text-amber-600">
                     <span>3. Expected No-Shows</span>
                     <span>{att.expectedNoShows || 0} ({att.noShowRate || 0}%)</span>
                   </div>
                   <div className="h-2 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full bg-warning" style={{ width: `${att.noShowRate || 0}%` }} />
+                    <div className="h-full bg-amber-500" style={{ width: `${att.noShowRate || 0}%` }} />
                   </div>
                   <div className="text-[11px] text-muted-foreground pt-1">
                     Estimated voluntary drop-off
@@ -556,13 +651,13 @@ export default function EventPulseTab() {
                       key={i}
                       className={`rounded-xl border p-3.5 text-xs transition ${
                         isPos
-                          ? 'border-success/30 bg-success/5'
-                          : 'border-warning/30 bg-warning/5'
+                          ? 'border-emerald-500/30 bg-emerald-500/5'
+                          : 'border-amber-500/30 bg-amber-500/5'
                       }`}
                     >
                       <div className="flex items-center justify-between font-bold mb-1">
-                        <span className={isPos ? 'text-success dark:text-success' : 'text-warning dark:text-warning'}>
-                          {d.factor}
+                        <span className={isPos ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>
+                          {isPos ? '✓' : '⚠'} {d.factor}
                         </span>
                         <Badge variant="outline" className="text-[10px] capitalize">
                           {d.magnitude} impact
@@ -674,9 +769,9 @@ export default function EventPulseTab() {
           <div className="space-y-3">
             {recs.map((r, i) => {
               const prioColor = {
-                high: 'text-destructive bg-destructive/10 border-destructive/30',
-                medium: 'text-warning bg-warning/10 border-warning/30',
-                low: 'text-info bg-info/10 border-info/30',
+                high: 'text-rose-600 bg-rose-500/10 border-rose-500/30',
+                medium: 'text-amber-600 bg-amber-500/10 border-amber-500/30',
+                low: 'text-blue-600 bg-blue-500/10 border-blue-500/30',
               }[r.priority || 'medium'];
 
               return (
@@ -692,7 +787,15 @@ export default function EventPulseTab() {
                       <p className="text-xs font-semibold text-foreground mt-1">{r.action}</p>
                       <p className="text-xs text-muted-foreground">{r.rationale}</p>
                     </div>
-                    <Button size="sm" variant="outline" className="shrink-0 text-xs">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="shrink-0 text-xs"
+                      onClick={() => {
+                        const target = ACTION_TARGETS[r.trigger];
+                        if (target) navigate(`/dashboard/events/${event._id}/${target}`);
+                      }}
+                    >
                       Take Action
                     </Button>
                   </CardContent>
@@ -714,7 +817,7 @@ export default function EventPulseTab() {
           {alerts.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center space-y-2">
-                <CheckCircle2 className="size-8 text-success mx-auto" />
+                <CheckCircle2 className="size-8 text-emerald-500 mx-auto" />
                 <h5 className="font-bold text-sm">No Active Prediction Risk Alerts</h5>
                 <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                   All performance indicators (registration velocity, attendance trajectory, capacity utilization) are within safe parameters.
@@ -724,13 +827,13 @@ export default function EventPulseTab() {
           ) : (
             <div className="space-y-3">
               {alerts.map((al, i) => (
-                <Card key={i} className="border-warning/30 bg-warning/5">
+                <Card key={i} className="border-amber-500/30 bg-amber-500/5">
                   <CardContent className="p-4 flex items-start gap-3">
-                    <AlertTriangle className="size-5 text-warning shrink-0 mt-0.5" />
+                    <AlertTriangle className="size-5 text-amber-500 shrink-0 mt-0.5" />
                     <div className="space-y-1 flex-1 text-xs">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-foreground">{al.type.replace(/_/g, ' ')}</span>
-                        <Badge variant="outline" className="text-[10px] uppercase font-bold text-warning border-warning/30">
+                        <Badge variant="outline" className="text-[10px] uppercase font-bold text-amber-600 border-amber-500/30">
                           {al.severity} Severity
                         </Badge>
                       </div>
@@ -766,15 +869,15 @@ export default function EventPulseTab() {
           ) : (
             <Card>
               <CardContent className="p-0 overflow-x-auto">
-                <table className="w-full min-w-[540px] text-left text-xs">
+                <table className="table-premium text-xs">
                   <thead className="border-b bg-muted/40 font-bold text-muted-foreground">
                     <tr>
-                      <th className="whitespace-nowrap px-4 py-3">Snapshot Date</th>
-                      <th className="whitespace-nowrap px-4 py-3">Predicted Regs</th>
-                      <th className="whitespace-nowrap px-4 py-3">Actual Regs</th>
-                      <th className="whitespace-nowrap px-4 py-3">Expected Attendance</th>
-                      <th className="whitespace-nowrap px-4 py-3">Engagement</th>
-                      <th className="whitespace-nowrap px-4 py-3">Trigger</th>
+                      <th className="p-3">Snapshot Date</th>
+                      <th className="p-3">Predicted Regs</th>
+                      <th className="p-3">Actual Regs</th>
+                      <th className="p-3">Expected Attendance</th>
+                      <th className="p-3">Engagement</th>
+                      <th className="p-3">Trigger</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -790,7 +893,7 @@ export default function EventPulseTab() {
                         </td>
                         <td className="p-3 font-bold text-foreground">{sn.predictedRegistrations}</td>
                         <td className="p-3 text-muted-foreground">{sn.actualRegistrations}</td>
-                        <td className="p-3 font-bold text-success">{sn.expectedAttendance}</td>
+                        <td className="p-3 font-bold text-emerald-600">{sn.expectedAttendance}</td>
                         <td className="p-3">{sn.engagementScore}/100</td>
                         <td className="p-3">
                           <Badge variant="outline" className="text-[10px] capitalize">
@@ -840,7 +943,7 @@ export default function EventPulseTab() {
                   </div>
                   <div className="rounded-lg border p-3 bg-muted/20">
                     <span className="text-muted-foreground">Attendance Error</span>
-                    <div className="font-display text-xl font-bold mt-1 text-success">
+                    <div className="font-display text-xl font-bold mt-1 text-emerald-600">
                       {accuracyQ.data?.errors?.attendancePE || 0}%
                     </div>
                     <span className="text-[11px] text-muted-foreground">
@@ -849,7 +952,7 @@ export default function EventPulseTab() {
                   </div>
                   <div className="rounded-lg border p-3 bg-muted/20">
                     <span className="text-muted-foreground">No-Show Error</span>
-                    <div className="font-display text-xl font-bold mt-1 text-warning">
+                    <div className="font-display text-xl font-bold mt-1 text-amber-600">
                       {Math.abs((accuracyQ.data?.predicted?.noShows || 0) - (accuracyQ.data?.actual?.noShows || 0))}
                     </div>
                     <span className="text-[11px] text-muted-foreground">Absolute difference</span>
@@ -870,7 +973,7 @@ export default function EventPulseTab() {
 
       {/* SUB-TAB 7: AI Copilot Q&A */}
       {activeSubTab === 'qa' && (
-        <Card className="border-border/80 shadow-soft">
+        <Card className="border-border/80 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base font-bold flex items-center gap-2">
               <Sparkles className="size-4 text-primary" /> Natural Language Prediction Q&A
@@ -881,6 +984,12 @@ export default function EventPulseTab() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="max-h-72 overflow-y-auto space-y-3 pr-1 text-xs">
+              {qaHistory.length === 0 && !qaLoading && (
+                <div className="rounded-xl border border-dashed p-4 text-center text-muted-foreground">
+                  <Sparkles className="mx-auto mb-1.5 size-4 text-primary" />
+                  Ask a question about your prediction — answers are grounded strictly in verified EventPulse metrics, never invented.
+                </div>
+              )}
               {qaHistory.map((item, i) => (
                 <div key={i} className="space-y-1.5">
                   <div className="flex justify-end">
@@ -933,7 +1042,7 @@ export default function EventPulseTab() {
                 <button
                   key={suggestion}
                   type="button"
-                  onClick={() => { setQaQuery(suggestion); }}
+                  onClick={() => { submitQa(null, suggestion); }}
                   className="rounded-full border bg-card px-2.5 py-0.5 hover:border-primary hover:text-foreground transition"
                 >
                   {suggestion}
