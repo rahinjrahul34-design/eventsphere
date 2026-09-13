@@ -1,17 +1,13 @@
 import { useState } from 'react';
-import { useOutletContext, Link } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Sparkles, Search, CheckCircle2, AlertTriangle, ArrowRight,
-  RefreshCw, Bot, Share2, Globe, Eye, BookOpen, Layers,
-  Sliders, MessageSquare, Send, Check, X, ShieldAlert,
-  Smartphone, Monitor, Copy, ExternalLink, HelpCircle, AlertCircle
-} from 'lucide-react';
+import { Sparkles, Search, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, Bot, Share2, Globe, Eye, Layers, Sliders, Send, Check, X, ShieldAlert, Smartphone, Monitor, AlertCircle } from 'lucide-react';
 import { endpoints } from '../../../lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
-import { Input, Textarea } from '../../../components/ui/input';
+import { Dialog } from '../../../components/ui/dialog';
+import { Input } from '../../../components/ui/input';
 import { Spinner, ErrorState } from '../../../components/ui/misc';
 import { toast } from 'sonner';
 import { cn } from '../../../lib/utils';
@@ -83,7 +79,7 @@ export default function EventBoostTab() {
   const applyMutation = useMutation({
     mutationFn: (payload) => endpoints.eventBoost.apply(event._id, payload),
     onSuccess: (res) => {
-      toast.success(`SEO improvements applied! Score updated to ${res.newScore}/100 🎉`);
+      toast.success(`SEO improvements applied! Score updated to ${res.newScore}/100`);
       setShowOptimizeModal(false);
       qc.invalidateQueries({ queryKey: ['eventboost-seo', event._id] });
       qc.invalidateQueries({ queryKey: ['manage-event', event._id] });
@@ -143,11 +139,11 @@ export default function EventBoostTab() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header Banner */}
-      <div className="rounded-2xl border bg-gradient-to-r from-card via-card to-primary/5 p-6 shadow-sm">
+      <div className="rounded-xl border bg-gradient-to-r from-card via-card to-primary/5 p-6 shadow-soft">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <div className="flex size-9 items-center justify-center rounded-xl gradient-brand text-white shadow-sm">
+              <div className="flex size-9 items-center justify-center rounded-xl gradient-brand text-white shadow-soft">
                 <Sparkles className="size-5" />
               </div>
               <h2 className="font-display text-2xl font-extrabold tracking-tight">EventBoost AI</h2>
@@ -172,7 +168,7 @@ export default function EventBoostTab() {
             </Button>
             <Button
               size="sm"
-              className="gradient-brand text-white font-bold shadow"
+              className="font-bold"
               loading={optimizeMutation.isPending}
               onClick={() => optimizeMutation.mutate()}
             >
@@ -238,14 +234,14 @@ export default function EventBoostTab() {
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-2">
-              <span className="font-display text-5xl font-black gradient-text">
+              <span className="font-display text-5xl font-extrabold gradient-text">
                 {seoScore}
               </span>
               <span className="text-lg font-bold text-muted-foreground">/ 100</span>
             </div>
             <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-secondary">
               <div
-                className="h-full rounded-full gradient-brand transition-all duration-700"
+                className="h-full rounded-full bg-primary transition-all duration-700"
                 style={{ width: `${seoScore}%` }}
               />
             </div>
@@ -259,11 +255,11 @@ export default function EventBoostTab() {
         <Card>
           <CardHeader className="p-4 pb-1">
             <CardDescription className="text-xs font-semibold">Content Quality</CardDescription>
-            <CardTitle className="text-2xl font-black">{seoData.contentScore || 0}</CardTitle>
+            <CardTitle className="text-2xl font-extrabold">{seoData.contentScore || 0}</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-1">
             <div className="mt-1 h-1.5 w-full rounded-full bg-secondary">
-              <div className="h-full rounded-full bg-purple-500" style={{ width: `${seoData.contentScore || 0}%` }} />
+              <div className="h-full rounded-full bg-primary" style={{ width: `${seoData.contentScore || 0}%` }} />
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">Structure & Outcomes</p>
           </CardContent>
@@ -272,11 +268,11 @@ export default function EventBoostTab() {
         <Card>
           <CardHeader className="p-4 pb-1">
             <CardDescription className="text-xs font-semibold">Search Intent</CardDescription>
-            <CardTitle className="text-2xl font-black">{seoData.searchIntentScore || 0}</CardTitle>
+            <CardTitle className="text-2xl font-extrabold">{seoData.searchIntentScore || 0}</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-1">
             <div className="mt-1 h-1.5 w-full rounded-full bg-secondary">
-              <div className="h-full rounded-full bg-blue-500" style={{ width: `${seoData.searchIntentScore || 0}%` }} />
+              <div className="h-full rounded-full bg-info" style={{ width: `${seoData.searchIntentScore || 0}%` }} />
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">{seoData.searchIntent?.primary || 'Informational'}</p>
           </CardContent>
@@ -285,11 +281,11 @@ export default function EventBoostTab() {
         <Card>
           <CardHeader className="p-4 pb-1">
             <CardDescription className="text-xs font-semibold">Readability</CardDescription>
-            <CardTitle className="text-2xl font-black">{seoData.readabilityScore || 0}</CardTitle>
+            <CardTitle className="text-2xl font-extrabold">{seoData.readabilityScore || 0}</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-1">
             <div className="mt-1 h-1.5 w-full rounded-full bg-secondary">
-              <div className="h-full rounded-full bg-emerald-500" style={{ width: `${seoData.readabilityScore || 0}%` }} />
+              <div className="h-full rounded-full bg-success" style={{ width: `${seoData.readabilityScore || 0}%` }} />
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">{seoData.readabilityMetrics?.gradeLevel || 'Standard'}</p>
           </CardContent>
@@ -298,14 +294,14 @@ export default function EventBoostTab() {
         <Card>
           <CardHeader className="p-4 pb-1">
             <CardDescription className="text-xs font-semibold">Keyword Coverage</CardDescription>
-            <CardTitle className="text-2xl font-black">{seoData.keywordCoverage?.percentage || 0}%</CardTitle>
+            <CardTitle className="text-2xl font-extrabold">{seoData.keywordCoverage?.percentage || 0}%</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-1">
             <div className="mt-1 h-1.5 w-full rounded-full bg-secondary">
-              <div className="h-full rounded-full bg-amber-500" style={{ width: `${seoData.keywordCoverage?.percentage || 0}%` }} />
+              <div className="h-full rounded-full bg-warning" style={{ width: `${seoData.keywordCoverage?.percentage || 0}%` }} />
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              {seoData.keywordCoverage?.isStuffed ? '⚠️ Stuffing Flag' : 'Natural Distribution'}
+              {seoData.keywordCoverage?.isStuffed ? 'Stuffing flag' : 'Natural distribution'}
             </p>
           </CardContent>
         </Card>
@@ -328,7 +324,7 @@ export default function EventBoostTab() {
             className={cn(
               'flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition',
               activeSubTab === t.id
-                ? 'bg-primary text-primary-foreground shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-soft'
                 : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
             )}
           >
@@ -367,8 +363,8 @@ export default function EventBoostTab() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {(!seoData.seoIssues || seoData.seoIssues.length === 0) ? (
-                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-6 text-center">
-                    <CheckCircle2 className="mx-auto size-8 text-emerald-500" />
+                  <div className="rounded-xl border border-success/20 bg-success/5 p-6 text-center">
+                    <CheckCircle2 className="mx-auto size-8 text-success" />
                     <h4 className="mt-2 font-bold text-sm">All core SEO health checks passed!</h4>
                     <p className="mt-1 text-xs text-muted-foreground">Your event listing content adheres to modern search discovery standards.</p>
                   </div>
@@ -396,7 +392,7 @@ export default function EventBoostTab() {
                           </div>
                           <p className="text-xs text-muted-foreground">{issue.reason}</p>
                           <p className="text-xs font-medium text-foreground/90">
-                            💡 <span className="font-bold">Suggestion:</span> {issue.suggestedAction}
+                            <span className="font-bold">Suggestion:</span> {issue.suggestedAction}
                           </p>
                         </div>
 
@@ -441,7 +437,7 @@ export default function EventBoostTab() {
                   <div className="pt-1 flex justify-end">
                     <Button
                       size="sm"
-                      className="gradient-brand text-white font-bold"
+                      className="font-bold"
                       loading={applyMutation.isPending}
                       onClick={() => handleApplySingle('title', seoData.titleAnalysis.suggestedTitle)}
                     >
@@ -478,9 +474,9 @@ export default function EventBoostTab() {
                   <div key={idx} className="flex items-center justify-between gap-2">
                     <span className="text-muted-foreground">{item.label}</span>
                     {item.passed ? (
-                      <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+                      <CheckCircle2 className="size-4 text-success shrink-0" />
                     ) : (
-                      <AlertTriangle className="size-4 text-amber-500 shrink-0" />
+                      <AlertTriangle className="size-4 text-warning shrink-0" />
                     )}
                   </div>
                 ))}
@@ -490,7 +486,7 @@ export default function EventBoostTab() {
             {/* Top Strengths */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                <CardTitle className="text-sm font-bold text-success dark:text-success flex items-center gap-2">
                   <CheckCircle2 className="size-4" /> Top Content Strengths
                 </CardTitle>
               </CardHeader>
@@ -500,7 +496,7 @@ export default function EventBoostTab() {
                 ) : (
                   seoData.strengths.slice(0, 5).map((str, idx) => (
                     <div key={idx} className="flex items-start gap-2 text-xs">
-                      <span className="text-emerald-500 font-bold">✓</span>
+                      <span className="text-success font-bold">✓</span>
                       <span className="text-foreground/90">{str}</span>
                     </div>
                   ))
@@ -524,7 +520,7 @@ export default function EventBoostTab() {
                   </CardDescription>
                 </div>
                 <Badge variant={seoData.keywordCoverage?.isStuffed ? 'destructive' : 'success'}>
-                  {seoData.keywordCoverage?.isStuffed ? '⚠️ Stuffing Alert' : 'Natural Density'}
+                  {seoData.keywordCoverage?.isStuffed ? 'Stuffing alert' : 'Natural density'}
                 </Badge>
               </div>
             </CardHeader>
@@ -539,7 +535,7 @@ export default function EventBoostTab() {
               )}
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+                <table className="w-full min-w-[540px] text-left text-xs">
                   <thead className="border-b bg-secondary/50 text-muted-foreground">
                     <tr>
                       <th className="p-2.5 font-bold">Keyword Term</th>
@@ -554,9 +550,9 @@ export default function EventBoostTab() {
                     {(seoData.keywordCoverage?.checks || []).map((c, i) => (
                       <tr key={i} className="hover:bg-secondary/20">
                         <td className="p-2.5 font-bold text-foreground">{c.keyword}</td>
-                        <td className="p-2.5">{c.foundInTitle ? <span className="text-emerald-500 font-bold">✓ Yes</span> : <span className="text-muted-foreground">—</span>}</td>
-                        <td className="p-2.5">{c.foundInDescription ? <span className="text-emerald-500 font-bold">✓ Yes ({c.count}x)</span> : <span className="text-muted-foreground">—</span>}</td>
-                        <td className="p-2.5">{c.foundInTags ? <span className="text-emerald-500 font-bold">✓ Yes</span> : <span className="text-muted-foreground">—</span>}</td>
+                        <td className="p-2.5">{c.foundInTitle ? <span className="text-success font-bold">✓ Yes</span> : <span className="text-muted-foreground">—</span>}</td>
+                        <td className="p-2.5">{c.foundInDescription ? <span className="text-success font-bold">✓ Yes ({c.count}x)</span> : <span className="text-muted-foreground">—</span>}</td>
+                        <td className="p-2.5">{c.foundInTags ? <span className="text-success font-bold">✓ Yes</span> : <span className="text-muted-foreground">—</span>}</td>
                         <td className="p-2.5 font-mono">{c.density}%</td>
                         <td className="p-2.5">
                           <Badge
@@ -628,7 +624,7 @@ export default function EventBoostTab() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-lg font-bold flex items-center gap-2">
-                    <Globe className="size-5 text-blue-500" /> Google Search Result Preview
+                    <Globe className="size-5 text-info" /> Google Search Result Preview
                   </CardTitle>
                   <CardDescription className="text-xs">
                     Simulated search snippet appearance on Google SERP. Search engines may dynamically rewrite snippets.
@@ -640,7 +636,7 @@ export default function EventBoostTab() {
                     onClick={() => setPreviewDevice('desktop')}
                     className={cn(
                       'flex items-center gap-1 rounded px-2.5 py-1 text-xs font-semibold transition',
-                      previewDevice === 'desktop' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground'
+                      previewDevice === 'desktop' ? 'bg-background shadow-soft text-foreground' : 'text-muted-foreground'
                     )}
                   >
                     <Monitor className="size-3.5" /> Desktop
@@ -650,7 +646,7 @@ export default function EventBoostTab() {
                     onClick={() => setPreviewDevice('mobile')}
                     className={cn(
                       'flex items-center gap-1 rounded px-2.5 py-1 text-xs font-semibold transition',
-                      previewDevice === 'mobile' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground'
+                      previewDevice === 'mobile' ? 'bg-background shadow-soft text-foreground' : 'text-muted-foreground'
                     )}
                   >
                     <Smartphone className="size-3.5" /> Mobile
@@ -660,7 +656,7 @@ export default function EventBoostTab() {
             </CardHeader>
             <CardContent>
               <div className={cn(
-                'rounded-xl border bg-white p-5 text-left text-neutral-900 shadow-sm transition-all dark:bg-neutral-950 dark:text-neutral-100',
+                'rounded-xl border bg-white p-5 text-left text-neutral-900 shadow-soft transition-all dark:bg-neutral-950 dark:text-neutral-100',
                 previewDevice === 'mobile' ? 'max-w-sm mx-auto' : 'max-w-2xl'
               )}>
                 <div className="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-400">
@@ -668,7 +664,7 @@ export default function EventBoostTab() {
                   <span>›</span>
                   <span className="truncate">events › {event.slug}</span>
                 </div>
-                <h3 className="mt-1.5 font-medium text-lg text-blue-700 hover:underline dark:text-blue-400 line-clamp-2 cursor-pointer">
+                <h3 className="mt-1.5 font-medium text-lg text-info hover:underline dark:text-info line-clamp-2 cursor-pointer">
                   {seoData.searchPreview?.title || `${event.title} | EventSphere`}
                 </h3>
                 <p className="mt-1.5 text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed line-clamp-3">
@@ -699,7 +695,7 @@ export default function EventBoostTab() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="max-w-xl rounded-xl border bg-card overflow-hidden shadow-sm">
+              <div className="max-w-xl rounded-xl border bg-card overflow-hidden shadow-soft">
                 <div className="relative h-48 w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900">
                   <img
                     src={event.coverImage || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1400&q=70'}
@@ -730,7 +726,7 @@ export default function EventBoostTab() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg font-bold flex items-center gap-2">
-                  <ShieldAlert className="size-5 text-amber-500" /> Content Consistency Cross-Check
+                  <ShieldAlert className="size-5 text-warning" /> Content Consistency Cross-Check
                 </CardTitle>
                 <CardDescription className="text-xs">
                   Automated validation inspecting cross-field contradictions across dates, location mode, ticket pricing, and certificates.
@@ -743,16 +739,16 @@ export default function EventBoostTab() {
           </CardHeader>
           <CardContent className="space-y-4">
             {(!seoData.inconsistencies || seoData.inconsistencies.length === 0) ? (
-              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-6 text-center">
-                <CheckCircle2 className="mx-auto size-8 text-emerald-500" />
+              <div className="rounded-xl border border-success/20 bg-success/5 p-6 text-center">
+                <CheckCircle2 className="mx-auto size-8 text-success" />
                 <h4 className="mt-2 font-bold text-sm">No content contradictions detected</h4>
                 <p className="mt-1 text-xs text-muted-foreground">Dates, venue type, tickets, and description details are harmonious.</p>
               </div>
             ) : (
               seoData.inconsistencies.map((inc, i) => (
-                <div key={i} className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-1 text-xs">
+                <div key={i} className="rounded-xl border border-warning/30 bg-warning/5 p-4 space-y-1 text-xs">
                   <div className="flex items-center gap-2">
-                    <AlertTriangle className="size-4 text-amber-500" />
+                    <AlertTriangle className="size-4 text-warning" />
                     <span className="font-bold text-sm text-foreground">{inc.message}</span>
                   </div>
                   <p className="text-muted-foreground pl-6">
@@ -807,7 +803,7 @@ export default function EventBoostTab() {
                     'rounded-2xl p-3 text-xs leading-relaxed space-y-2',
                     msg.role === 'user'
                       ? 'bg-primary text-primary-foreground rounded-tr-none'
-                      : 'border bg-card shadow-sm rounded-tl-none'
+                      : 'border bg-card shadow-soft rounded-tl-none'
                   )}
                 >
                   <p className="whitespace-pre-wrap">{msg.text}</p>
@@ -914,40 +910,52 @@ export default function EventBoostTab() {
 
       {/* Modal: Side-by-Side Before / After AI Optimization Review */}
       {showOptimizeModal && optimizeMutation.data && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm overflow-y-auto">
-          <div className="relative w-full max-w-4xl rounded-2xl border bg-card p-6 shadow-2xl space-y-6 my-8">
-            <div className="flex items-center justify-between border-b pb-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Sparkles className="size-5 text-primary" />
-                  <h3 className="font-display text-xl font-bold">Review AI Optimizations</h3>
-                  <Badge variant="outline" className="text-xs font-mono">{optimizeMutation.data.engine}</Badge>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Compare Before vs After. Select which verified improvements you wish to apply. Organizer remains in full control.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowOptimizeModal(false)}
-                className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
+        <Dialog
+          open
+          onClose={() => setShowOptimizeModal(false)}
+          title="Review AI Optimizations"
+          description={`Compare before vs after — ${optimizeMutation.data.engine} engine. Select which verified improvements you wish to apply; you remain in full control.`}
+          size="xl"
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setShowOptimizeModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                className="font-bold"
+                loading={applyMutation.isPending}
+                onClick={() => {
+                  const payload = {};
+                  if (selectedChanges.title) payload.title = optimizeMutation.data.improvements.title.suggested;
+                  if (selectedChanges.metaTitle) payload.metaTitle = optimizeMutation.data.improvements.metaTitle.suggested;
+                  if (selectedChanges.metaDescription) payload.metaDescription = optimizeMutation.data.improvements.metaDescription.suggested;
+                  if (selectedChanges.description) payload.description = optimizeMutation.data.improvements.description.suggested;
+                  if (selectedChanges.tags) payload.tags = optimizeMutation.data.improvements.keywords.suggested;
+                  if (optimizeMutation.data.improvements.keywords.primary) {
+                    payload.primaryKeyword = optimizeMutation.data.improvements.keywords.primary;
+                  }
+                  applyMutation.mutate(payload);
+                }}
               >
-                <X className="size-5" />
-              </button>
-            </div>
+                <Check className="size-4" /> Apply Selected Improvements
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-6">
 
             {/* Score Comparison Banner */}
             <div className="flex items-center justify-around rounded-xl border bg-secondary/30 p-4 text-center">
               <div>
                 <span className="text-xs text-muted-foreground uppercase font-bold">Before SEO Score</span>
-                <p className="font-display text-3xl font-black text-foreground mt-0.5">
+                <p className="font-display text-3xl font-extrabold text-foreground mt-0.5">
                   {optimizeMutation.data.beforeScore}
                 </p>
               </div>
               <ArrowRight className="size-6 text-primary shrink-0" />
               <div>
                 <span className="text-xs text-primary uppercase font-bold">Simulated After Score</span>
-                <p className="font-display text-3xl font-black text-emerald-500 mt-0.5">
+                <p className="font-display text-3xl font-extrabold text-success mt-0.5">
                   {optimizeMutation.data.afterScore}
                 </p>
               </div>
@@ -1046,32 +1054,8 @@ export default function EventBoostTab() {
               )}
             </div>
 
-            {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-2 border-t pt-4">
-              <Button variant="outline" onClick={() => setShowOptimizeModal(false)}>
-                Cancel
-              </Button>
-              <Button
-                className="gradient-brand text-white font-bold"
-                loading={applyMutation.isPending}
-                onClick={() => {
-                  const payload = {};
-                  if (selectedChanges.title) payload.title = optimizeMutation.data.improvements.title.suggested;
-                  if (selectedChanges.metaTitle) payload.metaTitle = optimizeMutation.data.improvements.metaTitle.suggested;
-                  if (selectedChanges.metaDescription) payload.metaDescription = optimizeMutation.data.improvements.metaDescription.suggested;
-                  if (selectedChanges.description) payload.description = optimizeMutation.data.improvements.description.suggested;
-                  if (selectedChanges.tags) payload.tags = optimizeMutation.data.improvements.keywords.suggested;
-                  if (optimizeMutation.data.improvements.keywords.primary) {
-                    payload.primaryKeyword = optimizeMutation.data.improvements.keywords.primary;
-                  }
-                  applyMutation.mutate(payload);
-                }}
-              >
-                <Check className="size-4" /> Apply Selected Improvements
-              </Button>
-            </div>
           </div>
-        </div>
+        </Dialog>
       )}
     </div>
   );

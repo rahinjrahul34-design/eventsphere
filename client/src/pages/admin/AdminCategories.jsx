@@ -5,10 +5,11 @@ import { endpoints } from '../../lib/api';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input, Textarea, Label } from '../../components/ui/input';
-import { Spinner } from '../../components/ui/misc';
+
 import { EmptyState } from '../../components/ui/states';
 import { Dialog, ConfirmDialog } from '../../components/ui/dialog';
 import { toast } from 'sonner';
+import { ListSkeleton } from '../../components/ui/skeleton';
 
 const COLORS = ['#7c3aed', '#2563eb', '#16a34a', '#d97706', '#db2777', '#0891b2', '#dc2626', '#4f46e5', '#ea580c', '#0d9488'];
 const blank = { name: '', description: '', icon: 'Sparkles', color: COLORS[0] };
@@ -36,7 +37,7 @@ export default function AdminCategories() {
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <ListSkeleton rows={6} />;
   const categories = q.data || [];
 
   return (

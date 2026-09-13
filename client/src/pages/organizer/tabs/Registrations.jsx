@@ -1,19 +1,20 @@
 import { useOutletContext } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Search, Download, ArrowUpCircle, Mail, Users as UsersIcon } from 'lucide-react';
+import { Search, Download, Mail, Users as UsersIcon } from 'lucide-react';
 import { endpoints, api } from '../../../lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Badge } from '../../../components/ui/badge';
 import { Avatar } from '../../../components/ui/avatar';
-import { Spinner, Tabs } from '../../../components/ui/misc';
+import { Tabs } from '../../../components/ui/misc';
 import { EmptyState } from '../../../components/ui/states';
 import { fmtDateTime, inr } from '../../../lib/format';
 import { toast } from 'sonner';
-import { cn } from '../../../lib/utils';
+
 import SmartQueueConsole from '../../../components/waitlist/SmartQueueConsole';
+import { TableSkeleton } from '../../../components/ui/skeleton';
 
 const STATUS_VARIANT = {
   confirmed: 'success', checked_in: 'live', pending: 'warning', waitlisted: 'warning', cancelled: 'destructive',
@@ -48,7 +49,7 @@ export default function Registrations() {
     URL.revokeObjectURL(url);
   };
 
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <TableSkeleton rows={6} cols={6} />;
   const regs = (q.data?.registrations || []).filter((r) => {
     const s = search.toLowerCase();
     return !s || r.user?.name?.toLowerCase().includes(s) || r.user?.email?.toLowerCase().includes(s) || r.ticketType?.name?.toLowerCase().includes(s);
@@ -83,20 +84,20 @@ export default function Registrations() {
               <EmptyState icon={UsersIcon} title="No registrations" description="Attendees will appear here as they register." />
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full min-w-[540px] text-sm">
                   <thead>
-                    <tr className="border-b text-left text-xs uppercase text-muted-foreground">
-                      <th className="p-3 font-semibold">Attendee</th>
-                      <th className="p-3 font-semibold">Ticket</th>
-                      <th className="p-3 font-semibold">Paid</th>
-                      <th className="p-3 font-semibold">Status</th>
-                      <th className="p-3 font-semibold">Registered</th>
+                    <tr className="border-b bg-muted/40 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      <th className="whitespace-nowrap px-4 py-3">Attendee</th>
+                      <th className="whitespace-nowrap px-4 py-3">Ticket</th>
+                      <th className="whitespace-nowrap px-4 py-3">Paid</th>
+                      <th className="whitespace-nowrap px-4 py-3">Status</th>
+                      <th className="whitespace-nowrap px-4 py-3">Registered</th>
                       <th className="p-3" />
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y">
                     {regs.map((r) => (
-                      <tr key={r._id} className="border-b last:border-0 hover:bg-muted/40">
+                      <tr key={r._id} className="transition-colors duration-100 hover:bg-muted/40 hover:bg-muted/40">
                         <td className="p-3">
                           <div className="flex items-center gap-2.5">
                             <Avatar name={r.user?.name} src={r.user?.avatar} className="size-9" />

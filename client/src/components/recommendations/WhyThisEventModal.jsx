@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Sparkles, Brain, Heart, History, MapPin, ThumbsUp, ThumbsDown, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Dialog } from '../ui/dialog';
-import { Badge } from '../ui/badge';
+
 import { Button } from '../ui/button';
 import { Spinner } from '../ui/misc';
 import { endpoints } from '../../lib/api';
@@ -50,9 +50,9 @@ export default function WhyThisEventModal({ open, onClose, event, onFeedbackSubm
       description="Personalized operational intelligence based on your verified profile and activity."
       size="md"
     >
-      <div className="p-5 space-y-6">
+      <div className="space-y-6">
         {/* Match Header */}
-        <div className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-violet-600/10 via-indigo-600/10 to-primary/10 border border-primary/20">
+        <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-primary/10 via-primary/10 to-primary/10 border border-primary/20">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Match Rating</span>
             <h3 className="text-xl font-display font-extrabold text-foreground flex items-center gap-2">
@@ -75,7 +75,7 @@ export default function WhyThisEventModal({ open, onClose, event, onFeedbackSubm
           <>
             {/* AI Narrative Narrative */}
             {narrative && (
-              <div className="rounded-xl border border-primary/20 bg-card p-4 shadow-sm relative overflow-hidden">
+              <div className="rounded-xl border border-primary/20 bg-card p-4 shadow-soft relative overflow-hidden">
                 <div className="absolute top-0 right-0 size-24 bg-primary/5 rounded-full blur-xl pointer-events-none" />
                 <div className="flex items-start gap-3">
                   <div className="size-8 rounded-lg bg-primary/15 text-primary grid place-items-center shrink-0 mt-0.5">
@@ -102,14 +102,14 @@ export default function WhyThisEventModal({ open, onClose, event, onFeedbackSubm
               {/* Skills match */}
               {evidence.matchedSkills?.length > 0 && (
                 <div className="flex items-start gap-3 p-3 rounded-xl border bg-muted/30">
-                  <Brain className="size-4 text-violet-500 mt-0.5 shrink-0" />
+                  <Brain className="size-4 text-primary mt-0.5 shrink-0" />
                   <div className="flex-1">
                     <p className="text-xs font-bold">Your Profile Skills</p>
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                       {evidence.matchedSkills.map((s, idx) => (
                         <span
                           key={idx}
-                          className="rounded-md bg-violet-500/10 text-violet-600 dark:text-violet-400 font-semibold text-[11px] px-2 py-0.5"
+                          className="rounded-md bg-primary/10 text-primary dark:text-primary font-semibold text-[11px] px-2 py-0.5"
                         >
                           ✓ {s}
                         </span>
@@ -122,14 +122,14 @@ export default function WhyThisEventModal({ open, onClose, event, onFeedbackSubm
               {/* Interests match */}
               {evidence.matchedInterests?.length > 0 && (
                 <div className="flex items-start gap-3 p-3 rounded-xl border bg-muted/30">
-                  <Heart className="size-4 text-pink-500 mt-0.5 shrink-0" />
+                  <Heart className="size-4 text-primary mt-0.5 shrink-0" />
                   <div className="flex-1">
                     <p className="text-xs font-bold">Matched Interests</p>
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                       {evidence.matchedInterests.map((i, idx) => (
                         <span
                           key={idx}
-                          className="rounded-md bg-pink-500/10 text-pink-600 dark:text-pink-400 font-semibold text-[11px] px-2 py-0.5"
+                          className="rounded-md bg-primary/10 text-primary dark:text-primary font-semibold text-[11px] px-2 py-0.5"
                         >
                           ✓ {i}
                         </span>
@@ -142,7 +142,7 @@ export default function WhyThisEventModal({ open, onClose, event, onFeedbackSubm
               {/* Attendance history */}
               {evidence.pastAttendedCount > 0 && (
                 <div className="flex items-start gap-3 p-3 rounded-xl border bg-muted/30">
-                  <History className="size-4 text-amber-500 mt-0.5 shrink-0" />
+                  <History className="size-4 text-warning mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs font-bold">Past Event History</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -154,7 +154,7 @@ export default function WhyThisEventModal({ open, onClose, event, onFeedbackSubm
 
               {reasons.some((r) => r.type === 'location') && (
                 <div className="flex items-start gap-3 rounded-xl border bg-muted/30 p-3">
-                  <MapPin className="mt-0.5 size-4 shrink-0 text-emerald-500" />
+                  <MapPin className="mt-0.5 size-4 shrink-0 text-success" />
                   <div>
                     <p className="text-xs font-bold">Location</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
@@ -168,7 +168,7 @@ export default function WhyThisEventModal({ open, onClose, event, onFeedbackSubm
             {/* Feedback Section */}
             <div className="pt-2 border-t">
               {feedbackSent ? (
-                <p className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+                <p className="flex items-center gap-1.5 text-xs text-success dark:text-success font-bold">
                   <CheckCircle2 className="size-4" /> Thank you! Your feedback improves future recommendations.
                 </p>
               ) : (
@@ -181,7 +181,7 @@ export default function WhyThisEventModal({ open, onClose, event, onFeedbackSubm
                       className="gap-1.5 text-xs font-bold"
                       onClick={() => handleFeedback('like')}
                     >
-                      <ThumbsUp className="size-3.5 text-emerald-500" /> Yes, relevant
+                      <ThumbsUp className="size-3.5 text-success" /> Yes, relevant
                     </Button>
                     <Button
                       variant="outline"
@@ -189,7 +189,7 @@ export default function WhyThisEventModal({ open, onClose, event, onFeedbackSubm
                       className="gap-1.5 text-xs font-bold text-muted-foreground"
                       onClick={() => setShowDislikeReasons(!showDislikeReasons)}
                     >
-                      <ThumbsDown className="size-3.5 text-rose-500" /> Not for me
+                      <ThumbsDown className="size-3.5 text-destructive" /> Not for me
                     </Button>
                   </div>
 
@@ -227,7 +227,7 @@ export default function WhyThisEventModal({ open, onClose, event, onFeedbackSubm
         {/* View Event Button */}
         <div className="pt-2">
           <Link to={`/events/${event.slug}`} onClick={onClose} className="w-full inline-block">
-            <Button className="w-full gradient-brand text-white font-bold gap-1.5">
+            <Button className="w-full font-bold gap-1.5">
               View Event Details <ArrowRight className="size-4" />
             </Button>
           </Link>

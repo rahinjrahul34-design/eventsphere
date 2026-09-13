@@ -3,7 +3,7 @@ import { Sparkles, Github, Twitter, Linkedin } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="mt-20 border-t bg-card">
+    <footer className="mt-16 border-t bg-card">
       <div className="container py-12">
         <div className="grid gap-10 md:grid-cols-4">
           <div>
@@ -18,7 +18,7 @@ export default function Footer() {
             </p>
             <div className="mt-4 flex gap-2 text-muted-foreground">
               {[Twitter, Github, Linkedin].map((Icon, i) => (
-                <a key={i} href="#" onClick={(e) => e.preventDefault()} className="grid size-9 place-items-center rounded-lg border hover:text-primary transition" aria-label="social link">
+                <a key={i} href="#" onClick={(e) => e.preventDefault()} className="grid size-9 place-items-center rounded-lg border text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground" aria-label="social link">
                   <Icon className="size-4" />
                 </a>
               ))}
@@ -46,7 +46,7 @@ function FooterCol({ title, links }) {
       <ul className="space-y-2 text-sm text-muted-foreground">
         {links.map(([label, to]) => (
           <li key={label}>
-            <Link to={to} className="hover:text-primary transition">{label}</Link>
+            <Link to={to} className="transition-colors hover:text-foreground">{label}</Link>
           </li>
         ))}
       </ul>

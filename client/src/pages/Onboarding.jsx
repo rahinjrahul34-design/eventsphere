@@ -25,7 +25,7 @@ export default function Onboarding() {
     try {
       const updated = await endpoints.updateMe({ ...profile, interests, onboardingCompleted: true });
       patchUser(updated);
-      toast.success('Your feed is now personalized 🎯');
+      toast.success('Your feed is now personalized');
       navigate('/home');
     } catch (e) {
       toast.error(e.message);
@@ -56,7 +56,7 @@ export default function Onboarding() {
                   <button
                     key={i}
                     onClick={() => toggle(i)}
-                    className={`rounded-2xl border-2 px-5 py-3 text-sm font-semibold transition flex items-center gap-2 ${
+                    className={`rounded-xl border-2 px-5 py-3 text-sm font-semibold transition flex items-center gap-2 ${
                       active ? 'border-primary bg-primary text-primary-foreground shadow-soft' : 'bg-card hover:border-primary/40'
                     }`}
                   >
@@ -75,7 +75,7 @@ export default function Onboarding() {
         )}
 
         {step === 1 && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="grid gap-4 rounded-2xl border bg-card p-6 sm:grid-cols-2">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="grid gap-4 rounded-xl border bg-card p-6 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className="text-sm font-semibold">Headline</label>
               <input className="mt-1 h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"

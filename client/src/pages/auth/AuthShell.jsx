@@ -5,9 +5,9 @@ export default function AuthShell({ title, subtitle, children, footer }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* Brand panel */}
-      <div className="relative hidden lg:flex flex-col justify-between overflow-hidden bg-gradient-to-br from-violet-700 via-indigo-700 to-blue-700 p-12 text-white">
+      <div className="relative hidden lg:flex flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-primary to-info p-12 text-white">
         <div className="absolute -right-24 -top-24 size-96 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -left-32 bottom-0 size-96 rounded-full bg-fuchsia-500/20 blur-3xl" />
+        <div className="absolute -left-32 bottom-0 size-96 rounded-full bg-primary/20 blur-3xl" />
         <Link to="/" className="relative flex items-center gap-2 font-display text-xl font-extrabold">
           <span className="grid size-10 place-items-center rounded-xl bg-white/15 backdrop-blur"><Sparkles className="size-5" /></span>
           EventSphere
@@ -19,7 +19,7 @@ export default function AuthShell({ title, subtitle, children, footer }) {
           <ul className="space-y-3 text-white/90">
             {['QR tickets & one-tap check-in', 'Live event mode with polls, Q&A and chat', 'AI event copilot and smart recommendations', 'Certificates, gamification and networking'].map((t) => (
               <li key={t} className="flex items-center gap-3 text-sm font-medium">
-                <CheckCircle2 className="size-5 text-emerald-300" /> {t}
+                <CheckCircle2 className="size-5 text-success" /> {t}
               </li>
             ))}
           </ul>

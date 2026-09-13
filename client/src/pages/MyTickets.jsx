@@ -4,16 +4,17 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Ticket, ChevronRight } from 'lucide-react';
 import { endpoints } from '../lib/api';
 import { EmptyState, ErrorState } from '../components/ui/states';
-import { Spinner } from '../components/ui/misc';
+
 import { Badge } from '../components/ui/badge';
 import { fmtDate } from '../lib/format';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { ListSkeleton } from '../components/ui/skeleton';
 
 export default function MyTickets() {
   usePageTitle('My Tickets');
   const q = useQuery({ queryKey: ['tickets'], queryFn: endpoints.myTickets });
 
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <div className="space-y-4"><ListSkeleton rows={4} /></div>;
   if (q.isError) return <ErrorState message={q.error.message} onRetry={q.refetch} />;
   const tickets = q.data || [];
 
@@ -27,7 +28,7 @@ export default function MyTickets() {
           icon={Ticket}
           title="No tickets yet"
           description="Register for an event and your QR pass will appear here instantly."
-          action={<Link to="/events" className="inline-flex h-10 items-center rounded-lg gradient-brand px-4 text-sm font-semibold text-white">Explore events</Link>}
+          action={<Link to="/events" className="inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-primary-hover">Explore events</Link>}
         />
       ) : (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

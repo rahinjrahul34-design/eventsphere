@@ -3,19 +3,20 @@ import { useQuery } from '@tanstack/react-query';
 import { Award, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { endpoints } from '../lib/api';
 import { EmptyState, ErrorState } from '../components/ui/states';
-import { Spinner } from '../components/ui/misc';
+
 import { Badge } from '../components/ui/badge';
 import { Dialog } from '../components/ui/dialog';
 import Certificate from '../components/certificates/Certificate';
 import { fmtDate } from '../lib/format';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { CardSkeleton } from '../components/ui/skeleton';
 
 export default function MyCertificates() {
   usePageTitle('My Certificates');
   const q = useQuery({ queryKey: ['certificates'], queryFn: endpoints.myCertificates });
   const [active, setActive] = useState(null);
 
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <div className="grid gap-5 sm:grid-cols-2">{Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}</div>;
   if (q.isError) return <ErrorState message={q.error.message} onRetry={q.refetch} />;
   const certs = q.data || [];
 
@@ -36,17 +37,17 @@ export default function MyCertificates() {
             <button
               key={c._id}
               onClick={() => setActive(c)}
-              className="group relative overflow-hidden rounded-2xl border border-[#d4af37]/30 bg-gradient-to-b from-card via-card to-amber-500/5 p-5 text-left shadow-soft hover:shadow-lift hover:border-[#d4af37]/70 transition-all"
+              className="group relative overflow-hidden rounded-2xl border border-[#d4af37]/30 bg-gradient-to-b from-card via-card to-warning/5 p-5 text-left shadow-soft hover:shadow-lift hover:border-[#d4af37]/70 transition-all"
             >
               <div className="absolute top-0 right-0 h-16 w-16 bg-gradient-to-bl from-[#d4af37]/15 to-transparent rounded-bl-full pointer-events-none" />
               <div className="flex items-center justify-between">
                 <span
-                  className="grid size-12 place-items-center rounded-xl shadow-md text-amber-950 font-bold"
+                  className="grid size-12 place-items-center rounded-xl shadow-soft font-bold"
                   style={{
                     background: 'linear-gradient(135deg, #f7e690 0%, #d4af37 60%, #aa7c11 100%)',
                   }}
                 >
-                  <Award className="size-6 text-amber-950 stroke-[2.5]" />
+                  <Award className="size-6 text-[#6b4d0f] stroke-[2.5]" />
                 </span>
                 <ChevronRight className="size-4 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
               </div>

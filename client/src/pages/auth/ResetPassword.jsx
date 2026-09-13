@@ -39,8 +39,8 @@ export default function ResetPassword() {
   const strength = useMemo(() => {
     if (!newPassword) return { label: 'None', pct: 0, color: 'bg-muted' };
     if (metCount <= 2) return { label: 'Weak', pct: 25, color: 'bg-destructive' };
-    if (metCount <= 4) return { label: 'Medium', pct: 65, color: 'bg-amber-500' };
-    return { label: 'Strong', pct: 100, color: 'bg-emerald-500' };
+    if (metCount <= 4) return { label: 'Medium', pct: 65, color: 'bg-warning' };
+    return { label: 'Strong', pct: 100, color: 'bg-success' };
   }, [newPassword, metCount]);
 
   const submit = async (e) => {
@@ -150,11 +150,11 @@ export default function ResetPassword() {
                 <div
                   key={rule.id}
                   className={`flex items-center gap-1.5 transition-colors ${
-                    rule.met ? 'text-emerald-600 font-medium' : 'text-muted-foreground'
+                    rule.met ? 'text-success font-medium' : 'text-muted-foreground'
                   }`}
                 >
                   {rule.met ? (
-                    <Check className="size-3.5 text-emerald-600 shrink-0" />
+                    <Check className="size-3.5 text-success shrink-0" />
                   ) : (
                     <X className="size-3.5 text-muted-foreground/60 shrink-0" />
                   )}

@@ -11,7 +11,7 @@ export default function LiveTab() {
     return <Navigate to={`/events/${event.slug}/live`} replace />;
   }
   return (
-    <div className="rounded-2xl border border-dashed p-12 text-center">
+    <div className="rounded-xl border border-dashed p-12 text-center">
       <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary"><Radio className="size-7" /></span>
       <h3 className="mt-4 font-display text-lg font-extrabold">Go live to open the control center</h3>
       <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">

@@ -1,24 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Sparkles,
-  ArrowRight,
-  Ticket,
-  Award,
-  Users,
-  CalendarCheck,
-  Bot,
-  Flame,
-  Brain,
-  Compass,
-  MapPin,
-  SlidersHorizontal,
-  History,
-  HelpCircle,
-  ShieldCheck,
-  Heart,
-} from 'lucide-react';
+import { Trophy, Sparkles, ArrowRight, Ticket, Award, Users, CalendarCheck, Bot, Flame, Brain, Compass, MapPin, SlidersHorizontal, History, HelpCircle, ShieldCheck, Heart } from 'lucide-react';
 import { endpoints } from '../lib/api';
 import RecRail from '../components/recommendations/RecRail';
 import { Card, CardContent } from '../components/ui/card';
@@ -67,10 +50,10 @@ export default function HomeFeed() {
   return (
     <div className="container py-8 space-y-12">
       {/* ─── Greeting Hero ─── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-600 p-8 text-white shadow-lift">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-info p-8 text-white shadow-lift">
         <div className="absolute -right-16 -top-16 size-56 rounded-full bg-white/10 blur-2xl pointer-events-none" />
         <h1 className="font-display text-3xl font-extrabold">
-          {hello} {user?.name?.split(' ')[0]} 👋
+          {hello} {user?.name?.split(' ')[0]}
         </h1>
         <p className="mt-1 max-w-xl text-white/85">
           Here are events selected for you — match scores, verified reasons, and topics to explore next.
@@ -168,7 +151,7 @@ export default function HomeFeed() {
               ))}
             </div>
             <div>
-              <Button className="mt-2 gradient-brand text-white font-bold" onClick={() => navigate('/profile')}>
+              <Button className="mt-2 font-bold" onClick={() => navigate('/profile')}>
                 Update Profile Preferences
               </Button>
             </div>
@@ -183,7 +166,7 @@ export default function HomeFeed() {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="size-9 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 grid place-items-center">
+              <div className="size-9 rounded-xl bg-primary/10 text-primary dark:text-primary grid place-items-center">
                 <Brain className="size-5" />
               </div>
               <div>
@@ -213,7 +196,7 @@ export default function HomeFeed() {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="size-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 grid place-items-center">
+              <div className="size-9 rounded-xl bg-warning/10 text-warning dark:text-warning grid place-items-center">
                 <History className="size-5" />
               </div>
               <div>
@@ -232,11 +215,11 @@ export default function HomeFeed() {
 
       {/* ─── SECTION 3: Something New For You (Exploration Spotlight) ─── */}
       {exploreEvent && (
-        <section className="relative overflow-hidden rounded-3xl border bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-transparent p-6 sm:p-8">
-          <div className="absolute top-0 right-0 -mr-8 -mt-8 size-48 rounded-full bg-amber-500/10 blur-2xl pointer-events-none" />
+        <section className="relative overflow-hidden rounded-3xl border bg-gradient-to-r from-warning/10 via-warning/10 to-transparent p-6 sm:p-8">
+          <div className="absolute top-0 right-0 -mr-8 -mt-8 size-48 rounded-full bg-warning/10 blur-2xl pointer-events-none" />
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-xl">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 font-extrabold text-xs px-3 py-1">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-warning/15 text-warning dark:text-warning font-extrabold text-xs px-3 py-1">
                 <Compass className="size-3.5" /> Something New For You
               </span>
               <h3 className="font-display text-2xl font-extrabold text-foreground">
@@ -257,7 +240,7 @@ export default function HomeFeed() {
 
             <div className="shrink-0 w-full sm:w-auto">
               <Link to={`/events/${exploreEvent.slug}`}>
-                <Button className="w-full sm:w-auto bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold gap-2 shadow-soft">
+                <Button className="w-full sm:w-auto bg-warning text-warning-foreground font-bold gap-2 shadow-soft hover:brightness-110">
                   Explore Event <ArrowRight className="size-4" />
                 </Button>
               </Link>
@@ -271,7 +254,7 @@ export default function HomeFeed() {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="size-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 grid place-items-center">
+              <div className="size-9 rounded-xl bg-success/10 text-success dark:text-success grid place-items-center">
                 <MapPin className="size-5" />
               </div>
               <div>
@@ -293,7 +276,7 @@ export default function HomeFeed() {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="size-9 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400 grid place-items-center">
+              <div className="size-9 rounded-xl bg-warning/10 text-warning dark:text-warning grid place-items-center">
                 <Flame className="size-5" />
               </div>
               <div>
@@ -310,7 +293,7 @@ export default function HomeFeed() {
       {becauseYouLike.length > 0 && (
         <section className="space-y-4">
           <div className="flex items-center gap-2.5">
-            <div className="grid size-9 place-items-center rounded-xl bg-pink-500/10 text-pink-600 dark:text-pink-400">
+            <div className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary dark:text-primary">
               <Heart className="size-5" />
             </div>
             <div>
@@ -325,7 +308,7 @@ export default function HomeFeed() {
       {newEventsYouMayLike.length > 0 && (
         <section className="space-y-4">
           <div className="flex items-center gap-2.5">
-            <div className="grid size-9 place-items-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
+            <div className="grid size-9 place-items-center rounded-xl bg-info/10 text-info">
               <Sparkles className="size-5" />
             </div>
             <div>
@@ -383,7 +366,7 @@ export default function HomeFeed() {
               <div className="grid grid-cols-3 gap-3">
                 {gamiQ.data?.badges?.map((b) => (
                   <div key={b._id} className="rounded-xl border bg-muted/40 p-3 text-center">
-                    <span className="text-2xl">🏅</span>
+                    <Trophy className="size-6 text-warning" aria-hidden="true" />
                     <p className="mt-1 text-[11px] font-bold leading-tight">{b.name}</p>
                   </div>
                 ))}
@@ -406,7 +389,7 @@ export default function HomeFeed() {
         description="EventSphere AI Recommendation 2.0 combines profile intelligence, verified history, and multi-factor scoring."
         size="md"
       >
-        <div className="p-5 space-y-4 text-sm">
+        <div className="space-y-4 text-sm">
           <div className="rounded-xl border bg-muted/40 p-3.5 space-y-1">
             <h4 className="font-bold text-xs uppercase tracking-wider text-primary flex items-center gap-1.5">
               <Sparkles className="size-3.5" /> Hybrid 10-Factor Scoring Architecture
@@ -455,7 +438,7 @@ export default function HomeFeed() {
             </div>
           </div>
 
-          <div className="rounded-xl border bg-emerald-500/10 p-3.5 space-y-1 text-emerald-800 dark:text-emerald-300">
+          <div className="rounded-xl border bg-success/10 p-3.5 space-y-1 text-success">
             <h5 className="font-bold text-xs flex items-center gap-1.5">
               <ShieldCheck className="size-4" /> Zero-Hallucination Verified Evidence
             </h5>
@@ -477,7 +460,7 @@ function MiniStat({ icon: Icon, value, label, highlight = false }) {
   return (
     <div
       className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold backdrop-blur transition ${
-        highlight ? 'bg-amber-400 text-slate-900 shadow-soft' : 'bg-white/10 hover:bg-white/20 text-white'
+        highlight ? 'bg-warning text-warning-foreground shadow-soft' : 'bg-white/10 hover:bg-white/20 text-white'
       }`}
     >
       <Icon className="size-4" />

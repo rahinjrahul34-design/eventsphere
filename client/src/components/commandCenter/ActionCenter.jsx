@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  AlertOctagon, AlertTriangle, Info, CheckCircle2, ArrowRight,
-  Sparkles, Check, Filter, Zap, ExternalLink
-} from 'lucide-react';
+import { CheckCircle2, Sparkles, Check, Filter, ExternalLink } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { cn } from '../../lib/utils';
 import { endpoints } from '../../lib/api';
@@ -31,7 +28,7 @@ export default function ActionCenter({ actions = [], eventId, onActionResolved }
       case 'Critical':
         return <Badge variant="destructive" className="font-bold uppercase tracking-wider text-[10px]">Critical</Badge>;
       case 'High':
-        return <Badge className="bg-orange-500/10 text-orange-500 border border-orange-500/20 font-bold uppercase tracking-wider text-[10px]">High</Badge>;
+        return <Badge variant="warning" className="font-bold uppercase tracking-wider text-[10px]">High</Badge>;
       case 'Medium':
         return <Badge variant="warning" className="font-bold uppercase tracking-wider text-[10px]">Medium</Badge>;
       case 'Low':
@@ -43,17 +40,17 @@ export default function ActionCenter({ actions = [], eventId, onActionResolved }
   const getSourceColor = (source) => {
     switch (source) {
       case 'eventshield':
-        return 'text-red-500 bg-red-500/10 border-red-500/20';
+        return 'text-destructive bg-destructive/10 border-destructive/25';
       case 'eventpulse':
-        return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
+        return 'text-info bg-info/10 border-info/25';
       case 'smartqueue':
-        return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
+        return 'text-warning bg-warning/10 border-warning/25';
       case 'eventboost':
-        return 'text-pink-500 bg-pink-500/10 border-pink-500/20';
+        return 'text-primary bg-primary/10 border-primary/25';
       case 'trustsphere':
-        return 'text-purple-500 bg-purple-500/10 border-purple-500/20';
+        return 'text-primary bg-primary/10 border-primary/25';
       default:
-        return 'text-foreground bg-secondary';
+        return 'text-foreground bg-secondary border-border';
     }
   };
 
@@ -72,7 +69,7 @@ export default function ActionCenter({ actions = [], eventId, onActionResolved }
   };
 
   return (
-    <div className="rounded-2xl border bg-card p-6 shadow-sm space-y-5">
+    <div className="rounded-xl border bg-card p-5 shadow-soft space-y-5 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
         <div>
           <h3 className="font-display text-lg font-bold flex items-center gap-2">
@@ -113,7 +110,7 @@ export default function ActionCenter({ actions = [], eventId, onActionResolved }
 
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed py-10 px-4 text-center space-y-2">
-          <div className="grid size-10 place-items-center rounded-xl bg-emerald-500/10 text-emerald-500 mx-auto">
+          <div className="grid size-10 place-items-center rounded-xl bg-success/10 text-success mx-auto">
             <CheckCircle2 className="size-5" />
           </div>
           <h4 className="font-bold text-sm text-foreground">No Pending Actions Found</h4>
@@ -129,8 +126,8 @@ export default function ActionCenter({ actions = [], eventId, onActionResolved }
             <div
               key={action.id}
               className={cn(
-                'rounded-xl border p-4 transition hover:border-primary/40 space-y-3',
-                action.priority === 'Critical' ? 'bg-destructive/5 border-destructive/30' : 'bg-secondary/20'
+                'rounded-xl border p-4 transition-colors duration-150 space-y-3',
+                action.priority === 'Critical' ? 'border-destructive/30 bg-destructive/[0.04] hover:border-destructive/50' : 'bg-secondary/30 hover:border-border-strong'
               )}
             >
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
@@ -155,7 +152,7 @@ export default function ActionCenter({ actions = [], eventId, onActionResolved }
                 <div className="flex sm:flex-col items-center sm:items-end gap-2 shrink-0 pt-2 sm:pt-0">
                   <Link
                     to={action.ctaLink || `/dashboard/events/${eventId}/overview`}
-                    className="inline-flex items-center gap-1.5 rounded-xl gradient-brand px-3.5 py-1.5 text-xs font-bold text-white shadow hover:opacity-90 transition"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground shadow-soft transition-all duration-150 hover:bg-primary-hover hover:shadow-lift"
                   >
                     <span>{action.ctaText || 'Take Action'}</span>
                     <ExternalLink className="size-3" />

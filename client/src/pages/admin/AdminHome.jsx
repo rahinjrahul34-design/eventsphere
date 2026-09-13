@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Avatar } from '../../components/ui/avatar';
-import { Spinner } from '../../components/ui/misc';
+import { StatsSkeleton, ChartSkeleton } from '../../components/ui/skeleton';
 import { TrendChart, DonutChart, COLORS } from '../../components/charts/Charts';
 import { fmtDate } from '../../lib/format';
 import { usePageTitle } from '../../hooks/usePageTitle';
@@ -16,7 +16,14 @@ export default function AdminHome() {
   usePageTitle('Admin Dashboard');
   const q = useQuery({ queryKey: ['admin-stats'], queryFn: () => endpoints.adminStats(30), refetchInterval: 60000 });
   const recQ = useQuery({ queryKey: ['recommendation-analytics'], queryFn: endpoints.recommendationAnalytics });
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading)
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2"><div className="skeleton h-7 w-52" /><div className="skeleton h-4 w-64" /></div>
+        <StatsSkeleton />
+        <ChartSkeleton />
+      </div>
+    );
   const d = q.data;
   const cards = d.cards || {};
   const toPairs = (obj) => (obj && !Array.isArray(obj)
@@ -34,7 +41,7 @@ export default function AdminHome() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={Users} label="New users (30d)" value={cards.users} sub={`${cards.totalUsers} total`} />
-        <StatCard icon={CalendarDays} label="New events (30d)" value={cards.events} sub={`${cards.totalEvents} total · ${cards.activeOrganizers} organizers`} accent="blue" />
+        <StatCard icon={CalendarDays} label="New events (30d)" value={cards.events} sub={`${cards.totalEvents} total · ${cards.activeOrganizers} organizers`} accent="info" />
         <StatCard icon={Ticket} label="New registrations (30d)" value={cards.registrations} sub={`${cards.totalRegistrations} total`} accent="success" />
         <StatCard icon={IndianRupee} label="Revenue (30d)" value={`₹${(cards.revenue || 0).toLocaleString('en-IN')}`} sub={`₹${(cards.totalRevenue || 0).toLocaleString('en-IN')} all-time`} accent="warning" />
       </div>
@@ -131,13 +138,13 @@ export default function AdminHome() {
         <CardHeader><CardTitle>Newest users</CardTitle></CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead><tr className="border-b text-left text-xs uppercase text-muted-foreground">
+            <table className="w-full min-w-[540px] text-sm">
+              <thead><tr className="border-b bg-muted/40 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 <th className="p-2">User</th><th className="p-2">Role</th><th className="p-2">Joined</th>
               </tr></thead>
-              <tbody>
+              <tbody className="divide-y">
                 {(d.recentUsers || []).map((u) => (
-                  <tr key={u._id} className="border-b last:border-0">
+                  <tr key={u._id} className="transition-colors duration-100 hover:bg-muted/40">
                     <td className="p-2"><div className="flex items-center gap-2"><Avatar name={u.name} src={u.avatar} className="size-8" /><div><p className="font-semibold leading-tight">{u.name}</p><p className="text-xs text-muted-foreground">{u.email}</p></div></div></td>
                     <td className="p-2"><Badge variant="secondary" className="capitalize">{u.role}</Badge></td>
                     <td className="p-2 text-xs text-muted-foreground">{fmtDate(u.createdAt, 'd MMM yyyy')}</td>
@@ -178,14 +185,14 @@ export default function AdminHome() {
             </div>
             <div className="rounded-xl border bg-card p-4">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Satisfaction Rate</p>
-              <p className="mt-1 font-display text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+              <p className="mt-1 font-display text-2xl font-extrabold text-success dark:text-success">
                 {recQ.data?.satisfactionRate || '100%'}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">{recQ.data?.likes || 0} likes vs {recQ.data?.dislikes || 0} dislikes</p>
             </div>
             <div className="rounded-xl border bg-card p-4">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dismissals</p>
-              <p className="mt-1 font-display text-2xl font-extrabold text-rose-500">{recQ.data?.dismissals || 0}</p>
+              <p className="mt-1 font-display text-2xl font-extrabold text-destructive">{recQ.data?.dismissals || 0}</p>
               <p className="text-xs text-muted-foreground mt-0.5">Trained negative penalties</p>
             </div>
           </div>
@@ -206,9 +213,9 @@ export default function AdminHome() {
                       <th className="p-2">Detail / Reason</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y">
                     {recQ.data.recentInteractions.slice(0, 8).map((inter) => (
-                      <tr key={inter._id} className="border-b last:border-0">
+                      <tr key={inter._id} className="transition-colors duration-100 hover:bg-muted/40">
                         <td className="p-2 font-medium">{inter.user?.name || 'Anonymous User'}</td>
                         <td className="p-2 font-semibold">{inter.event?.title || 'Unknown Event'}</td>
                         <td className="p-2">
@@ -217,8 +224,8 @@ export default function AdminHome() {
                               inter.interactionType === 'click'
                                 ? 'bg-primary/10 text-primary'
                                 : inter.interactionType === 'dismiss'
-                                ? 'bg-rose-500/10 text-rose-600'
-                                : 'bg-emerald-500/10 text-emerald-600'
+                                ? 'bg-destructive/10 text-destructive'
+                                : 'bg-success/10 text-success'
                             }`}
                           >
                             {inter.interactionType}

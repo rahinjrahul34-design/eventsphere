@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sliders, Play, RotateCcw, ArrowRight, TrendingUp, TrendingDown, ShieldAlert, Sparkles, AlertCircle } from 'lucide-react';
+import { Sliders, Play, RotateCcw, ArrowRight, AlertCircle } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { endpoints } from '../../lib/api';
 import { toast } from 'sonner';
@@ -51,7 +51,7 @@ export default function WhatIfSimulator({ eventId, baselineHealth }) {
   };
 
   return (
-    <div className="rounded-2xl border bg-card p-6 shadow-sm space-y-6">
+    <div className="rounded-xl border bg-card p-5 shadow-soft space-y-6 sm:p-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4">
         <div className="flex items-center gap-2.5">
@@ -72,21 +72,21 @@ export default function WhatIfSimulator({ eventId, baselineHealth }) {
             onClick={() => applyPreset('VIRAL_SURGE')}
             className="rounded-lg border bg-secondary/50 px-2.5 py-1 text-[11px] font-semibold text-foreground hover:bg-secondary transition"
           >
-            🚀 Ticket Surge (+35%)
+            Ticket surge (+35%)
           </button>
           <button
             type="button"
             onClick={() => applyPreset('RAIN_WEATHER')}
             className="rounded-lg border bg-secondary/50 px-2.5 py-1 text-[11px] font-semibold text-foreground hover:bg-secondary transition"
           >
-            🌧️ High No-Shows (35%)
+            High no-shows (35%)
           </button>
           <button
             type="button"
             onClick={() => applyPreset('MAX_READINESS')}
             className="rounded-lg border bg-secondary/50 px-2.5 py-1 text-[11px] font-semibold text-foreground hover:bg-secondary transition"
           >
-            🛡️ Safety & SEO Polish
+            Safety & SEO polish
           </button>
           <button
             type="button"
@@ -245,7 +245,7 @@ export default function WhatIfSimulator({ eventId, baselineHealth }) {
           type="button"
           onClick={() => handleSimulate()}
           disabled={isSimulating}
-          className="inline-flex items-center gap-2 rounded-xl gradient-brand px-5 py-2.5 text-xs font-bold text-white shadow-md hover:opacity-95 transition disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground shadow-soft transition-all duration-150 hover:bg-primary-hover hover:shadow-lift disabled:opacity-50"
         >
           <Play className={cn('size-3.5', isSimulating && 'animate-spin')} />
           <span>{isSimulating ? 'Recalculating...' : 'Run What-If Simulation'}</span>
@@ -265,8 +265,8 @@ export default function WhatIfSimulator({ eventId, baselineHealth }) {
             <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
               <span>Health Score Delta:</span>
               <span className={cn(
-                'px-2 py-0.5 rounded-md text-xs font-black font-mono',
-                result.deltas.healthScore > 0 ? 'bg-emerald-500/10 text-emerald-500' : result.deltas.healthScore < 0 ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'
+                'px-2 py-0.5 rounded-md text-xs font-extrabold font-mono',
+                result.deltas.healthScore > 0 ? 'bg-success/10 text-success' : result.deltas.healthScore < 0 ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'
               )}>
                 {result.deltas.healthScore > 0 ? `+${result.deltas.healthScore}` : result.deltas.healthScore} pts
               </span>
@@ -280,7 +280,7 @@ export default function WhatIfSimulator({ eventId, baselineHealth }) {
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-sm font-semibold text-muted-foreground line-through">{result.before.healthScore}</span>
                 <ArrowRight className="size-3 text-muted-foreground" />
-                <span className="text-xl font-black font-display text-foreground">{result.after.healthScore}</span>
+                <span className="text-xl font-extrabold font-display text-foreground">{result.after.healthScore}</span>
               </div>
               <span className="text-[10px] text-muted-foreground capitalize block mt-0.5">{result.after.status}</span>
             </div>
@@ -291,7 +291,7 @@ export default function WhatIfSimulator({ eventId, baselineHealth }) {
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-sm font-semibold text-muted-foreground line-through">{result.before.expectedAttendees}</span>
                 <ArrowRight className="size-3 text-muted-foreground" />
-                <span className="text-xl font-black font-display text-foreground">{result.after.expectedAttendees}</span>
+                <span className="text-xl font-extrabold font-display text-foreground">{result.after.expectedAttendees}</span>
               </div>
               <span className="text-[10px] text-muted-foreground block mt-0.5">{result.after.attendanceRate}% turnout</span>
             </div>
@@ -302,7 +302,7 @@ export default function WhatIfSimulator({ eventId, baselineHealth }) {
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-sm font-semibold text-muted-foreground line-through">{result.before.registrationCount}</span>
                 <ArrowRight className="size-3 text-muted-foreground" />
-                <span className="text-xl font-black font-display text-foreground">{result.after.registrationCount}</span>
+                <span className="text-xl font-extrabold font-display text-foreground">{result.after.registrationCount}</span>
               </div>
               <span className="text-[10px] text-muted-foreground block mt-0.5">Capacity: {result.after.capacity} seats</span>
             </div>
@@ -313,7 +313,7 @@ export default function WhatIfSimulator({ eventId, baselineHealth }) {
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-sm font-semibold text-muted-foreground line-through">{result.before.readinessScore}%</span>
                 <ArrowRight className="size-3 text-muted-foreground" />
-                <span className="text-xl font-black font-display text-foreground">{result.after.readinessScore}%</span>
+                <span className="text-xl font-extrabold font-display text-foreground">{result.after.readinessScore}%</span>
               </div>
               <span className="text-[10px] text-muted-foreground block mt-0.5">Protocol checklist</span>
             </div>

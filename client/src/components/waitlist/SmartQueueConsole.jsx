@@ -1,27 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Users,
-  Clock,
-  Zap,
-  TrendingUp,
-  AlertCircle,
-  CheckCircle2,
-  XCircle,
-  Play,
-  RotateCw,
-  Settings2,
-  Sparkles,
-  ShieldAlert,
-  ArrowRight,
-  UserCheck,
-  Timer,
-  Bell,
-  Sliders,
-  History,
-  Info,
-} from 'lucide-react';
+import { Users, Clock, Zap, TrendingUp, AlertCircle, CheckCircle2, Play, RotateCw, Settings2, Sparkles, Timer, Sliders, History } from 'lucide-react';
 import { endpoints } from '../../lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
@@ -116,19 +96,19 @@ export default function SmartQueueConsole({ eventId }) {
   const efficiency = metrics.efficiencyScore ?? 75;
 
   const getEfficiencyColor = (score) => {
-    if (score >= 80) return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
-    if (score >= 60) return 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20';
-    if (score >= 40) return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
-    return 'text-rose-500 bg-rose-500/10 border-rose-500/20';
+    if (score >= 80) return 'text-success bg-success/10 border-success/20';
+    if (score >= 60) return 'text-primary bg-primary/10 border-primary/20';
+    if (score >= 40) return 'text-warning bg-warning/10 border-warning/20';
+    return 'text-destructive bg-destructive/10 border-destructive/20';
   };
 
   return (
     <div className="space-y-6">
       {/* Top Banner & Control Strip */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-card p-5 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border bg-card p-5 shadow-soft">
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex size-7 items-center justify-center rounded-lg bg-indigo-600/15 text-indigo-600 dark:text-indigo-400">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-primary/15 text-primary dark:text-primary">
               <Zap className="size-4" />
             </span>
             <h2 className="font-display text-xl font-bold">SmartQueue AI Console</h2>
@@ -136,7 +116,7 @@ export default function SmartQueueConsole({ eventId }) {
               {data.settings?.enabled !== false ? 'Engine Active' : 'Paused'}
             </Badge>
             {data.settings?.autoPromote && (
-              <Badge variant="outline" className="text-emerald-600 border-emerald-600/30 bg-emerald-500/10 text-xs">
+              <Badge variant="outline" className="text-success border-success/30 bg-success/10 text-xs">
                 Auto-Promote On
               </Badge>
             )}
@@ -154,7 +134,7 @@ export default function SmartQueueConsole({ eventId }) {
             disabled={simulateMutation.isPending}
             className="text-xs"
           >
-            <Play className="size-3.5 mr-1 text-indigo-500" />
+            <Play className="size-3.5 mr-1 text-primary" />
             Simulate Next
           </Button>
           <Button
@@ -187,10 +167,10 @@ export default function SmartQueueConsole({ eventId }) {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <Card className="border-indigo-500/30 bg-indigo-500/5">
+            <Card className="border-primary/30 bg-primary/5">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Sliders className="size-4 text-indigo-500" />
+                  <Sliders className="size-4 text-primary" />
                   SmartQueue Operational Configuration
                 </CardTitle>
                 <CardDescription className="text-xs">
@@ -222,7 +202,7 @@ export default function SmartQueueConsole({ eventId }) {
                           type="checkbox"
                           checked={settingsForm.autoPromote}
                           onChange={(e) => setSettingsForm({ ...settingsForm, autoPromote: e.target.checked })}
-                          className="size-4 rounded accent-indigo-600"
+                          className="size-4 rounded accent-primary"
                         />
                         Auto-promote when seat opens
                       </label>
@@ -237,7 +217,7 @@ export default function SmartQueueConsole({ eventId }) {
                           type="checkbox"
                           checked={settingsForm.sendReminders}
                           onChange={(e) => setSettingsForm({ ...settingsForm, sendReminders: e.target.checked })}
-                          className="size-4 rounded accent-indigo-600"
+                          className="size-4 rounded accent-primary"
                         />
                         Send reminder 5m before expiry
                       </label>
@@ -252,7 +232,7 @@ export default function SmartQueueConsole({ eventId }) {
                           type="checkbox"
                           checked={settingsForm.enabled}
                           onChange={(e) => setSettingsForm({ ...settingsForm, enabled: e.target.checked })}
-                          className="size-4 rounded accent-indigo-600"
+                          className="size-4 rounded accent-primary"
                         />
                         Enable SmartQueue Engine
                       </label>
@@ -302,10 +282,10 @@ export default function SmartQueueConsole({ eventId }) {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">Active Holds</span>
-              <Timer className="size-4 text-amber-500" />
+              <Timer className="size-4 text-warning" />
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-display text-3xl font-extrabold text-amber-600 dark:text-amber-400">
+              <span className="font-display text-3xl font-extrabold text-warning dark:text-warning">
                 {metrics.activeHoldsCount ?? 0}
               </span>
               <span className="text-xs text-muted-foreground">locked seats</span>
@@ -321,7 +301,7 @@ export default function SmartQueueConsole({ eventId }) {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">Claim Conversion</span>
-              <TrendingUp className="size-4 text-emerald-500" />
+              <TrendingUp className="size-4 text-success" />
             </div>
             <div className="mt-2 flex items-baseline gap-1">
               <span className="font-display text-3xl font-extrabold">{metrics.acceptanceRate ?? 0}%</span>
@@ -337,7 +317,7 @@ export default function SmartQueueConsole({ eventId }) {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">Avg Claim Time</span>
-              <Clock className="size-4 text-indigo-500" />
+              <Clock className="size-4 text-primary" />
             </div>
             <div className="mt-2 flex items-baseline gap-1">
               <span className="font-display text-2xl font-extrabold">
@@ -365,11 +345,11 @@ export default function SmartQueueConsole({ eventId }) {
       </div>
 
       {/* AI Operational Intelligence & Velocity Analysis */}
-      <Card className="border-indigo-500/20 bg-gradient-to-r from-indigo-500/5 via-background to-purple-500/5">
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/5 via-background to-primary/5">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
-              <Sparkles className="size-4 text-indigo-600 dark:text-indigo-400" />
+              <Sparkles className="size-4 text-primary dark:text-primary" />
               SmartQueue AI Operational Intelligence
             </CardTitle>
             {aiData.churnRiskLevel && (
@@ -377,10 +357,10 @@ export default function SmartQueueConsole({ eventId }) {
                 variant="outline"
                 className={`text-xs font-bold ${
                   aiData.churnRiskLevel === 'LOW'
-                    ? 'text-emerald-600 border-emerald-600/30'
+                    ? 'text-success border-success/30'
                     : aiData.churnRiskLevel === 'MEDIUM'
-                    ? 'text-amber-600 border-amber-600/30'
-                    : 'text-rose-600 border-rose-600/30'
+                    ? 'text-warning border-warning/30'
+                    : 'text-destructive border-destructive/30'
                 }`}
               >
                 Churn Risk: {aiData.churnRiskLevel}
@@ -423,11 +403,11 @@ export default function SmartQueueConsole({ eventId }) {
 
       {/* Simulation Result Drawer / Card (if run) */}
       {simulationResult && (
-        <Card className="border-indigo-500/40 bg-card shadow-md">
+        <Card className="border-primary/40 bg-card shadow-md">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
-                <Play className="size-4 text-indigo-500" />
+                <Play className="size-4 text-primary" />
                 Dry-Run Allocation Simulation
               </CardTitle>
               <Button variant="ghost" size="sm" onClick={() => setSimulationResult(null)} className="text-xs">
@@ -447,11 +427,11 @@ export default function SmartQueueConsole({ eventId }) {
               </div>
               <div>
                 <span className="text-muted-foreground block">Active Holds</span>
-                <span className="font-bold text-sm text-amber-600">{simulationResult.activeHoldsCount}</span>
+                <span className="font-bold text-sm text-warning">{simulationResult.activeHoldsCount}</span>
               </div>
               <div>
                 <span className="text-muted-foreground block">Open Seats</span>
-                <span className="font-bold text-sm text-emerald-600">{simulationResult.availableSeats}</span>
+                <span className="font-bold text-sm text-success">{simulationResult.availableSeats}</span>
               </div>
             </div>
 
@@ -465,7 +445,7 @@ export default function SmartQueueConsole({ eventId }) {
                   </div>
                 </div>
                 <div className="text-right">
-                  <Badge variant="outline" className="text-emerald-600 border-emerald-600/30">
+                  <Badge variant="outline" className="text-success border-success/30">
                     Next in FIFO line (#{simulationResult.nextInLine.position})
                   </Badge>
                   <Button
@@ -487,10 +467,10 @@ export default function SmartQueueConsole({ eventId }) {
 
       {/* Active Holds Monitor */}
       {data.activeHolds?.length > 0 && (
-        <Card className="border-amber-500/30 bg-amber-500/5">
+        <Card className="border-warning/30 bg-warning/5">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Timer className="size-4 text-amber-500" />
+              <Timer className="size-4 text-warning" />
               Active Seat Reservations ({data.activeHolds.length})
             </CardTitle>
             <CardDescription className="text-xs">
@@ -503,10 +483,10 @@ export default function SmartQueueConsole({ eventId }) {
                 const mins = Math.floor(h.secondsRemaining / 60);
                 const secs = h.secondsRemaining % 60;
                 return (
-                  <div key={h._id} className="rounded-xl border bg-card p-3.5 space-y-2 text-xs shadow-sm">
+                  <div key={h._id} className="rounded-xl border bg-card p-3.5 space-y-2 text-xs shadow-soft">
                     <div className="flex items-center justify-between">
                       <Badge variant="warning" className="font-mono text-xs">
-                        ⏱️ {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')} left
+                        {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')} left
                       </Badge>
                       <span className="font-semibold text-muted-foreground">{h.ticketType?.name || 'General'}</span>
                     </div>
@@ -543,14 +523,14 @@ export default function SmartQueueConsole({ eventId }) {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full min-w-[540px] text-left text-xs">
                 <thead>
-                  <tr className="border-b text-muted-foreground">
-                    <th className="py-2.5 font-semibold">Rank</th>
-                    <th className="py-2.5 font-semibold">Attendee</th>
-                    <th className="py-2.5 font-semibold">Tier</th>
-                    <th className="py-2.5 font-semibold">Status</th>
-                    <th className="py-2.5 font-semibold">Joined</th>
+                  <tr className="border-b bg-muted/40 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <th className="whitespace-nowrap px-4 py-2.5">Rank</th>
+                    <th className="whitespace-nowrap px-4 py-2.5">Attendee</th>
+                    <th className="whitespace-nowrap px-4 py-2.5">Tier</th>
+                    <th className="whitespace-nowrap px-4 py-2.5">Status</th>
+                    <th className="whitespace-nowrap px-4 py-2.5">Joined</th>
                     <th className="py-2.5 text-right font-semibold">Actions</th>
                   </tr>
                 </thead>
@@ -634,10 +614,10 @@ export default function SmartQueueConsole({ eventId }) {
                     <span
                       className={`size-2 rounded-full ${
                         audit.action.includes('ACCEPTED') || audit.action.includes('CONFIRMED')
-                          ? 'bg-emerald-500'
+                          ? 'bg-success'
                           : audit.action.includes('EXPIRED') || audit.action.includes('DECLINED')
-                          ? 'bg-rose-500'
-                          : 'bg-indigo-500'
+                          ? 'bg-destructive'
+                          : 'bg-primary'
                       }`}
                     />
                     <span className="font-mono font-bold text-[11px]">{audit.action}</span>

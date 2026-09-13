@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import {
-  Bot, Sparkles, Wand2, Copy, Check, ArrowRight, FileText, ListChecks, Megaphone,
-  CalendarRange, ClipboardList, Gauge, ChevronDown, ChevronUp,
-} from 'lucide-react';
+import { Bot, Sparkles, Wand2, Copy, Check, ArrowRight, FileText, ListChecks, Megaphone, CalendarRange, ClipboardList, Gauge, ChevronDown, ChevronUp } from 'lucide-react';
 import { endpoints } from '../../lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -54,12 +51,12 @@ export default function Copilot() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <span className="grid size-12 place-items-center rounded-2xl gradient-brand text-white"><Bot className="size-6" /></span>
+        <span className="grid size-12 place-items-center rounded-xl gradient-brand text-white shadow-soft"><Bot className="size-6" aria-hidden="true" /></span>
         <div>
           <h2 className="font-display text-2xl font-extrabold">AI Event Copilot</h2>
           <p className="text-sm text-muted-foreground">Describe your event and get a complete, ready-to-use plan.</p>
         </div>
-        <Badge variant="secondary" className="ml-auto">{engine.includes('gemini') ? '✨ Gemini powered' : '🧪 Demo engine'}</Badge>
+        <Badge variant="secondary" className="ml-auto">{engine.includes('gemini') ? 'Gemini powered' : 'Demo engine'}</Badge>
       </div>
 
       <Card className="border-primary/25 bg-primary/5">
