@@ -239,7 +239,7 @@ export default function VerifyOtp() {
                 <span className="text-destructive font-semibold">Code has expired</span>
               )}
             </span>
-            <span className="inline-flex items-center gap-1 text-emerald-600">
+            <span className="inline-flex items-center gap-1 text-success">
               <ShieldCheck className="size-3.5" /> 256-bit encrypted
             </span>
           </div>
@@ -279,11 +279,11 @@ export default function VerifyOtp() {
 
         {/* Demo Helper */}
         {demoOtp && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50/70 dark:bg-amber-950/20 dark:border-amber-900/40 p-3.5">
+          <div className="rounded-xl border border-warning/30 bg-warning/[0.07] p-3.5">
             <div className="flex items-center justify-between">
-              <p className="flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-300">
+              <p className="flex items-center gap-1.5 text-xs font-bold text-warning">
                 <Zap className="size-3.5" /> Demo verification code:{' '}
-                <code className="rounded bg-white/80 dark:bg-amber-900/60 px-2 py-0.5 font-mono text-sm">
+                <code className="rounded bg-background px-2 py-0.5 font-mono text-sm">
                   {demoOtp}
                 </code>
               </p>

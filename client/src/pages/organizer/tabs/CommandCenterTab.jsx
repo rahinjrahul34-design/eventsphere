@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { endpoints } from '../../../lib/api';
 import { getSocket } from '../../../lib/socket';
-import { Spinner, ErrorState } from '../../../components/ui/misc';
+import { ErrorState } from '../../../components/ui/misc';
 import ExecutiveSummaryCard from '../../../components/commandCenter/ExecutiveSummaryCard';
 import IntelligenceCardsGrid from '../../../components/commandCenter/IntelligenceCardsGrid';
 import ActionCenter from '../../../components/commandCenter/ActionCenter';
@@ -12,6 +12,7 @@ import WhatIfSimulator from '../../../components/commandCenter/WhatIfSimulator';
 import HealthTimelineChart from '../../../components/commandCenter/HealthTimelineChart';
 import UnifiedAlertFeed from '../../../components/commandCenter/UnifiedAlertFeed';
 import { toast } from 'sonner';
+import { DashboardSkeleton } from '../../../components/ui/skeleton';
 
 export default function CommandCenterTab() {
   const { event } = useOutletContext();
@@ -73,7 +74,7 @@ export default function CommandCenterTab() {
     toast.success('Command Center intelligence refreshed');
   };
 
-  if (ccQuery.isLoading) return <Spinner />;
+  if (ccQuery.isLoading) return <DashboardSkeleton />;
   if (ccQuery.isError) return <ErrorState message={ccQuery.error.message} onRetry={ccQuery.refetch} />;
   const data = ccQuery.data;
   if (!data) return null;

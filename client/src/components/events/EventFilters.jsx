@@ -1,6 +1,7 @@
-import { X, SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal, X } from 'lucide-react';
 import { Chip } from '../ui/misc';
 import { Button } from '../ui/button';
+import { Sheet } from '../ui/dialog';
 import { EVENT_CATEGORIES } from '../../lib/format';
 import { useState } from 'react';
 
@@ -83,18 +84,9 @@ export function FilterDrawer(props) {
       <Button variant="outline" size="sm" className="lg:hidden" onClick={() => setOpen(true)}>
         <SlidersHorizontal className="size-4" /> Filters
       </Button>
-      {open && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
-          <div className="absolute inset-y-0 left-0 w-80 max-w-[85vw] overflow-y-auto bg-card p-5 animate-fade-in">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-bold text-lg">Filters</h3>
-              <button onClick={() => setOpen(false)} aria-label="Close"><X className="size-5" /></button>
-            </div>
-            <EventFilters {...props} onClear={() => { props.onClear(); setOpen(false); }} />
-          </div>
-        </div>
-      )}
+      <Sheet open={open} onClose={() => setOpen(false)} title="Filters" side="left">
+        <EventFilters {...props} onClear={() => { props.onClear(); setOpen(false); }} />
+      </Sheet>
     </>
   );
 }

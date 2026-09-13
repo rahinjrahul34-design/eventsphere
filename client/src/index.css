@@ -22,10 +22,12 @@
     --success-foreground: 0 0% 100%;
     --warning: 32 92% 46%;
     --warning-foreground: 0 0% 100%;
+    --info: 199 89% 44%;
+    --info-foreground: 0 0% 100%;
     --border: 240 12% 90%;
     --input: 240 12% 88%;
     --ring: 256 80% 56%;
-    --radius: 0.85rem;
+    --radius: 0.75rem;
     --shadow-color: 240 40% 20%;
   }
 
@@ -48,6 +50,8 @@
     --success-foreground: 240 30% 8%;
     --warning: 32 90% 58%;
     --warning-foreground: 240 30% 8%;
+    --info: 199 90% 62%;
+    --info-foreground: 240 30% 8%;
     --border: 240 12% 20%;
     --input: 240 12% 24%;
     --ring: 256 85% 70%;
@@ -104,13 +108,46 @@
   }
   .gradient-text {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(110deg, hsl(256 85% 60%), hsl(222 90% 58%), hsl(280 80% 55%));
+    background-image: linear-gradient(110deg, hsl(256 80% 58%), hsl(226 85% 56%));
   }
   .gradient-brand {
-    background-image: linear-gradient(120deg, hsl(256 85% 58%), hsl(226 90% 56%));
+    background-image: linear-gradient(135deg, hsl(256 78% 56%), hsl(230 80% 52%));
   }
   .card-hover {
     @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lift;
+  }
+
+  /* ---- Card hierarchy (spec §6): L1 surface / L2 interactive / L3 featured AI ---- */
+  .card-surface {
+    @apply rounded-xl border bg-card text-card-foreground shadow-soft;
+  }
+  .card-interactive {
+    @apply card-surface transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift;
+  }
+  .card-featured {
+    @apply card-surface relative overflow-hidden;
+  }
+  .card-featured::before {
+    content: '';
+    @apply absolute inset-x-0 top-0 h-px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.55), transparent);
+  }
+
+  /* ---- Premium table treatment (spec §12) ---- */
+  .table-premium {
+    @apply w-full text-sm;
+  }
+  .table-premium thead th {
+    @apply border-b bg-muted/40 px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground;
+  }
+  .table-premium tbody td {
+    @apply border-b border-border/60 px-4 py-3 align-middle;
+  }
+  .table-premium tbody tr {
+    @apply transition-colors hover:bg-muted/40;
+  }
+  .table-premium tbody tr:last-child td {
+    @apply border-b-0;
   }
   .skeleton {
     @apply relative overflow-hidden bg-muted rounded-md;

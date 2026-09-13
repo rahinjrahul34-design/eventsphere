@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import {
-  Info, CalendarDays, MapPin, Ticket, Mic2, Clock, FileText, Rocket, Check, Plus, X,
-  ChevronLeft, ChevronRight, Sparkles, Bot,
-} from 'lucide-react';
+import { Info, CalendarDays, MapPin, Ticket, Mic2, Clock, FileText, Rocket, Check, Plus, X, ChevronLeft, ChevronRight, Sparkles, Bot } from 'lucide-react';
 import { endpoints } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { Input, Textarea, Label, Select } from '../../components/ui/input';
@@ -154,7 +151,7 @@ export default function EventCreate() {
       return event;
     },
     onSuccess: (event) => {
-      toast.success('Event published successfully! 🎉', {
+      toast.success('Event published successfully!', {
         action: {
           label: 'Optimize with EventBoost AI',
           onClick: () => navigate(`/dashboard/events/${event._id}/eventboost`),
@@ -489,7 +486,7 @@ function StepPublish({ form, setForm }) {
       </div>
 
       {/* Preview */}
-      <div className="overflow-hidden rounded-2xl border">
+      <div className="overflow-hidden rounded-xl border">
         <div className="relative h-48 bg-muted">
           {form.coverImage ? <img src={form.coverImage} className="size-full object-cover" alt="" /> : <div className="grid size-full place-items-center text-muted-foreground">Cover preview</div>}
           <div className="absolute bottom-3 left-4 right-4">

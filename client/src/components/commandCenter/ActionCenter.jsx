@@ -77,7 +77,7 @@ export default function ActionCenter({ actions = [], eventId, onActionResolved }
   };
 
   return (
-    <div className="rounded-2xl border bg-card p-6 shadow-sm space-y-5">
+    <div className="card-surface p-6 space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
         <div>
           <h3 className="font-display text-lg font-bold flex items-center gap-2">

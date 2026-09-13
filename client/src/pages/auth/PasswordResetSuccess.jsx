@@ -24,14 +24,14 @@ export default function PasswordResetSuccess() {
       subtitle="Your password has been updated. You can now securely log in."
     >
       <div className="space-y-6">
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50/50 p-6 text-center dark:border-emerald-900/40 dark:bg-emerald-950/20">
-          <div className="grid size-16 place-items-center rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 mb-3">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-success/25 bg-success/[0.06] p-6 text-center">
+          <div className="grid size-16 place-items-center rounded-full bg-success/15 text-success mb-3">
             <CheckCircle2 className="size-9" />
           </div>
-          <h2 className="text-base font-bold text-emerald-900 dark:text-emerald-200">
+          <h2 className="text-base font-bold text-success">
             Account Secured
           </h2>
-          <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-400 max-w-xs">
+          <p className="mt-1 text-xs text-success dark:text-success max-w-xs">
             All previous reset sessions and temporary verification codes have been invalidated.
           </p>
         </div>

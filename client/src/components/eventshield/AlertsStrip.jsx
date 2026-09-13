@@ -6,15 +6,15 @@ export default function AlertsStrip({ alerts = [], onResolve, pending }) {
   if (!alerts.length) return null;
   return (
     <section className="space-y-2" aria-live="polite">
-      <h3 className="flex items-center gap-1.5 text-sm font-extrabold uppercase tracking-wider text-rose-500">
+      <h3 className="flex items-center gap-1.5 text-sm font-extrabold uppercase tracking-wider text-destructive">
         <AlertTriangle className="size-4" /> Live operational alerts ({alerts.length})
       </h3>
       <div className="grid gap-3 md:grid-cols-2">
         {alerts.map((alert) => (
-          <div key={alert._id} className="flex flex-col justify-between rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 shadow-sm">
+          <div key={alert._id} className="flex flex-col justify-between rounded-xl border border-destructive/30 bg-destructive/10 p-4 shadow-sm">
             <div>
               <div className="flex items-center justify-between gap-2">
-                <span className="font-display text-xs font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                <span className="font-display text-xs font-extrabold uppercase tracking-wider text-destructive dark:text-destructive">
                   [{alert.severity}] {String(alert.type || '').replace(/_/g, ' ')}
                 </span>
                 <Badge variant="destructive" className="py-0 text-[10px] font-bold">Active</Badge>
@@ -26,14 +26,14 @@ export default function AlertsStrip({ alerts = [], onResolve, pending }) {
                 </p>
               )}
             </div>
-            <div className="mt-3 flex items-center justify-between border-t border-rose-500/20 pt-2">
+            <div className="mt-3 flex items-center justify-between border-t border-destructive/20 pt-2">
               <span className="text-[11px] text-muted-foreground">
                 {alert.createdAt ? new Date(alert.createdAt).toLocaleTimeString() : ''}
               </span>
               <Button
                 size="sm"
                 variant="outline"
-                className="h-7 border-rose-500/40 text-xs text-rose-600 hover:bg-rose-500 hover:text-white"
+                className="h-7 border-destructive/40 text-xs text-destructive hover:bg-destructive hover:text-white"
                 onClick={() => onResolve(alert._id)}
                 disabled={pending}
               >

@@ -180,7 +180,7 @@ export default function AdminHome() {
         <CardHeader><CardTitle>Newest users</CardTitle></CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="table-premium">
               <thead><tr className="border-b text-left text-xs uppercase text-muted-foreground">
                 <th className="p-2">User</th><th className="p-2">Role</th><th className="p-2">Joined</th>
               </tr></thead>
@@ -245,7 +245,7 @@ export default function AdminHome() {
                 Recent Recommendation Signals
               </h4>
               <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+                <table className="table-premium text-xs">
                   <thead>
                     <tr className="border-b text-left text-muted-foreground uppercase">
                       <th className="p-2">User</th>

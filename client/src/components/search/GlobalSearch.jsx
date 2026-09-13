@@ -83,7 +83,7 @@ export default function GlobalSearch() {
   return (
     <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-[12vh]" role="dialog" aria-label="Global search">
       <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={close} />
-      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border bg-card shadow-lift animate-scale-in">
+      <div className="relative w-full max-w-xl overflow-hidden card-surface shadow-lift animate-scale-in">
         <div className="flex items-center gap-3 border-b px-4">
           {loading ? <Loader2 className="size-5 animate-spin text-muted-foreground" /> : <Search className="size-5 text-muted-foreground" />}
           <input

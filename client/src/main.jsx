@@ -26,7 +26,7 @@ function ThemeSync() {
       theme={theme}
       toastOptions={{
         classNames: {
-          toast: '!bg-card !text-card-foreground !border !border-border !shadow-lift',
+          toast: '!bg-card !text-card-foreground !border !border-border !shadow-lift !rounded-xl',
         },
       }}
     />

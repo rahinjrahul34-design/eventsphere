@@ -28,7 +28,7 @@ export default function AiExecutiveBrief({ initialBrief, eventId }) {
   const { situation, positiveSignals = [], problems = [], topAction, outlook, engine, generatedAt } = brief;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border bg-card p-6 shadow-sm space-y-5">
+    <div className="relative overflow-hidden card-surface p-6 space-y-5">
       {/* Subtle background glow */}
       <div className="absolute top-0 right-0 -mt-8 -mr-8 size-48 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 

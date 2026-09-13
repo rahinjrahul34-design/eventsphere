@@ -178,7 +178,7 @@ export default function CommandCenter() {
         <ErrorState message={ccQuery.error.message} onRetry={ccQuery.refetch} />
       ) : !data ? null : (
         <div className="space-y-6">
-          {/* Executive Summary Card */}
+          {/* 1. Executive Summary + Event Health Score (hero) */}
           <ExecutiveSummaryCard
             overallHealth={data.overallHealth}
             onRefresh={handleRefresh}
@@ -187,32 +187,32 @@ export default function CommandCenter() {
             lastUpdated={data.freshness?.aggregatedAt}
           />
 
-          {/* AI Executive Brief */}
-          <AiExecutiveBrief
-            initialBrief={data.summary}
-            eventId={selectedEventId}
-          />
-
-          {/* 6 Modular Intelligence Cards Grid */}
+          {/* 2. Modular Intelligence Cards */}
           <IntelligenceCardsGrid data={data} />
 
-          {/* Action Center */}
+          {/* 3. Critical Alerts */}
+          <UnifiedAlertFeed alerts={data.alerts} />
+
+          {/* 4. Recommended Actions */}
           <ActionCenter
             actions={data.actions}
             eventId={selectedEventId}
             onActionResolved={() => ccQuery.refetch()}
           />
 
-          {/* What-If Scenario Simulator */}
-          <WhatIfSimulator
+          {/* 5. AI Executive Brief */}
+          <AiExecutiveBrief
+            initialBrief={data.summary}
             eventId={selectedEventId}
-            baselineHealth={data.overallHealth}
           />
 
-          {/* Bottom Grid: Health Timeline Chart + Unified Alert Feed */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* 6. Trends + 7. What-If Simulator */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             <HealthTimelineChart trends={data.trends} />
-            <UnifiedAlertFeed alerts={data.alerts} />
+            <WhatIfSimulator
+              eventId={selectedEventId}
+              baselineHealth={data.overallHealth}
+            />
           </div>
         </div>
       )}

@@ -1,9 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import {
-  ShieldCheck, CheckCircle2, MapPin, Building, Calendar, Users,
-  Star, ExternalLink, ArrowLeft, Award, Sparkles, Mail,
-} from 'lucide-react';
+import { ShieldCheck, CheckCircle2, MapPin, Calendar, ArrowLeft, Award, Mail } from 'lucide-react';
 import { endpoints } from '../lib/api';
 import OrganizerTrustCard from '../components/trustsphere/OrganizerTrustCard';
 import EventCard from '../components/events/EventCard';
@@ -11,6 +8,7 @@ import { Spinner, ErrorState } from '../components/ui/misc';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { ListSkeleton } from '../components/ui/skeleton';
 
 export default function OrganizerPublicProfile() {
   const { id } = useParams();
@@ -38,7 +36,7 @@ export default function OrganizerPublicProfile() {
     enabled: !!id,
   });
 
-  if (profileLoading) return <Spinner />;
+  if (profileLoading) return <div className="max-w-4xl mx-auto space-y-5"><div className="skeleton h-36 rounded-xl" /><ListSkeleton rows={2} /></div>;
   if (isError) return <ErrorState message={error?.message || 'Organizer profile not found'} onRetry={refetch} />;
 
   const events = eventsData || [];
@@ -65,7 +63,7 @@ export default function OrganizerPublicProfile() {
         <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
             {/* Avatar */}
-            <div className="relative size-20 sm:size-24 rounded-2xl overflow-hidden border-2 border-primary/20 bg-muted flex items-center justify-center font-display text-2xl font-black text-primary shrink-0 shadow-md">
+            <div className="relative size-20 sm:size-24 rounded-2xl overflow-hidden border-2 border-primary/20 bg-muted flex items-center justify-center font-display text-2xl font-extrabold text-primary shrink-0 shadow-md">
               {organizer.avatar ? (
                 <img src={organizer.avatar} alt={organizer.name} className="size-full object-cover" />
               ) : (
@@ -145,7 +143,7 @@ export default function OrganizerPublicProfile() {
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
+          <div className="rounded-xl border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
             No upcoming events scheduled right now. Check back soon!
           </div>
         )}

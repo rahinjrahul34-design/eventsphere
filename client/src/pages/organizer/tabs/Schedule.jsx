@@ -7,11 +7,12 @@ import { Card, CardContent } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Input, Textarea, Label, Select } from '../../../components/ui/input';
 import { Badge } from '../../../components/ui/badge';
-import { Spinner } from '../../../components/ui/misc';
+
 import { EmptyState } from '../../../components/ui/states';
 import { Dialog, ConfirmDialog } from '../../../components/ui/dialog';
 import { fmtTime, fmtDay } from '../../../lib/format';
 import { toast } from 'sonner';
+import { ListSkeleton } from '../../../components/ui/skeleton';
 
 const TYPES = ['keynote', 'talk', 'workshop', 'panel', 'break', 'networking', 'activity', 'ceremony'];
 const blankForm = { title: '', description: '', type: 'talk', room: 'Main Hall', start: '', end: '', speakerIds: [] };
@@ -98,7 +99,7 @@ export default function Schedule() {
     } finally { setAiLoading(false); }
   };
 
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <ListSkeleton rows={5} />;
   const sessions = q.data || [];
   const days = [...new Set(sessions.map((s) => {
     const start = new Date(s.startTime); const base = new Date(event.startDate);

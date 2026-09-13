@@ -7,10 +7,11 @@ import { Card, CardContent } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Input, Textarea, Label, Select } from '../../../components/ui/input';
 import { Badge } from '../../../components/ui/badge';
-import { Spinner } from '../../../components/ui/misc';
+
 import { EmptyState } from '../../../components/ui/states';
 import { Dialog, ConfirmDialog } from '../../../components/ui/dialog';
 import { toast } from 'sonner';
+import { GridSkeleton } from '../../../components/ui/skeleton';
 
 const TIERS = ['title', 'platinum', 'gold', 'silver', 'bronze', 'partner'];
 const blank = { name: '', tier: 'gold', logo: '', website: '', description: '', contribution: '' };
@@ -43,7 +44,7 @@ export default function Sponsors() {
   const openEdit = (s) => { setEditing(s); setForm({ ...blank, ...s }); setOpen(true); };
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <GridSkeleton count={4} />;
   const sponsors = q.data || [];
   const byTier = TIERS.map((t) => ({ tier: t, list: sponsors.filter((s) => s.tier === t) })).filter((g) => g.list.length);
 

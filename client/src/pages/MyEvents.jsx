@@ -3,13 +3,14 @@ import { useQuery } from '@tanstack/react-query';
 import { CalendarDays, Clock, Users, Zap } from 'lucide-react';
 import { endpoints } from '../lib/api';
 import { EmptyState, ErrorState } from '../components/ui/states';
-import { Spinner, Tabs } from '../components/ui/misc';
+import { Tabs } from '../components/ui/misc';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { fmtDate } from '../lib/format';
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { GridSkeleton } from '../components/ui/skeleton';
 
 const statusVariant = {
   confirmed: 'success', checked_in: 'success', waitlisted: 'warning', cancelled: 'destructive', pending: 'secondary',
@@ -79,7 +80,7 @@ export default function MyEvents() {
   });
   const [tab, setTab] = useState('upcoming');
 
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <GridSkeleton count={6} />;
   if (q.isError) return <ErrorState message={q.error.message} onRetry={q.refetch} />;
   const regs = (q.data || []).filter((r) => r.event);
   const now = new Date();

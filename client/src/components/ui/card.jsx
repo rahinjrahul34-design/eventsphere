@@ -1,9 +1,25 @@
+import { cva } from 'class-variance-authority';
 import { cn } from '../../lib/utils';
 
-export function Card({ className, ...props }) {
+// Card hierarchy (spec §6): surface (L1) / interactive (L2) /
+// featured (L3 — AI intelligence) / hero (L4 — summary/flagship).
+const cardVariants = cva('text-card-foreground', {
+  variants: {
+    variant: {
+      surface: 'card-surface',
+      interactive: 'card-interactive',
+      featured: 'card-featured',
+      hero: 'card-surface shadow-lift ring-1 ring-primary/10',
+      none: '',
+    },
+  },
+  defaultVariants: { variant: 'surface' },
+});
+
+export function Card({ className, variant, ...props }) {
   return (
     <div
-      className={cn('rounded-xl border bg-card text-card-foreground shadow-soft', className)}
+      className={cn(cardVariants({ variant }), className)}
       {...props}
     />
   );

@@ -105,7 +105,7 @@ function SuggestionCard({ person }) {
     onError: (e) => toast.error(e.message),
   });
   return (
-    <div className="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-lift transition">
+    <div className="card-surface p-5 shadow-soft hover:shadow-lift transition">
       <div className="flex items-start justify-between">
         <Avatar name={person.name} src={person.avatar} className="size-14" fallbackClass="text-lg" />
         <MatchRing score={person.score} />
@@ -135,7 +135,7 @@ function ConnectionCard({ connection, accepted }) {
   });
   const u = connection.user;
   return (
-    <div className="rounded-2xl border bg-card p-5">
+    <div className="card-surface p-5">
       <div className="flex items-center gap-3">
         <Avatar name={u.name} src={u.avatar} className="size-12" />
         <div className="min-w-0">
@@ -182,7 +182,7 @@ function MessagesPanel({ threads, loading }) {
   if (loading) return <Spinner />;
   if (threads.length === 0) return <EmptyState icon={MessageCircle} title="No conversations" description="Connect with people and start chatting." />;
   return (
-    <div className="grid h-[65vh] grid-cols-1 overflow-hidden rounded-2xl border bg-card md:grid-cols-[280px_1fr]">
+    <div className="grid h-[65vh] grid-cols-1 overflow-hidden card-surface md:grid-cols-[280px_1fr]">
       <div className="overflow-y-auto border-b md:border-b-0 md:border-r">
         {threads.map((t) => (
           <button key={t.user._id} onClick={() => setActiveUser(t.user)}

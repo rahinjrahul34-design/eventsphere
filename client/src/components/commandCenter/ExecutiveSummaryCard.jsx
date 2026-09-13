@@ -30,7 +30,7 @@ export default function ExecutiveSummaryCard({ overallHealth, onRefresh, isRefre
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-card via-card to-card/50 p-6 shadow-sm">
+      <div className="card-surface relative overflow-hidden rounded-2xl bg-gradient-to-br from-card via-card to-primary/[0.04] p-6 ring-1 ring-primary/10" aria-live="polite">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           {/* Left: Health Gauge & Score */}
           <div className="flex items-center gap-5">

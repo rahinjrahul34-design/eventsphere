@@ -4,16 +4,16 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] [&_svg]:size-4 [&_svg]:shrink-0',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-all duration-200 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none active:scale-[0.98] [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
         default:
-          'gradient-brand text-white shadow-soft hover:shadow-lift hover:brightness-110',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-muted hover:border-border border border-transparent',
-        outline: 'border border-input bg-card hover:bg-secondary text-foreground',
+          'gradient-brand text-white shadow-soft hover:shadow-lift hover:brightness-110 active:brightness-100 ring-1 ring-inset ring-white/15',
+        secondary: 'bg-secondary text-secondary-foreground border border-transparent hover:bg-muted hover:border-border',
+        outline: 'border border-input bg-card text-foreground hover:border-primary/40 hover:bg-secondary',
         ghost: 'hover:bg-secondary text-foreground',
-        destructive: 'bg-destructive text-destructive-foreground hover:brightness-110 shadow-soft',
+        destructive: 'bg-destructive text-destructive-foreground shadow-soft ring-1 ring-inset ring-white/10 hover:brightness-110 hover:shadow-lift',
         success: 'bg-success text-success-foreground hover:brightness-105 shadow-soft',
         warning: 'bg-warning text-warning-foreground hover:brightness-105',
         link: 'text-primary underline-offset-4 hover:underline rounded-none',

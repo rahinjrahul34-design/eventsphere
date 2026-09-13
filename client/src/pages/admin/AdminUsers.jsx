@@ -55,7 +55,7 @@ export default function AdminUsers() {
         <CardContent className="p-0">
           {usersQ.isLoading ? <Spinner /> : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="table-premium">
                 <thead>
                   <tr className="border-b text-left text-xs uppercase text-muted-foreground">
                     <th className="p-3">User</th>

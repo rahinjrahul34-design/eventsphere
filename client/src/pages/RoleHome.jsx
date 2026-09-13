@@ -1,16 +1,15 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Hand, Mic2, QrCode, MapPin, Clock, Radio, ChevronRight, BadgeCheck,
-} from 'lucide-react';
+import { Hand, Mic2, QrCode, MapPin, Clock, Radio, ChevronRight, BadgeCheck } from 'lucide-react';
 import { endpoints } from '../lib/api';
 import { useAuth } from '../store/auth';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Spinner } from '../components/ui/misc';
+
 import { EmptyState } from '../components/ui/states';
 import { fmtDate, fmtTime, fmtDateTime } from '../lib/format';
+import { StatsSkeleton, ListSkeleton } from '../components/ui/skeleton';
 
 export default function RoleHome() {
   const { user } = useAuth();
@@ -20,7 +19,7 @@ export default function RoleHome() {
 function VolunteerHome() {
   const { user } = useAuth();
   const q = useQuery({ queryKey: ['my-assignments'], queryFn: endpoints.myAssignments });
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <div className="space-y-6"><StatsSkeleton count={2} /><ListSkeleton rows={3} /></div>;
   const items = q.data || [];
 
   return (
@@ -74,7 +73,7 @@ function VolunteerHome() {
 
 function SpeakerHome() {
   const q = useQuery({ queryKey: ['my-speaking'], queryFn: endpoints.mySpeaking });
-  if (q.isLoading) return <Spinner />;
+  if (q.isLoading) return <div className="space-y-6"><StatsSkeleton count={2} /><ListSkeleton rows={3} /></div>;
   const items = q.data || [];
 
   return (

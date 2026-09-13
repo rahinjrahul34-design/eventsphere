@@ -75,7 +75,7 @@ export default function Onboarding() {
         )}
 
         {step === 1 && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="grid gap-4 rounded-2xl border bg-card p-6 sm:grid-cols-2">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="grid gap-4 card-surface p-6 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className="text-sm font-semibold">Headline</label>
               <input className="mt-1 h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
