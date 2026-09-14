@@ -10,6 +10,7 @@ import { fmtDate } from '../lib/format';
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { usePageTitle } from '../hooks/usePageTitle';
+import SmartImage from '../components/ui/smart-image';
 import { GridSkeleton } from '../components/ui/skeleton';
 
 const statusVariant = {
@@ -35,7 +36,7 @@ function WaitlistRow({ entry }) {
   return (
     <div className="flex flex-wrap items-center gap-4 rounded-xl border bg-card p-4 shadow-soft">
       {entry.event.coverImage && (
-        <img src={entry.event.coverImage} alt="" className="size-20 rounded-lg object-cover" />
+        <SmartImage src={entry.event.coverImage} alt={entry.event.title} className="size-20 rounded-lg object-cover" />
       )}
       <div className="min-w-0 flex-1">
         <Link to={`/events/${entry.event.slug}`} className="font-bold hover:text-primary">{entry.event.title}</Link>
@@ -123,7 +124,7 @@ export default function MyEvents() {
         <div className="mt-6 space-y-3">
           {list.map((r) => (
             <div key={r._id} className="flex flex-wrap items-center gap-4 rounded-xl border bg-card p-4 shadow-soft">
-              <img src={r.event.coverImage} alt="" className="size-20 rounded-lg object-cover" />
+              <SmartImage src={r.event.coverImage} alt={r.event.title} className="size-20 rounded-lg object-cover" />
               <div className="min-w-0 flex-1">
                 <Link to={`/events/${r.event.slug}`} className="font-bold hover:text-primary">{r.event.title}</Link>
                 <p className="text-xs text-muted-foreground">{fmtDate(r.event.startDate, 'EEE d MMM yyyy · h:mm a')} · {r.event.venue?.city || 'Online'}</p>

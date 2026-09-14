@@ -10,6 +10,7 @@ import { Badge } from '../components/ui/badge';
 import { EmptyState } from '../components/ui/states';
 import { fmtDate, fmtTime, fmtDateTime } from '../lib/format';
 import { StatsSkeleton, ListSkeleton } from '../components/ui/skeleton';
+import SmartImage from '../components/ui/smart-image';
 
 export default function RoleHome() {
   const { user } = useAuth();
@@ -41,7 +42,7 @@ function VolunteerHome() {
               <CardContent className="p-5">
                 <div className="flex gap-4">
                   {v.event?.coverImage
-                    ? <img src={v.event.coverImage} alt="" className="size-20 rounded-xl object-cover" />
+                    ? <SmartImage src={v.event.coverImage} alt={v.event.title} className="size-20 rounded-xl object-cover" />
                     : <span className="grid size-20 place-items-center rounded-xl bg-muted"><Hand className="size-8 text-muted-foreground" /></span>}
                   <div className="min-w-0 flex-1">
                     <Link to={`/events/${v.event?.slug}`} className="font-bold hover:text-primary">{v.event?.title || 'Event'}</Link>
@@ -94,7 +95,7 @@ function SpeakerHome() {
             <Card key={s._id}>
               <CardContent className="flex flex-wrap items-center gap-4 p-5">
                 {s.event?.coverImage
-                  ? <img src={s.event.coverImage} alt="" className="size-20 rounded-xl object-cover" />
+                  ? <SmartImage src={s.event.coverImage} alt={s.event.title} className="size-20 rounded-xl object-cover" />
                   : <span className="grid size-20 place-items-center rounded-xl bg-muted"><Mic2 className="size-8 text-muted-foreground" /></span>}
                 <div className="min-w-0 flex-1">
                   <p className="flex items-center gap-1 text-xs text-muted-foreground">

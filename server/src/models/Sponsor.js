@@ -6,7 +6,7 @@ const sponsorSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     logo: {
       type: String,
-      default: 'https://api.dicebear.com/9.x/shapes/svg?seed=Sponsor&backgroundColor=transparent',
+      default: '/images/sponsors/default.svg',
     },
     tier: { type: String, enum: ['platinum', 'gold', 'silver', 'bronze'], default: 'bronze' },
     amount: { type: Number, default: 0 },

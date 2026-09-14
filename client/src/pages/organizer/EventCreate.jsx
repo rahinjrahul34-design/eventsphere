@@ -11,6 +11,7 @@ import { cn } from '../../lib/utils';
 import { EVENT_CATEGORIES } from '../../lib/format';
 import { toast } from 'sonner';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import SmartImage from '../../components/ui/smart-image';
 
 const DRAFT_KEY = 'es-event-draft';
 const STEPS = [
@@ -264,7 +265,7 @@ function StepBasic({ form, set, categories }) {
       <div>
         <Label>Cover image URL</Label>
         <Input className="mt-1" value={form.coverImage} onChange={(e) => set('coverImage', e.target.value)} placeholder="https://…" />
-        {form.coverImage && <img src={form.coverImage} alt="" className="mt-2 h-40 rounded-lg object-cover" />}
+        {form.coverImage && <SmartImage src={form.coverImage} alt="Cover preview" className="mt-2 h-40 rounded-lg object-cover" />}
       </div>
       <div>
         <Label required>Event type</Label>
@@ -488,7 +489,7 @@ function StepPublish({ form, setForm }) {
       {/* Preview */}
       <div className="overflow-hidden rounded-xl border">
         <div className="relative h-48 bg-muted">
-          {form.coverImage ? <img src={form.coverImage} className="size-full object-cover" alt="" /> : <div className="grid size-full place-items-center text-muted-foreground">Cover preview</div>}
+          {form.coverImage ? <SmartImage src={form.coverImage} className="size-full object-cover" alt="Cover preview" /> : <div className="grid size-full place-items-center text-muted-foreground">Cover preview</div>}
           <div className="absolute bottom-3 left-4 right-4">
             {cat && <Badge style={{ backgroundColor: cat.color }} className="text-white">{cat.name}</Badge>}
             <h3 className="mt-1 font-display text-2xl font-extrabold text-white drop-shadow">{form.title || 'Your event title'}</h3>

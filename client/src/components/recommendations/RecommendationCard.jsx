@@ -17,6 +17,7 @@ import WhyThisEventModal from './WhyThisEventModal';
 import RecommendationFeedback from './RecommendationFeedback';
 import { fmtDate, categoryMeta, typeLabel } from '../../lib/format';
 import { endpoints } from '../../lib/api';
+import SmartImage from '../ui/smart-image';
 
 const typeIcon = { offline: Building2, online: Video, hybrid: Radio };
 
@@ -81,7 +82,7 @@ export default function RecommendationCard({ event, index = 0, onDismiss, debug 
         <div className="group relative flex h-full flex-col overflow-hidden card-interactive shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift">
           {/* Cover Image & Badges */}
           <Link to={`/events/${event.slug}`} onClick={handleCardClick} className="block relative aspect-[16/9] overflow-hidden">
-            <img
+            <SmartImage
               src={event.coverImage}
               alt={event.title}
               loading="lazy"

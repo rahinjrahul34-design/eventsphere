@@ -60,8 +60,9 @@ Password is **`Event@123`** for every account.
 Also seeded: 120 generated attendees, 20 events (hackathons, workshops,
 conferences, cultural/sports…), ~1,600 registrations & tickets,
 waitlists, polls, Q&A, feedback and certificates. Event covers are
-self-hosted (bundled with the app) and avatars use a reliable
-deterministic service, so images never render blank.
+self-hosted (bundled with the app) — covers, speaker avatars and sponsor
+logos are all served from `client/public/images/`, so nothing depends on
+an external CDN and images never render blank.
 
 > The in-memory database resets on every server restart — data is fresh
 > each boot. Use `MONGO_URI` to persist.
@@ -157,4 +158,5 @@ WRONG_EVENT/INVALID → RBAC denials → polls/Q&A/announcements → leaderboard
 | `npm start` | serve API + built SPA on port 5000 |
 | `npm run dev:server` / `dev:client` | dev processes |
 | `npm run seed` | seed a real MongoDB |
+| `npm run assets` | regenerate bundled placeholder avatars/logos |
 | `npm test` | server tests |

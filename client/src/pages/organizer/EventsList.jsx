@@ -10,6 +10,7 @@ import { EmptyState } from '../../components/ui/states';
 import { fmtDate, inr } from '../../lib/format';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ConfirmDialog } from '../../components/ui/dialog';
+import SmartImage from '../../components/ui/smart-image';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { ListSkeleton } from '../../components/ui/skeleton';
@@ -58,7 +59,7 @@ export default function EventsList() {
           {events.map((e) => (
             <Card key={e._id} className="overflow-hidden">
               <CardContent className="flex flex-wrap items-center gap-4 p-4">
-                <img src={e.coverImage} alt="" className="size-20 rounded-lg object-cover" />
+                <SmartImage src={e.coverImage} alt={e.title} className="size-20 rounded-lg object-cover" />
                 <div className="min-w-0 flex-1">
                   <Link to={`/dashboard/events/${e._id}`} className="font-bold hover:text-primary">{e.title}</Link>
                   <p className="text-xs text-muted-foreground">{fmtDate(e.startDate, 'EEE d MMM yyyy')} · {e.venue?.city || 'Online'}</p>

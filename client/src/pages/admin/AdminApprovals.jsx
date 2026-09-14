@@ -13,6 +13,7 @@ import { Dialog } from '../../components/ui/dialog';
 import { fmtDate } from '../../lib/format';
 import { toast } from 'sonner';
 import { TableSkeleton } from '../../components/ui/skeleton';
+import SmartImage from '../../components/ui/smart-image';
 
 export default function AdminApprovals() {
   const [tab, setTab] = useState('events');
@@ -67,7 +68,7 @@ function EventsList({ filter }) {
       {events.map((e) => (
         <Card key={e._id} className="overflow-hidden">
           <CardContent className="flex flex-wrap items-center gap-4 p-4">
-            <img src={e.coverImage} alt="" className="size-20 rounded-lg object-cover" />
+            <SmartImage src={e.coverImage} alt={e.title} className="size-20 rounded-lg object-cover" />
             <div className="min-w-0 flex-1">
               <Link to={`/events/${e.slug}`} className="font-bold hover:text-primary">{e.title} <ExternalLink className="ml-1 inline size-3.5" /></Link>
               <p className="line-clamp-2 max-w-2xl text-sm text-muted-foreground">{e.shortDescription || e.description?.slice(0, 160)}</p>

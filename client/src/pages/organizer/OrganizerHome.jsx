@@ -10,6 +10,7 @@ import { StatsSkeleton, ChartSkeleton, ListSkeleton } from '../../components/ui/
 import { TrendChart } from '../../components/charts/Charts';
 import { fmtDate } from '../../lib/format';
 import { useMemo } from 'react';
+import SmartImage from '../../components/ui/smart-image';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
 export default function OrganizerHome() {
@@ -113,7 +114,7 @@ export default function OrganizerHome() {
         <CardContent className="space-y-2">
           {events.slice(0, 6).map((e) => (
             <Link key={e._id} to={`/dashboard/events/${e._id}`} className="flex items-center gap-4 rounded-xl border p-3 hover:shadow-soft transition">
-              <img src={e.coverImage} alt="" className="size-12 rounded-lg object-cover" />
+              <SmartImage src={e.coverImage} alt={e.title} className="size-12 rounded-lg object-cover" />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-bold text-sm">{e.title}</p>
                 <p className="text-xs text-muted-foreground">{fmtDate(e.startDate)} · {e.registrationCount} registered</p>

@@ -12,6 +12,7 @@ import { EmptyState } from '../../../components/ui/states';
 import { Dialog, ConfirmDialog } from '../../../components/ui/dialog';
 import { toast } from 'sonner';
 import { GridSkeleton } from '../../../components/ui/skeleton';
+import SmartImage from '../../../components/ui/smart-image';
 
 const TIERS = ['title', 'platinum', 'gold', 'silver', 'bronze', 'partner'];
 const blank = { name: '', tier: 'gold', logo: '', website: '', description: '', contribution: '' };
@@ -66,7 +67,7 @@ export default function Sponsors() {
                 {group.list.map((s) => (
                   <div key={s._id} className="group flex items-center gap-3 rounded-xl border p-3">
                     {s.logo
-                      ? <img src={s.logo} alt="" className="size-12 rounded-lg object-contain bg-muted p-1" />
+                      ? <SmartImage src={s.logo} alt={s.name} className="size-12 rounded-lg object-contain bg-muted p-1" />
                       : <span className="grid size-12 place-items-center rounded-lg bg-muted text-lg font-bold">{s.name?.[0]}</span>}
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-bold text-sm">{s.name}</p>

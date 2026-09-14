@@ -10,7 +10,7 @@ const speakerSchema = new mongoose.Schema(
     bio: { type: String, default: '', maxlength: 900 },
     photo: {
       type: String,
-      default: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Speaker&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf',
+      default: '/images/avatars/default.svg',
     },
     skills: { type: [String], default: [] },
     social: {

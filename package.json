@@ -15,6 +15,7 @@
     "build": "npm --workspace client run build",
     "start": "npm --workspace server start",
     "seed": "npm --workspace server run seed",
+    "assets": "node scripts/generate-placeholder-assets.js",
     "test": "npm --workspace server test"
   },
   "engines": {

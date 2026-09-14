@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { endpoints } from '../lib/api';
 import { Button } from '../components/ui/button';
+import SmartImage from '../components/ui/smart-image';
 import EventCard from '../components/events/EventCard';
 import { EVENT_CATEGORIES, fmtDate } from '../lib/format';
 import { usePageTitle } from '../hooks/usePageTitle';
@@ -130,7 +131,7 @@ export default function Landing() {
                 transition={{ delay: c.delay, y: { repeat: Infinity, duration: 5, ease: 'easeInOut' }, opacity: { duration: 0.5 } }}
                 className={`absolute w-72 overflow-hidden card-surface shadow-lift ${c.cls}`}
               >
-                <img src={c.img} alt={c.t} className="h-36 w-full object-cover" />
+                <SmartImage src={c.img} alt={c.t} className="h-36 w-full object-cover" />
                 <div className="p-3">
                   <p className="text-sm font-bold">{c.t}</p>
                   <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">

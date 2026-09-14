@@ -11,6 +11,7 @@ import { Spinner } from '../../components/ui/misc';
 import { TrendChart, DonutChart, COLORS } from '../../components/charts/Charts';
 import { fmtDate } from '../../lib/format';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import SmartImage from '../../components/ui/smart-image';
 
 export default function AdminHome() {
   usePageTitle('Admin Dashboard');
@@ -144,7 +145,7 @@ export default function AdminHome() {
           <CardContent className="space-y-3">
             {(d.pendingEvents || []).map((e) => (
               <div key={e._id} className="flex items-center gap-3 rounded-xl border p-3">
-                <img src={e.coverImage} alt="" className="size-11 rounded-lg object-cover" />
+                <SmartImage src={e.coverImage} alt={e.title} className="size-11 rounded-lg object-cover" />
                 <div className="min-w-0 flex-1">
                   <Link to={`/events/${e.slug}`} className="truncate block text-sm font-bold hover:text-primary">{e.title}</Link>
                   <p className="truncate text-xs text-muted-foreground">by {e.organizer?.name || 'organizer'} · {fmtDate(e.createdAt, 'd MMM')}</p>

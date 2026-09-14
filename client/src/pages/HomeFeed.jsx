@@ -10,6 +10,7 @@ import { Badge } from '../components/ui/badge';
 import { Dialog } from '../components/ui/dialog';
 import { Spinner, ErrorState } from '../components/ui/misc';
 import { fmtDate } from '../lib/format';
+import SmartImage from '../components/ui/smart-image';
 import { useAuth } from '../store/auth';
 import { usePageTitle } from '../hooks/usePageTitle';
 
@@ -342,7 +343,7 @@ export default function HomeFeed() {
                     to={`/events/${r.event.slug}`}
                     className="flex items-center gap-3 rounded-xl border p-3 hover:shadow-soft transition"
                   >
-                    <img src={r.event.coverImage} alt="" className="size-14 rounded-lg object-cover" />
+                    <SmartImage src={r.event.coverImage} alt={r.event.title} className="size-14 rounded-lg object-cover" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-bold text-sm">{r.event.title}</p>
                       <p className="text-xs text-muted-foreground">{fmtDate(r.event.startDate, 'EEE d MMM, h:mm a')}</p>

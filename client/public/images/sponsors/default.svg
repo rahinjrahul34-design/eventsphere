@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180" role="img" aria-label="Sponsor logo">
+  <defs><linearGradient id="bgDef" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#64748b"/><stop offset="100%" stop-color="#334155"/>
+  </linearGradient></defs>
+  <rect width="180" height="180" rx="40" fill="url(#bgDef)"/>
+  <path d="M90 46l38 66H52z" fill="#fff" fill-opacity="0.18"/>
+  <text x="90" y="92" text-anchor="middle" dominant-baseline="central"
+        font-family="Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif"
+        font-size="70" font-weight="700" fill="#ffffff">S</text>
+</svg>

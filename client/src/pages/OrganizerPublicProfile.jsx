@@ -9,6 +9,7 @@ import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { usePageTitle } from '../hooks/usePageTitle';
 import { ListSkeleton } from '../components/ui/skeleton';
+import SmartImage from '../components/ui/smart-image';
 
 export default function OrganizerPublicProfile() {
   const { id } = useParams();
@@ -65,7 +66,7 @@ export default function OrganizerPublicProfile() {
             {/* Avatar */}
             <div className="relative size-20 sm:size-24 rounded-2xl overflow-hidden border-2 border-primary/20 bg-muted flex items-center justify-center font-display text-2xl font-extrabold text-primary shrink-0 shadow-md">
               {organizer.avatar ? (
-                <img src={organizer.avatar} alt={organizer.name} className="size-full object-cover" />
+                <SmartImage src={organizer.avatar} alt={organizer.name} className="size-full object-cover" />
               ) : (
                 <span>{(organizer.name || 'O').charAt(0).toUpperCase()}</span>
               )}

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="Illustrated avatar 13">
+  <defs>
+    <linearGradient id="bga12" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <clipPath id="clipa12"><circle cx="120" cy="120" r="120"/></clipPath>
+  </defs>
+  <g clip-path="url(#clipa12)">
+    <rect width="240" height="240" fill="url(#bga12)"/>
+    <circle cx="120" cy="255" r="86" fill="#4338ca"/>
+    <rect x="106" y="150" width="28" height="34" rx="12" fill="#e8b894"/>
+    <circle cx="120" cy="112" r="50" fill="#e8b894"/>
+    <path d="M120 46c-30 0-46 20-46 46 0 7 2 13 4 18 2-20 12-33 42-33s40 13 42 33c2-5 4-11 4-18 0-26-16-46-46-46z" fill="#7d5a3c"/>
+    <circle cx="103" cy="114" r="5" fill="#1f2937"/>
+    <circle cx="137" cy="114" r="5" fill="#1f2937"/>
+    <circle cx="104.5" cy="112.5" r="1.6" fill="#fff"/>
+    <circle cx="138.5" cy="112.5" r="1.6" fill="#fff"/>
+    <path d="M108 134c4 5 9 7 12 7s8-2 12-7" fill="none" stroke="#8a5a44" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M96 96c3-4 8-6 12-6M132 90c4 0 9 2 12 6" fill="none" stroke="#7d5a3c" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+</svg>

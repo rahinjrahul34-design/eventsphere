@@ -15,6 +15,7 @@ import { Input, Textarea } from '../../../components/ui/input';
 import { Spinner, ErrorState } from '../../../components/ui/misc';
 import { toast } from 'sonner';
 import { cn } from '../../../lib/utils';
+import SmartImage from '../../../components/ui/smart-image';
 
 export default function EventBoostTab() {
   const { event } = useOutletContext();
@@ -701,9 +702,10 @@ export default function EventBoostTab() {
             <CardContent>
               <div className="max-w-xl rounded-xl border bg-card overflow-hidden shadow-sm">
                 <div className="relative h-48 w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900">
-                  <img
-                    src={event.coverImage || '/images/events/ai-innovation-summit.jpg'}
+                  <SmartImage
+                    src={event.coverImage}
                     alt="Social Cover"
+                    loading="eager"
                     className="size-full object-cover"
                   />
                   <div className="absolute top-2 left-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider backdrop-blur-sm">

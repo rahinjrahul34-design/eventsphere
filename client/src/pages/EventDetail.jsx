@@ -10,6 +10,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { Accordion } from '../components/ui/misc';
 import { Progress } from '../components/ui/misc';
 import { Avatar } from '../components/ui/avatar';
+import SmartImage from '../components/ui/smart-image';
 import FavoriteButton from '../components/events/FavoriteButton';
 import ShareMenu from '../components/events/ShareMenu';
 import MapView from '../components/events/MapView';
@@ -90,7 +91,7 @@ export default function EventDetail() {
       {/* Hero */}
       <div className="relative">
         <div className="h-[38vh] min-h-[280px] w-full overflow-hidden">
-          <img src={event.coverImage} alt={event.title} className="size-full object-cover" />
+          <SmartImage src={event.coverImage} alt={event.title} loading="eager" className="size-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-black/30" />
         </div>
         <div className="absolute inset-x-0 bottom-0">
@@ -279,7 +280,7 @@ export default function EventDetail() {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {sponsorsQ.data.map((sp) => (
                   <div key={sp._id} className="rounded-xl border bg-card p-4 text-center">
-                    <img src={sp.logo} alt={sp.name} className="mx-auto size-16 rounded-lg object-cover" />
+                    <SmartImage src={sp.logo} alt={sp.name} className="mx-auto size-16 rounded-lg object-cover" />
                     <p className="mt-2 font-bold text-sm">{sp.name}</p>
                     <Badge variant="secondary" className="mt-1 capitalize">{sp.tier} partner</Badge>
                   </div>

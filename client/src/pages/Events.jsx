@@ -10,6 +10,7 @@ import { EmptyState, ErrorState } from '../components/ui/states';
 import { GridSkeleton } from '../components/ui/skeleton';
 import { Button } from '../components/ui/button';
 import { Select, Input } from '../components/ui/input';
+import SmartImage from '../components/ui/smart-image';
 import { Link } from 'react-router-dom';
 import { fmtDate, fmtTime, inr, typeLabel, categoryMeta } from '../lib/format';
 import FavoriteButton from '../components/events/FavoriteButton';
@@ -176,7 +177,7 @@ function EventRow({ event }) {
   const cat = categoryMeta(event.categorySlug);
   return (
     <Link to={`/events/${event.slug}`} className="group flex gap-4 rounded-xl border bg-card p-3 shadow-soft transition-all duration-200 hover:border-border-strong hover:shadow-lift">
-      <img src={event.coverImage} alt="" className="hidden sm:block size-28 rounded-lg object-cover" />
+      <SmartImage src={event.coverImage} alt={event.title} className="hidden sm:block size-28 rounded-lg object-cover" />
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-3">
           <div>

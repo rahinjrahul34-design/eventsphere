@@ -52,21 +52,37 @@ const LOCAL_COVERS = {
   'photo-1486406146926-c627a92ad1ab': 'campus-startup-expo',
 };
 
-const img = (id, w = 1400) => {
+const img = (id) => {
   const local = LOCAL_COVERS[id];
   if (local) return `/images/events/${local}.jpg`;
-  // Fallback for any unmapped id (e.g. custom URLs passed through).
-  return `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=70`;
+  // Any unmapped id falls back to a bundled cover so an image can never be blank.
+  return '/images/events/ai-innovation-summit.jpg';
 };
 
-// Reliable, deterministic illustrated avatars (DiceBear) — replaces the previously
-// flaky i.pravatar.cc service which intermittently rendered blank images.
-const avatar = (seed) =>
-  `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(String(seed))}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+// Bundled illustrated avatars / sponsor logos (see scripts/generate-placeholder-assets.js).
+// These replace the external api.dicebear.com and i.pravatar.cc URLs, which failed to
+// load on restricted networks and left avatars and sponsor logos rendering blank.
+const AVATAR_VARIANTS = 16;
+const LOGO_VARIANTS = 12;
 
-// Deterministic SVG placeholder for sponsor "logos".
-const logo = (name) =>
-  `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(String(name))}&backgroundColor=transparent`;
+// Stable string hash so a given name always maps to the same asset.
+const hash = (value) => {
+  let h = 7;
+  for (const ch of String(value)) h = (h * 31 + ch.codePointAt(0)) % 1000003;
+  return h;
+};
+const pad = (n) => String(n).padStart(2, '0');
+
+const avatar = (seed) => {
+  const idx =
+    typeof seed === 'number' && Number.isFinite(seed)
+      ? Math.abs(Math.trunc(seed) - 1) % AVATAR_VARIANTS
+      : hash(seed) % AVATAR_VARIANTS;
+  return `/images/avatars/avatar-${pad(idx + 1)}.svg`;
+};
+
+// Deterministic sponsor "logo" from the bundled brand marks.
+const logo = (name) => `/images/sponsors/logo-${pad((hash(name) % LOGO_VARIANTS) + 1)}.svg`;
 
 const COORDS = {
   Nashik: [73.7898, 19.9975],
@@ -1232,4 +1248,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { runSeed };
+module.exports = { runSeed, img, avatar, logo, LOCAL_COVERS };
