@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Users, CalendarDays, Ticket, IndianRupee, ShieldCheck, Flag, ArrowRight, UserCheck, Sparkles } from 'lucide-react';
+import { Users, CalendarDays, Ticket, IndianRupee, ShieldCheck, Flag, ArrowRight, UserCheck, Sparkles, Activity } from 'lucide-react';
 import { endpoints } from '../../lib/api';
 import StatCard from '../../components/dashboard/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';

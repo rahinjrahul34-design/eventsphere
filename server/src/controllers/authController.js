@@ -8,7 +8,7 @@ const emailService = require('../services/emailService');
 const notificationService = require('../services/notificationService');
 const config = require('../config');
 
-const googleClient = new OAuth2Client(config.google.clientId || '');
+const googleClient = new OAuth2Client();
 
 const tokenPayload = (user, statusCode, res, extra = {}) => {
   const token = user.signToken();
@@ -67,13 +67,17 @@ const googleLogin = asyncHandler(async (req, res) => {
   const googleToken = credential || idToken;
 
   if (!googleToken) throw ApiError.badRequest('Google credential is required');
-  if (!config.google.clientId) throw ApiError.badRequest('Google sign-in is not configured. Add GOOGLE_CLIENT_ID to your server/.env file.');
+  const googleAudiences = config.google.clientIds.length ? config.google.clientIds : [config.google.clientId].filter(Boolean);
+
+  if (!googleAudiences.length) {
+    throw ApiError.badRequest('Google sign-in is not configured. Add GOOGLE_CLIENT_ID to your server/.env file.');
+  }
 
   let payload;
   try {
     const ticket = await googleClient.verifyIdToken({
       idToken: googleToken,
-      audience: config.google.clientId,
+      audience: googleAudiences,
     });
     payload = ticket.getPayload();
   } catch (err) {
@@ -92,7 +96,7 @@ const googleLogin = asyncHandler(async (req, res) => {
       tokenAud = '';
     }
     throw ApiError.badRequest(
-      `Google token audience mismatch: token aud=${tokenAud} expected=${config.google.clientId}. Ensure GOOGLE_CLIENT_ID matches the client that issued the token.`
+      `Google sign-in is using a different client ID than the server. Token audience: ${tokenAud || 'unknown'}. Server accepts: ${googleAudiences.join(', ')}. Set server GOOGLE_CLIENT_ID to the same value as client VITE_GOOGLE_CLIENT_ID.`
     );
   }
 
@@ -491,4 +495,3 @@ module.exports = {
   resetPassword,
   applyOrganizer,
 };
-

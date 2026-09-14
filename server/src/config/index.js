@@ -42,6 +42,10 @@ module.exports = {
   },
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID || '',
+    clientIds: (process.env.GOOGLE_CLIENT_IDS || process.env.GOOGLE_CLIENT_ID || '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean),
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
   },
 };
