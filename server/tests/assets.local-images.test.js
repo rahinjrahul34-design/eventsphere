@@ -15,6 +15,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const request = require('supertest');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const PUBLIC_IMAGES = path.join(ROOT, 'client', 'public', 'images');
@@ -156,5 +157,40 @@ describe('Local image assets', () => {
     expect(sponsorDefault).toMatch(/^\/images\//);
     expect(existsUnderPublic(speakerDefault)).toBe(true);
     expect(existsUnderPublic(sponsorDefault)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// End-to-end: the real Express app must actually serve the bundled assets.
+// No database is touched — this only exercises the static/SPA layer.
+// ---------------------------------------------------------------------------
+describe('Server serves bundled images over HTTP', () => {
+  let app;
+
+  beforeAll(() => {
+    // app.js builds the Express app without connecting to MongoDB.
+    app = require('../src/app');
+  });
+
+  const SAMPLES = [
+    '/images/avatars/avatar-01.svg',
+    '/images/avatars/avatar-16.svg',
+    '/images/avatars/default.svg',
+    '/images/sponsors/logo-01.svg',
+    '/images/sponsors/default.svg',
+    '/images/events/ai-innovation-summit.jpg',
+    '/images/events/technova-hackathon.jpg',
+  ];
+
+  test.each(SAMPLES)('%s is served with HTTP 200 and a non-empty body', async (url) => {
+    const res = await request(app).get(url);
+    expect(res.status).toBe(200);
+    expect(Number(res.headers['content-length'] || res.body?.length || 0)).toBeGreaterThan(0);
+  });
+
+  test('the SPA shell loads from the server too', async () => {
+    const res = await request(app).get('/');
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('<div id="root"');
   });
 });
