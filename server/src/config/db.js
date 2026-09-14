@@ -9,7 +9,8 @@ let mongod = null;
  * (zero external dependencies for demos/tests).
  */
 async function connectDB() {
-  let uri = config.mongoUri;
+  const testMongoUri = process.env.TEST_MONGO_URI || '';
+  let uri = config.env === 'test' ? testMongoUri : config.mongoUri;
 
   if (!uri) {
     // Lazy-require so production deployments with a real URI never download the binary.
