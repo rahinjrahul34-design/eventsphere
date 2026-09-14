@@ -6,6 +6,7 @@ const Report = require('../models/Report');
 const Registration = require('../models/Registration');
 const User = require('../models/User');
 const ApiError = require('../utils/ApiError');
+const config = require('../config');
 const { asyncHandler, ok, created } = require('../utils/response');
 const { slugify } = require('../utils/codes');
 const { getRecommendedEvents, getSimilarEvents } = require('../services/recommendationService');

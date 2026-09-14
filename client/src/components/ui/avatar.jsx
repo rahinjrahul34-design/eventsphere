@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { cn, initials } from '../../lib/utils';
 
 const COLORS = [
@@ -7,16 +8,15 @@ const COLORS = [
 
 export function Avatar({ name = '', src, className = '', fallbackClass = '' }) {
   const color = COLORS[(name || '').charCodeAt(0) % COLORS.length] || COLORS[0];
-  if (src) {
+  const [failed, setFailed] = useState(false);
+  if (src && !failed) {
     return (
       <img
         src={src}
         alt={name}
         loading="lazy"
         className={cn('rounded-full object-cover ring-2 ring-background', className)}
-        onError={(e) => {
-          e.target.style.display = 'none';
-        }}
+        onError={() => setFailed(true)}
       />
     );
   }

@@ -52,14 +52,16 @@ Password is **`Event@123`** for every account.
 | Role | Email | Highlights |
 |------|-------|-----------|
 | Admin | `admin@eventsphere.demo` | platform KPIs, event approvals, users & organizer applications, reports, categories, audit logs |
-| Organizer | `organizer@eventsphere.demo` | 14 events incl. a **LIVE** one; wizard, AI Copilot, analytics, registrations/waitlist, QR desk, schedule/speakers/volunteers/sponsors |
+| Organizer | `organizer@eventsphere.demo` | 19 events incl. a **LIVE** one; wizard, AI Copilot, analytics, registrations/waitlist, QR desk, schedule/speakers/volunteers/sponsors |
 | Attendee | `attendee@eventsphere.demo` | tickets, QR passes, certificates, favorites, connections/DMs, points & badges |
 | Volunteer | `volunteer@eventsphere.demo` | assignments + standalone QR check-in desk |
 | Speaker | `speaker@eventsphere.demo` | own speaking sessions |
 
-Also seeded: 120 generated attendees, 15 events (hackathons, workshops,
-conferences, cultural/sports…), ~1,100 registrations & tickets,
-waitlists, polls, Q&A, feedback and certificates.
+Also seeded: 120 generated attendees, 20 events (hackathons, workshops,
+conferences, cultural/sports…), ~1,600 registrations & tickets,
+waitlists, polls, Q&A, feedback and certificates. Event covers are
+self-hosted (bundled with the app) and avatars use a reliable
+deterministic service, so images never render blank.
 
 > The in-memory database resets on every server restart — data is fresh
 > each boot. Use `MONGO_URI` to persist.

@@ -28,8 +28,45 @@ const Favorite = require('../models/Favorite');
 const { PointActivity, UserBadge } = require('../models/Gamification');
 
 const PASSWORD = 'Event@123';
-const img = (id, w = 1400) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=70`;
-const avatar = (id) => `https://i.pravatar.cc/240?img=${id}`;
+
+// Self-hosted, always-available cover images (served from client/public/images/events).
+// Mapping from the previously hot-linked Unsplash IDs to bundled local assets so that
+// covers never render blank — no external CDN / network dependency.
+const LOCAL_COVERS = {
+  'photo-1591453089816-0fbb971b454c': 'ai-innovation-summit',
+  'photo-1504384308090-c894fdcc538d': 'technova-hackathon',
+  'photo-1556761175-b413da4baf72': 'campus-startup-expo',
+  'photo-1550751827-4bd374c3f58b': 'cyber-security-bootcamp',
+  'photo-1493676304819-0d7a8d026dcf': 'annual-cultural-fest',
+  'photo-1528605248644-14dd04022da1': 'nashik-developer-meetup',
+  'photo-1542744173-8e7e53415bb0': 'corporate-leadership-summit',
+  'photo-1461896836934-ffe607ba8211': 'sports-championship',
+  'photo-1451187580459-43490279c0fa': 'cloud-devops-bootcamp',
+  'photo-1561070791-36c11767b26a': 'design-thinking-sprint',
+  'photo-1501386761578-eac5c94b800a': 'indie-music-night',
+  'photo-1517245386807-bb43f82c33c4': 'research-scholars-symposium',
+  'photo-1556761175-5973dc0f32e7': 'fintech-founders-roundtable',
+  'photo-1633356122544-f134324a6cee': 'mern-stack-masterclass',
+  'photo-1542751371-adc38448a05e': 'esports-arena-2026',
+  'photo-1560179707-f14e90ef3623': 'ai-innovation-summit',
+  'photo-1486406146926-c627a92ad1ab': 'campus-startup-expo',
+};
+
+const img = (id, w = 1400) => {
+  const local = LOCAL_COVERS[id];
+  if (local) return `/images/events/${local}.jpg`;
+  // Fallback for any unmapped id (e.g. custom URLs passed through).
+  return `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=70`;
+};
+
+// Reliable, deterministic illustrated avatars (DiceBear) — replaces the previously
+// flaky i.pravatar.cc service which intermittently rendered blank images.
+const avatar = (seed) =>
+  `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(String(seed))}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+
+// Deterministic SVG placeholder for sponsor "logos".
+const logo = (name) =>
+  `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(String(name))}&backgroundColor=transparent`;
 
 const COORDS = {
   Nashik: [73.7898, 19.9975],
@@ -489,6 +526,134 @@ async function runSeed({ force = false, silent = false } = {}) {
     organizer: organizer2._id, status: 'published', approvalStatus: 'pending', featured: false,
   });
 
+  await mkEvent({
+    title: 'AI in Healthcare Summit', slug: 'ai-healthcare-summit',
+    shortDescription: 'How AI is reshaping diagnostics, drug discovery and patient care — with live demos.',
+    description: 'A one-day summit for med-tech founders, clinicians and ML engineers exploring applied AI in healthcare: medical imaging, clinical decision support, drug discovery and responsible deployment. Features a live demo of an AI triage assistant and a clinician-in-the-loop panel.\n\nAttendees receive a verifiable certificate and access to the demo repositories.',
+    coverImage: '/images/events/ai-healthcare-summit.jpg',
+    category: catMap.conference._id, categorySlug: 'conference',
+    tags: ['AI/ML', 'Healthcare', 'Data Science', 'Startups', 'MedTech'],
+    eventType: 'hybrid', startDate: day(18, 9), endDate: day(18, 18), timezone: 'Asia/Kolkata',
+    registrationDeadline: day(17, 23),
+    venue: venue('Narayana Health Convention Centre', 'Hosur Road, Bengaluru', 'Bengaluru', true, 'https://meet.eventsphere.demo/ai-health'),
+    capacity: 180, price: 0,
+    ticketTypes: [
+      { name: 'Clinician Pass', description: 'Full day + CME points', price: 0, quantity: 120, soldCount: 0 },
+      { name: 'Pro Pass', description: 'Workshop + datasets + lunch', price: 499, quantity: 60, soldCount: 0 },
+    ],
+    customRegistrationFields: [
+      { label: 'Role', type: 'select', required: true, options: ['Clinician', 'Engineer', 'Researcher', 'Founder', 'Student'] },
+      { label: 'Experience with ML', type: 'radio', required: true, options: ['None', 'Beginner', 'Intermediate', 'Advanced'] },
+    ],
+    faq: [
+      { q: 'Do I need medical domain knowledge?', a: 'No — sessions span both clinical and technical tracks with beginner-friendly intros.' },
+      { q: 'Is this CME accredited?', a: 'The Clinician Pass includes continuing medical education credits.' },
+      { q: 'Will datasets be shared?', a: 'Curated public datasets and demo notebooks are shared with Pro Pass holders.' },
+    ],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved', featured: true,
+  });
+
+  await mkEvent({
+    title: 'Women in Tech Conference 2026', slug: 'women-in-tech-conference',
+    shortDescription: 'Celebrating and accelerating women in engineering, product and leadership.',
+    description: 'A flagship conference spotlighting women technologists: keynotes from senior leaders, technical deep dives, a mentorship lounge and a hiring fair with 30+ companies. Open to everyone who supports building inclusive teams.\n\nIncludes scholarships for 100 women students.',
+    coverImage: '/images/events/women-in-tech-conference.jpg',
+    category: catMap.conference._id, categorySlug: 'conference',
+    tags: ['Women in Tech', 'Diversity', 'Leadership', 'Networking', 'Careers'],
+    eventType: 'offline', startDate: day(22, 9, 30), endDate: day(23, 17), timezone: 'Asia/Kolkata',
+    venue: venue('NCPA, Nariman Point', 'Mumbai', 'Mumbai'),
+    capacity: 350, price: 0,
+    ticketTypes: [
+      { name: 'Student Scholarship', description: 'Free for women students', price: 0, quantity: 100, soldCount: 0 },
+      { name: 'Standard Pass', description: 'All keynotes + expo', price: 0, quantity: 200, soldCount: 0 },
+      { name: 'Pro Pass', description: 'Mentorship lounge + workshops', price: 299, quantity: 50, soldCount: 0 },
+    ],
+    customRegistrationFields: [
+      { label: 'Career stage', type: 'select', required: true, options: ['Student', 'Early career', 'Mid career', 'Senior', 'Executive'] },
+      { label: 'Seeking mentorship?', type: 'radio', required: false, options: ['Yes', 'No'] },
+    ],
+    faq: [
+      { q: 'Is this only for women?', a: 'No — everyone is welcome. The content and mentorship prioritize women technologists.' },
+      { q: 'How do I apply for a scholarship?', a: 'Choose the Student Scholarship pass and complete the short form at registration.' },
+    ],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved', featured: true,
+  });
+
+  await mkEvent({
+    title: 'Startup Demo Day', slug: 'startup-demo-day',
+    shortDescription: 'Twelve early-stage teams. Five minutes each. One room full of investors.',
+    description: 'Startup Demo Day is the culmination of a 10-week accelerator batch. Twelve teams pitch live to a room of angels, VCs and corporate innovation heads, followed by curated 1:1 founder–investor meetings and an after-party.\n\nInvestors register for the investor pass; founders apply with their deck.',
+    coverImage: '/images/events/startup-demo-day.jpg',
+    category: catMap.networking._id, categorySlug: 'networking',
+    tags: ['Startups', 'Pitch', 'Investors', 'Networking', 'Venture'],
+    eventType: 'offline', startDate: day(11, 16), endDate: day(11, 21),
+    venue: venue('Rise Mumbai, Lower Parel', 'Mumbai', 'Mumbai'),
+    capacity: 220, price: 0,
+    ticketTypes: [
+      { name: 'Founder Pass', description: 'Apply with your pitch deck', price: 0, quantity: 40, soldCount: 0 },
+      { name: 'Investor Pass', description: 'Verified investors & funds', price: 0, quantity: 60, soldCount: 0 },
+      { name: 'General Attendee', description: 'Watch the pitches + after-party', price: 199, quantity: 120, soldCount: 0 },
+    ],
+    customRegistrationFields: [
+      { label: 'Company / fund', type: 'text', required: false },
+      { label: 'Deck link', type: 'text', required: false, placeholder: 'Founders only' },
+    ],
+    faq: [
+      { q: 'How do I pitch?', a: 'Apply with the Founder Pass and share your deck — the top 12 are selected.' },
+      { q: 'Are recordings shared?', a: 'Pitch recordings are shared with registered investors only.' },
+    ],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved', featured: false,
+  });
+
+  await mkEvent({
+    title: 'Robotics & IoT Workshop', slug: 'robotics-workshop',
+    shortDescription: 'Build a line-following robot and a smart-home sensor kit from scratch.',
+    description: 'A hands-on two-day workshop where teams assemble and program a line-following robot and an IoT weather station using ESP32 and Arduino. Covers sensors, actuators, motor control, embedded C and cloud dashboards. Kits are included in the ticket price.',
+    coverImage: '/images/events/robotics-workshop.jpg',
+    category: catMap.workshop._id, categorySlug: 'workshop',
+    tags: ['Robotics', 'IoT', 'Embedded', 'Arduino', 'Hardware'],
+    eventType: 'offline', startDate: day(26, 9), endDate: day(27, 17),
+    venue: venue('Innovation Tinker Lab, KKWIEER', 'Nashik-Pune Road, Nashik', 'Nashik'),
+    capacity: 60, price: 799,
+    ticketTypes: [
+      { name: 'Standard Kit', description: 'Arduino kit + all components', price: 799, quantity: 40, soldCount: 0 },
+      { name: 'Pro Kit', description: 'ESP32 + IoT add-ons + cloud credits', price: 1299, quantity: 20, soldCount: 0 },
+    ],
+    customRegistrationFields: [
+      { label: 'Programming experience', type: 'radio', required: true, options: ['None', 'Python', 'C/C++', 'Both'] },
+      { label: 'Team size', type: 'select', required: false, options: ['Solo', 'Pair', 'Trio'] },
+    ],
+    faq: [
+      { q: 'Do I need my own laptop?', a: 'Yes, with the Arduino IDE preinstalled — setup guides are emailed after registration.' },
+      { q: 'Can I keep the kit?', a: 'Yes, the hardware kit is yours to take home.' },
+    ],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved', featured: false,
+  });
+
+  await mkEvent({
+    title: 'Comedy Open Mic Night', slug: 'comedy-open-mic-night',
+    shortDescription: 'Twelve new comics. Five minutes each. Laughs guaranteed.',
+    description: 'A monthly open-mic comedy night spotlighting up-and-coming comics from across the city. Twelve acts get five minutes each, judged by the audience for the People’s Choice slot. Come early — the house packs out fast.',
+    coverImage: '/images/events/comedy-open-mic-night.jpg',
+    category: catMap.cultural._id, categorySlug: 'cultural',
+    tags: ['Comedy', 'Stand-up', 'Cultural', 'Fun', 'Nightlife'],
+    eventType: 'offline', startDate: day(7, 19), endDate: day(7, 22),
+    venue: venue('The Comedy Cellar', 'Koregaon Park, Pune', 'Pune'),
+    capacity: 120, price: 299,
+    ticketTypes: [
+      { name: 'Early Bird', price: 249, quantity: 60, soldCount: 0 },
+      { name: 'Regular', price: 299, quantity: 60, soldCount: 0 },
+    ],
+    customRegistrationFields: [
+      { label: 'Performing?', type: 'radio', required: false, options: ['Yes, sign me up', 'No, just watching'] },
+    ],
+    faq: [
+      { q: 'Is there a minimum age?', a: '16+, and the set list is kept light — expect occasional adult humour.' },
+      { q: 'How do I perform?', a: 'Select “Yes, sign me up” at registration and arrive 30 minutes early.' },
+    ],
+    organizer: organizer._id, status: 'published', approvalStatus: 'approved', featured: false,
+  });
+
   // ─────────────── Sessions ───────────────
   async function addSessions(slug, rows) {
     const ev = events[slug];
@@ -566,22 +731,121 @@ async function runSeed({ force = false, silent = false } = {}) {
     [1, 15, 30, 90, 'Executive Coaching Circles', 'panel', 'Breakout Rooms'],
     [1, 16, 45, 15, 'Closing & Certificates', 'ceremony', 'Grand Ballroom'],
   ]);
+  // Additional sessions for events that previously shipped without a schedule.
+  await addSessions('campus-startup-expo', [
+    [1, 10, 0, 60, 'Doors Open & Expo Floor', 'networking', 'Hall 2'],
+    [1, 11, 0, 45, 'Fireside: Fundraising in 2026', 'panel', 'Main Stage', 3],
+    [1, 12, 30, 60, 'Founder Pitches (Round 1)', 'panel', 'Main Stage'],
+    [1, 14, 0, 90, 'Investor 1:1 & Hiring Corner', 'networking', 'Meeting Rooms'],
+    [1, 16, 0, 45, 'Best Campus Startup Award', 'ceremony', 'Main Stage', 3],
+  ]);
+  await addSessions('cloud-devops-bootcamp', [
+    [1, 9, 0, 60, 'Containers & Docker Fundamentals', 'workshop', 'Seminar Hall 3', 1],
+    [1, 10, 15, 90, 'Deploying to Kubernetes', 'workshop', 'Seminar Hall 3', 7],
+    [1, 13, 0, 60, 'CI/CD with GitHub Actions', 'workshop', 'Seminar Hall 3'],
+    [1, 15, 0, 60, 'Monitoring & Observability', 'talk', 'Seminar Hall 3', 1],
+    [1, 16, 30, 45, 'Live Q&A & Cloud Credits', 'panel', 'Seminar Hall 3'],
+  ]);
+  await addSessions('design-thinking-sprint', [
+    [1, 10, 0, 60, 'Empathy: User Interviews', 'workshop', 'Studio A', 4],
+    [1, 11, 15, 60, 'Define: Journey Mapping', 'workshop', 'Studio A', 4],
+    [1, 13, 0, 90, 'Ideate & Sketch', 'workshop', 'Studio A'],
+    [2, 10, 0, 120, 'Prototype in Figma', 'workshop', 'Studio B'],
+    [2, 14, 0, 60, 'Presentations & Feedback', 'panel', 'Studio A', 4],
+  ]);
+  await addSessions('research-scholars-symposium', [
+    [1, 9, 0, 45, 'Welcome & Keynote', 'keynote', 'IISc Auditorium', 0],
+    [1, 10, 0, 90, 'Paper Presentations (Track A)', 'talk', 'Auditorium'],
+    [1, 11, 30, 60, 'Poster Session', 'networking', 'Lobby'],
+    [1, 14, 0, 90, 'Paper Presentations (Track B)', 'talk', 'Auditorium'],
+    [1, 16, 0, 45, 'Closing & Best Paper Award', 'ceremony', 'Auditorium', 0],
+  ]);
+  await addSessions('mern-stack-masterclass', [
+    [1, 19, 0, 45, 'React + Tailwind in 45 Minutes', 'talk', 'Online', 5],
+    [1, 20, 0, 60, 'Express + MongoDB API', 'workshop', 'Online', 5],
+    [1, 21, 15, 45, 'Auth, Deployment & Patterns', 'talk', 'Online', 5],
+    [1, 22, 15, 30, 'Live Q&A', 'panel', 'Online', 5],
+  ]);
+  await addSessions('esports-arena-2026', [
+    [1, 10, 0, 60, 'Check-in & Player Briefing', 'ceremony', 'Campus Arena'],
+    [1, 11, 0, 180, 'Group Stage: BGMI & Valorant', 'activity', 'Arena Floor'],
+    [2, 11, 0, 180, 'Brackets & Quarterfinals', 'activity', 'Arena Floor'],
+    [2, 16, 0, 90, 'Grand Finals on the Big Screen', 'ceremony', 'Main Stage'],
+    [2, 18, 30, 30, 'Prize Distribution', 'ceremony', 'Main Stage'],
+  ]);
+  await addSessions('ai-healthcare-summit', [
+    [1, 9, 0, 45, 'Registration & Breakfast', 'networking', 'Foyer'],
+    [1, 9, 45, 60, 'Keynote: AI at the Bedside', 'keynote', 'Main Hall', 0],
+    [1, 11, 0, 60, 'Medical Imaging & Diagnostics', 'talk', 'Main Hall', 0],
+    [1, 12, 15, 60, 'Lunch & Demo Booths', 'break', 'Dining Hall'],
+    [1, 13, 30, 90, 'Workshop: Build an AI Triage Assistant', 'workshop', 'Lab 2', 0],
+    [1, 15, 15, 45, 'Regulation & Responsible AI', 'talk', 'Main Hall', 6],
+    [1, 16, 30, 60, 'Panel: Clinician-in-the-Loop', 'panel', 'Main Hall', 0],
+  ]);
+  await addSessions('women-in-tech-conference', [
+    [1, 9, 30, 45, 'Registration & Networking', 'networking', 'Foyer'],
+    [1, 10, 15, 60, 'Keynote: Leading Through Change', 'keynote', 'Main Auditorium', 4],
+    [1, 11, 30, 60, 'Technical Deep Dive: Building Inclusive Products', 'talk', 'Main Auditorium', 4],
+    [1, 12, 45, 60, 'Lunch & Hiring Fair', 'break', 'Expo Hall'],
+    [1, 14, 0, 90, 'Mentorship Lounge (Rotating Sessions)', 'workshop', 'Breakout Rooms'],
+    [1, 15, 45, 60, 'Panel: Sponsorship vs Mentorship', 'panel', 'Main Auditorium', 6],
+    [2, 10, 0, 120, 'Hands-on: Technical Workshops', 'workshop', 'Breakout Rooms'],
+    [2, 14, 0, 60, 'Closing & Scholarships Ceremony', 'ceremony', 'Main Auditorium'],
+  ]);
+  await addSessions('startup-demo-day', [
+    [1, 16, 0, 30, 'Doors Open & Networking', 'networking', 'Main Hall'],
+    [1, 16, 30, 60, 'Batch Highlights & Welcome', 'ceremony', 'Main Hall', 3],
+    [1, 17, 30, 90, 'Founder Pitches (1–12)', 'panel', 'Main Hall'],
+    [1, 19, 15, 45, 'Investor Q&A', 'panel', 'Main Hall', 3],
+    [1, 20, 0, 60, 'After-party & 1:1 Meetings', 'networking', 'Rooftop Lounge'],
+  ]);
+  await addSessions('robotics-workshop', [
+    [1, 9, 0, 60, 'Intro to Embedded Systems', 'talk', 'Tinker Lab', 7],
+    [1, 10, 15, 90, 'Assemble: Line-following Robot', 'workshop', 'Tinker Lab', 7],
+    [1, 13, 0, 60, 'Sensors & Motor Control', 'workshop', 'Tinker Lab', 1],
+    [2, 9, 0, 90, 'IoT Weather Station (ESP32)', 'workshop', 'Tinker Lab', 1],
+    [2, 13, 0, 60, 'Cloud Dashboard & Pitches', 'workshop', 'Tinker Lab', 7],
+    [2, 15, 0, 45, 'Demo Day & Awards', 'ceremony', 'Tinker Lab'],
+  ]);
+  await addSessions('comedy-open-mic-night', [
+    [1, 19, 0, 30, 'Doors Open & Warm-up', 'activity', 'Main Room'],
+    [1, 19, 30, 75, 'Open Mic Set 1 (Acts 1–6)', 'activity', 'Main Room'],
+    [1, 20, 45, 30, 'Intermission', 'break', 'Main Room'],
+    [1, 21, 15, 75, 'Open Mic Set 2 (Acts 7–12)', 'activity', 'Main Room'],
+    [1, 22, 30, 15, 'People’s Choice Award', 'ceremony', 'Main Room'],
+  ]);
 
   // ─────────────── Sponsors ───────────────
   const sponsorSets = {
     'ai-innovation-summit': [
-      { name: 'DevForge', tier: 'platinum', amount: 100000, benefits: 'Backdrop logo, 15-min keynote, booth, 20 passes', logo: img('photo-1560179707-f14e90ef3623', 300), website: 'https://devforge.demo', contactName: 'Karan Mehta', contactEmail: 'sponsors@devforge.demo' },
-      { name: 'CloudNova', tier: 'gold', amount: 50000, benefits: 'Booth, banner logo, 10 passes', logo: img('photo-1486406146926-c627a92ad1ab', 300), contactName: 'Ritu Sen', contactEmail: 'events@cloudnova.demo' },
-      { name: 'FinEdge', tier: 'silver', amount: 25000, benefits: 'Website logo, 5 passes', logo: img('photo-1486406146926-c627a92ad1ab', 300) },
-      { name: 'Stackly', tier: 'bronze', amount: 10000, benefits: 'Social shout-out, 2 passes', logo: img('photo-1486406146926-c627a92ad1ab', 300) },
+      { name: 'DevForge', tier: 'platinum', amount: 100000, benefits: 'Backdrop logo, 15-min keynote, booth, 20 passes', logo: logo('DevForge'), website: 'https://devforge.demo', contactName: 'Karan Mehta', contactEmail: 'sponsors@devforge.demo' },
+      { name: 'CloudNova', tier: 'gold', amount: 50000, benefits: 'Booth, banner logo, 10 passes', logo: logo('CloudNova'), contactName: 'Ritu Sen', contactEmail: 'events@cloudnova.demo' },
+      { name: 'FinEdge', tier: 'silver', amount: 25000, benefits: 'Website logo, 5 passes', logo: logo('FinEdge') },
+      { name: 'Stackly', tier: 'bronze', amount: 10000, benefits: 'Social shout-out, 2 passes', logo: logo('Stackly') },
     ],
     'technova-hackathon': [
-      { name: 'DevForge', tier: 'platinum', amount: 100000, benefits: 'Track naming, API credits, judging slot', logo: img('photo-1560179707-f14e90ef3623', 300) },
-      { name: 'PixelForge', tier: 'gold', amount: 50000, benefits: 'Design track sponsor', logo: img('photo-1486406146926-c627a92ad1ab', 300) },
+      { name: 'DevForge', tier: 'platinum', amount: 100000, benefits: 'Track naming, API credits, judging slot', logo: logo('DevForge') },
+      { name: 'PixelForge', tier: 'gold', amount: 50000, benefits: 'Design track sponsor', logo: logo('PixelForge') },
     ],
     'campus-startup-expo': [
-      { name: 'FirstSpark Ventures', tier: 'platinum', amount: 100000, benefits: 'Investor lounge, jury seat', logo: img('photo-1560179707-f14e90ef3623', 300) },
-      { name: 'FinEdge', tier: 'gold', amount: 50000, benefits: 'Fintech corner', logo: img('photo-1486406146926-c627a92ad1ab', 300) },
+      { name: 'FirstSpark Ventures', tier: 'platinum', amount: 100000, benefits: 'Investor lounge, jury seat', logo: logo('FirstSpark Ventures') },
+      { name: 'FinEdge', tier: 'gold', amount: 50000, benefits: 'Fintech corner', logo: logo('FinEdge') },
+    ],
+    'ai-healthcare-summit': [
+      { name: 'CloudNova', tier: 'platinum', amount: 80000, benefits: 'Keynote slot, demo booth, 15 passes', logo: logo('CloudNova'), website: 'https://cloudnova.demo', contactName: 'Ritu Sen', contactEmail: 'events@cloudnova.demo' },
+      { name: 'FinEdge', tier: 'gold', amount: 40000, benefits: 'Health-finance corner, 10 passes', logo: logo('FinEdge') },
+    ],
+    'women-in-tech-conference': [
+      { name: 'DevForge', tier: 'platinum', amount: 100000, benefits: 'Hiring fair booth, keynote intro, 25 passes', logo: logo('DevForge'), website: 'https://devforge.demo' },
+      { name: 'PixelForge', tier: 'gold', amount: 50000, benefits: 'Design workshop track sponsor', logo: logo('PixelForge') },
+    ],
+    'startup-demo-day': [
+      { name: 'FirstSpark Ventures', tier: 'platinum', amount: 100000, benefits: 'Investor pass sponsor, jury seat', logo: logo('FirstSpark Ventures') },
+      { name: 'Stackly', tier: 'silver', amount: 25000, benefits: 'Cloud credits for the batch', logo: logo('Stackly') },
+    ],
+    'robotics-workshop': [
+      { name: 'CloudNova', tier: 'gold', amount: 50000, benefits: 'IoT cloud credits for all kits', logo: logo('CloudNova') },
+      { name: 'Stackly', tier: 'silver', amount: 20000, benefits: 'Component kits sponsor', logo: logo('Stackly') },
     ],
   };
   for (const [slug, list] of Object.entries(sponsorSets)) {
@@ -758,6 +1022,11 @@ async function runSeed({ force = false, silent = false } = {}) {
   await addRegistrations('research-scholars-symposium', { target: 64, startIdx: 6 });
   await addRegistrations('fintech-founders-roundtable', { target: 31, startIdx: 7 });
   await addRegistrations('mern-stack-masterclass', { target: 108, startIdx: 0 });
+  await addRegistrations('ai-healthcare-summit', { target: 66, startIdx: 8, paidRate: 0.3 });
+  await addRegistrations('women-in-tech-conference', { target: 92, startIdx: 3, paidRate: 0.12 });
+  await addRegistrations('startup-demo-day', { target: 74, startIdx: 5, paidRate: 0.4 });
+  await addRegistrations('robotics-workshop', { target: 44, startIdx: 2, paidRate: 1 });
+  await addRegistrations('comedy-open-mic-night', { target: 61, startIdx: 4, paidRate: 0.9 });
 
   // ─────────────── Feedback + certificates for completed events ───────────────
   const FB_COMMENTS = {

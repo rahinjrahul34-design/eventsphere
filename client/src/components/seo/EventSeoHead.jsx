@@ -16,7 +16,7 @@ export default function EventSeoHead({ event }) {
     document.title = pageTitle;
 
     const pageDesc = event.metaDescription || event.shortDescription || (event.description || '').slice(0, 155) || 'Discover and register for this event on EventSphere.';
-    const pageImage = event.coverImage || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1400&q=70';
+    const pageImage = event.coverImage || '/images/events/ai-innovation-summit.jpg';
     const canonicalUrl = `${window.location.origin}/events/${event.slug}`;
 
     // Search Indexability Rules (respect draft, unlisted, private, cancelled)

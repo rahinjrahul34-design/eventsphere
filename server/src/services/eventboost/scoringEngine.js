@@ -246,7 +246,7 @@ function computeSeoScore(event = {}, primaryKeyword = '', secondaryKeywords = []
   const socialPreview = {
     title: effectiveTitle,
     description: effectiveDesc,
-    image: event.coverImage || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1400&q=70',
+    image: event.coverImage || '/images/events/ai-innovation-summit.jpg',
     domain: 'eventsphere.demo',
   };
 

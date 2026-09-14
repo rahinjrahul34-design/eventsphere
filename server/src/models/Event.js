@@ -42,8 +42,7 @@ const eventSchema = new mongoose.Schema(
     primaryKeyword: { type: String, default: '', trim: true },
     coverImage: {
       type: String,
-      default:
-        'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1400&q=70',
+      default: '/images/events/ai-innovation-summit.jpg',
     },
     images: { type: [String], default: [] },
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },

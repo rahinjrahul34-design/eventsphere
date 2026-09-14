@@ -119,9 +119,9 @@ export default function Landing() {
           {/* Floating event cards */}
           <div className="relative hidden h-[460px] lg:block">
             {[
-              { t: 'AI Innovation Summit', d: 'in 3 days · Nashik', img: 'https://images.unsplash.com/photo-1591453089816-0fbb971b454c?auto=format&fit=crop&w=600&q=70', cls: 'left-0 top-0 rotate-[-4deg]', delay: 0.1 },
-              { t: 'TechNova Hackathon', d: 'in 12 days · Pune', img: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=70', cls: 'right-0 top-24 rotate-[3deg]', delay: 0.25 },
-              { t: 'Campus Startup Expo', d: 'in 6 days · Mumbai', img: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=600&q=70', cls: 'left-8 bottom-0 rotate-[2deg]', delay: 0.4 },
+              { t: 'AI Innovation Summit', d: 'in 3 days · Nashik', img: '/images/events/ai-innovation-summit.jpg', cls: 'left-0 top-0 rotate-[-4deg]', delay: 0.1 },
+              { t: 'TechNova Hackathon', d: 'in 12 days · Pune', img: '/images/events/technova-hackathon.jpg', cls: 'right-0 top-24 rotate-[3deg]', delay: 0.25 },
+              { t: 'Campus Startup Expo', d: 'in 6 days · Mumbai', img: '/images/events/campus-startup-expo.jpg', cls: 'left-8 bottom-0 rotate-[2deg]', delay: 0.4 },
             ].map((c) => (
               <motion.div
                 key={c.t}
