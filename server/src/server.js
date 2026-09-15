@@ -8,6 +8,33 @@ const { runSeed } = require('./seeders/seed');
 const { seedPremiumData } = require('./seeders/premiumSeed');
 const { expandPremiumDataset } = require('./seeders/premiumExpansion');
 
+const HOST = '0.0.0.0';
+const MAX_DEV_PORT_ATTEMPTS = 10;
+
+function listenWithDevFallback(server, preferredPort, attempt = 0) {
+  return new Promise((resolve, reject) => {
+    const port = preferredPort + attempt;
+
+    const onError = (err) => {
+      server.off('listening', onListening);
+      if (err.code === 'EADDRINUSE' && config.env !== 'production' && attempt < MAX_DEV_PORT_ATTEMPTS) {
+        console.warn(`Port ${port} is already in use. Trying ${port + 1}...`);
+        resolve(listenWithDevFallback(server, preferredPort, attempt + 1));
+        return;
+      }
+      reject(err);
+    };
+
+    const onListening = () => {
+      server.off('error', onError);
+      resolve(port);
+    };
+
+    server.once('error', onError);
+    server.once('listening', onListening);
+    server.listen(port, HOST);
+  });
+}
 
 async function start() {
   await connectDB();
@@ -42,11 +69,13 @@ async function start() {
   const smartQueue = require('./services/smartqueue');
   smartQueue.expirationWorker.startWorker();
 
-  server.listen(config.port, '0.0.0.0', () => {
-    console.log(`\n🚀 EventSphere API running at http://localhost:${config.port}`);
-    console.log(`   Demo mode: ${config.demoMode ? 'ON' : 'OFF'} | Gemini: ${config.gemini.apiKey ? 'configured' : 'demo engine'}`);
-    if (process.env.MONGO_URI) console.log(`   Database: external MongoDB`);
-  });
+  const actualPort = await listenWithDevFallback(server, config.port);
+  console.log(`\n🚀 EventSphere API running at http://localhost:${actualPort}`);
+  if (actualPort !== config.port) {
+    console.log(`   Requested port ${config.port} was busy, so development server used ${actualPort}.`);
+  }
+  console.log(`   Demo mode: ${config.demoMode ? 'ON' : 'OFF'} | Gemini: ${config.gemini.apiKey ? 'configured' : 'demo engine'}`);
+  if (process.env.MONGO_URI) console.log(`   Database: external MongoDB`);
 
   const shutdown = async (sig) => {
     console.log(`\n${sig} received, shutting down…`);

@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://eventsphere-sgt2.onrender.com/api';
+export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
+
 export const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -82,8 +85,8 @@ export const endpoints = {
   favorites: () => fetcher.get('/events/favorites'),
   reportEvent: (id, b) => fetcher.post(`/events/${id}/report`, b),
   calendar: () => fetcher.get('/events/calendar'),
-  ical: (id) => `/api/events/${id}/ical`,
-  exportRegistrations: (id) => `/api/events/${id}/registrations/export`,
+  ical: (id) => `${API_BASE_URL}/events/${id}/ical`,
+  exportRegistrations: (id) => `${API_BASE_URL}/events/${id}/registrations/export`,
 
   // registration / tickets / payments
   register: (id, b) => fetcher.post(`/events/${id}/register`, b),

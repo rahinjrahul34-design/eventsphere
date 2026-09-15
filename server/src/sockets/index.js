@@ -11,12 +11,14 @@ const userRoom = (userId) => `user:${userId}`;
 const eventRoom = (eventId) => `event:${eventId}`;
 
 function initSocket(httpServer) {
+  const allowedOrigins = new Set([config.serverUrl, ...config.clientUrls]);
+
   io = new Server(httpServer, {
     cors: {
       origin: (origin, cb) => {
         // Allow same-origin (no Origin), localhost dev, and *.e2b.app previews.
         if (!origin || /(^https?:\/\/localhost(:\d+)?$)|(\.e2b\.app$)/.test(origin)) return cb(null, true);
-        return cb(null, origin === config.clientUrl);
+        return cb(null, allowedOrigins.has(origin));
       },
       credentials: true,
     },

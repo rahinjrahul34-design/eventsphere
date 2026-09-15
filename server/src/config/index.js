@@ -10,6 +10,10 @@ module.exports = {
   jwtSecret: process.env.JWT_SECRET || 'eventsphere_dev_secret_change_me',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  clientUrls: (process.env.CLIENT_URL || 'http://localhost:5173')
+    .split(',')
+    .map((url) => url.trim())
+    .filter(Boolean),
   serverUrl: process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5000}`,
   demoMode: (process.env.DEMO_MODE || 'true') === 'true',
   seedOnStart: (process.env.SEED_ON_START || 'true') === 'true',

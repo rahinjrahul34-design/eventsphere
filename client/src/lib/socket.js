@@ -1,4 +1,5 @@
 import { io } from 'socket.io-client';
+import { API_ORIGIN } from './api';
 
 let socket = null;
 
@@ -13,7 +14,8 @@ function getToken() {
 
 export function connectSocket() {
   if (socket?.connected) return socket;
-  socket = io('/', {
+  const socketUrl = import.meta.env.VITE_SOCKET_URL || API_ORIGIN;
+  socket = io(socketUrl, {
     auth: { token: getToken() },
     autoConnect: true,
     reconnection: true,

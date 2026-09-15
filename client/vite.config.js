@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+const apiTarget = process.env.VITE_DEV_API_TARGET || 'https://eventsphere-sgt2.onrender.com';
+
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -9,8 +11,8 @@ export default defineConfig({
     // Sandbox/preview proxies (e.g. *.e2b.app) need to be allowed explicitly
     allowedHosts: true,
     proxy: {
-      '/api': { target: 'http://localhost:5000', changeOrigin: true },
-      '/socket.io': { target: 'http://localhost:5000', ws: true, changeOrigin: true },
+      '/api': { target: apiTarget, changeOrigin: true },
+      '/socket.io': { target: apiTarget, ws: true, changeOrigin: true },
     },
   },
   build: {

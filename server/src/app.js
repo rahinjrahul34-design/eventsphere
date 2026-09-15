@@ -10,6 +10,13 @@ const { notFound, errorHandler } = require('./middleware/error');
 const config = require('./config');
 
 const app = express();
+const allowedOrigins = [
+  ...config.clientUrls,
+  config.serverUrl,
+  'http://localhost:5173',
+  'http://localhost:5000',
+  /\.e2b\.app$/,
+];
 
 app.set('trust proxy', 1);
 app.use(
@@ -20,7 +27,7 @@ app.use(
 );
 app.use(
   cors({
-    origin: [config.clientUrl, 'http://localhost:5173', 'http://localhost:5000', /\.e2b\.app$/],
+    origin: allowedOrigins,
     credentials: true,
   })
 );
