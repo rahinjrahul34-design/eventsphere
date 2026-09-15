@@ -44,11 +44,11 @@ async function seedPremiumData({ silent = false } = {}) {
     User.find({ role: 'attendee' }).sort({ createdAt: 1 }),
   ]);
   if (!events.length || !users.length) {
-    log('â†· Premium seed skipped: base EventSphere data is not available.');
+    log('? Premium seed skipped: base EventSphere data is not available.');
     return { skipped: true };
   }
   if (await EventPrediction.exists({ 'featureSnapshot.premiumSeed': true })) {
-    log('â†· Premium seed skipped (premium demo data already present).');
+    log('? Premium seed skipped (premium demo data already present).');
     return { skipped: true };
   }
 
@@ -150,7 +150,7 @@ async function seedPremiumData({ silent = false } = {}) {
       metaDescription: `${event.shortDescription || event.title}. Explore the schedule, speakers, tickets and community experience on EventSphere.`,
       suggestedTitle: event.title,
       suggestedDescription: event.description?.slice(0, 260) || event.shortDescription,
-      suggestedMetaTitle: `${event.title} â€” Tickets, Schedule & Speakers`,
+      suggestedMetaTitle: `${event.title} — Tickets, Schedule & Speakers`,
       suggestedMetaDescription: `Discover ${event.title}, explore the full program, and reserve your EventSphere pass today.`,
       suggestedKeywords: [keyword, ...(event.tags || []).slice(0, 3)],
       seoScore: score, contentScore: Math.min(99, score + 4), readabilityScore: 86, keywordScore: 82, searchIntentScore: 91, socialScore: 79,
@@ -163,7 +163,7 @@ async function seedPremiumData({ silent = false } = {}) {
       faqSuggestions: [{ q: `Who should attend ${event.title}?`, a: 'Builders, students, operators and community members looking for practical connections and learning.', basedOn: 'event details' }],
       socialPreview: { title: event.title, description: event.shortDescription || event.title, image: event.coverImage, domain: 'eventsphere.demo' },
       searchPreview: { title: event.title, description: event.shortDescription || event.title, url: `https://eventsphere.demo/events/${event.slug}`, slug: event.slug },
-      beforeAfter: { beforeScore: score - 12, beforeTitle: event.title, beforeDescription: event.shortDescription || '', afterScore: score, afterTitle: `${event.title} â€” Tickets, Schedule & Speakers`, afterDescription: event.description?.slice(0, 180) || '' },
+      beforeAfter: { beforeScore: score - 12, beforeTitle: event.title, beforeDescription: event.shortDescription || '', afterScore: score, afterTitle: `${event.title} — Tickets, Schedule & Speakers`, afterDescription: event.description?.slice(0, 180) || '' },
       history: [{ timestamp: new Date(now - 7 * 86400000), seoScore: score - 12, previousScore: score - 20, changes: ['Expanded local keyword coverage', 'Added social image'], appliedBy: event.organizer, version: 'SEO_V2' }, { timestamp: new Date(now), seoScore: score, previousScore: score - 12, changes: ['Improved FAQ coverage', 'Added venue intent terms'], appliedBy: event.organizer, version: 'SEO_V2.1' }],
       analysisVersion: 'SEO_V2.1-PREMIUM', lastAnalyzedAt: new Date(now), aiProvider: 'deterministic-premium-engine',
     };
@@ -206,7 +206,7 @@ async function seedPremiumData({ silent = false } = {}) {
     const questionTexts = ['Can you share the slides after this session?', 'What is the best way to continue this conversation after the event?', 'Are there beginner resources for this topic?', 'Will there be a recording or replay?', 'How can attendees volunteer for the next edition?', 'Which companies are hiring for this skill?'];
     for (let q = 0; q < questionTexts.length; q += 1) {
       const user = users[(i * 7 + q) % users.length];
-      await Question.create({ event: liveEvents[i]._id, user: user._id, userName: user.name, text: questionTexts[q], upvotes: users.slice(q, q + 3 + (q % 4)).map((u) => u._id), answered: q % 3 !== 1, answer: q % 3 !== 1 ? 'Great question â€” the host team will share a detailed follow-up in the event resources.' : '', answeredByName: q % 3 !== 1 ? 'EventSphere Host Team' : '' });
+      await Question.create({ event: liveEvents[i]._id, user: user._id, userName: user.name, text: questionTexts[q], upvotes: users.slice(q, q + 3 + (q % 4)).map((u) => u._id), answered: q % 3 !== 1, answer: q % 3 !== 1 ? 'Great question — the host team will share a detailed follow-up in the event resources.' : '', answeredByName: q % 3 !== 1 ? 'EventSphere Host Team' : '' });
     }
   }
 
@@ -239,7 +239,7 @@ async function seedPremiumData({ silent = false } = {}) {
   for (let i = 0; i < users.length; i += 1) badgeRows.push({ user: users[i]._id, ...badges[i % badges.length] });
   await UserBadge.bulkWrite(badgeRows.map((row) => ({ updateOne: { filter: { user: row.user, code: row.code }, update: { $setOnInsert: row }, upsert: true } })));
 
-  log(`âœ“ Premium seed complete: ${predictionDocs.length} predictions Â· ${snapshotDocs.length} prediction snapshots Â· ${interactionDocs.length} recommendation interactions Â· ${pulseAlertDocs.length} pulse alerts Â· ${riskAlertDocs.length} risk alerts Â· ${seoDocs.length} SEO profiles Â· ${trustProfiles.length} trust profiles Â· ${pointDocs.length} point activities Â· ${await Question.countDocuments()} questions`);
+  log(`? Premium seed complete: ${predictionDocs.length} predictions · ${snapshotDocs.length} prediction snapshots · ${interactionDocs.length} recommendation interactions · ${pulseAlertDocs.length} pulse alerts · ${riskAlertDocs.length} risk alerts · ${seoDocs.length} SEO profiles · ${trustProfiles.length} trust profiles · ${pointDocs.length} point activities · ${await Question.countDocuments()} questions`);
   return { skipped: false, predictions: predictionDocs.length, recommendationInteractions: interactionDocs.length, pointActivities: pointDocs.length };
 }
 
