@@ -14,6 +14,10 @@ const Poll = require('../models/Poll');
 const Question = require('../models/Question');
 const Waitlist = require('../models/Waitlist');
 const Report = require('../models/Report');
+const Payment = require('../models/Payment');
+const Feedback = require('../models/Feedback');
+const Notification = require('../models/Notification');
+const EventSEOProfile = require('../models/EventSEOProfile');
 const RecommendationInteraction = require('../models/RecommendationInteraction');
 const PredictionOutcome = require('../models/PredictionOutcome');
 const EventPrediction = require('../models/EventPrediction');
@@ -37,6 +41,8 @@ const PREMIUM_EXPANSION_CONFIG = {
   recommendationInteractions: Number(process.env.PREMIUM_RECOMMENDATIONS || 2800),
   pointActivities: Number(process.env.PREMIUM_POINTS || 2200),
   reports: Number(process.env.PREMIUM_REPORTS || 160),
+  feedback: Number(process.env.PREMIUM_FEEDBACK || 420),
+  notifications: Number(process.env.PREMIUM_NOTIFICATIONS || 700),
 };
 
 const PREFIX = 'premiumx';
@@ -77,18 +83,29 @@ const CATEGORIES = [
   'Startup & Entrepreneurship', 'Hackathons', 'Career & Placement', 'UI/UX', 'Product Management',
   'Leadership', 'Finance & Business', 'Marketing', 'Gaming', 'College/Campus Events',
 ];
+// All 20 premium categories resolve to a bundled, category-appropriate cover
+// (client/public/images/events, mirrored in server/web-static) so no event card
+// ever renders blank or pulls a random external URL.
 const IMAGE_BY_CATEGORY = {
   'AI & Machine Learning': '/images/events/premium-ai-summit.jpg',
-  'Generative AI': '/images/events/premium-ai-summit.jpg',
+  'Generative AI': '/images/events/ai-innovation-summit.jpg',
+  'Software Engineering': '/images/events/mern-stack-masterclass.jpg',
+  'Web Development': '/images/events/mern-stack-masterclass.jpg',
   'Cyber Security': '/images/events/cyber-security-bootcamp.jpg',
   'Cloud Computing': '/images/events/cloud-devops-bootcamp.jpg',
+  'Data Science': '/images/events/research-scholars-symposium.jpg',
   DevOps: '/images/events/cloud-devops-bootcamp.jpg',
+  Blockchain: '/images/events/fintech-founders-roundtable.jpg',
   Robotics: '/images/events/premium-robotics-lab.jpg',
-  Hackathons: '/images/events/technova-hackathon.jpg',
-  Gaming: '/images/events/esports-arena-2026.jpg',
-  'UI/UX': '/images/events/design-thinking-sprint.jpg',
   'Startup & Entrepreneurship': '/images/events/premium-founder-forum.jpg',
+  Hackathons: '/images/events/technova-hackathon.jpg',
+  'Career & Placement': '/images/events/corporate-leadership-summit.jpg',
+  'UI/UX': '/images/events/design-thinking-sprint.jpg',
+  'Product Management': '/images/events/corporate-leadership-summit.jpg',
+  Leadership: '/images/events/corporate-leadership-summit.jpg',
   'Finance & Business': '/images/events/fintech-founders-roundtable.jpg',
+  Marketing: '/images/events/startup-demo-day.jpg',
+  Gaming: '/images/events/esports-arena-2026.jpg',
   'College/Campus Events': '/images/events/campus-startup-expo.jpg',
 };
 const FIRST = ['Aarav', 'Aanya', 'Vivaan', 'Diya', 'Reyansh', 'Ira', 'Kabir', 'Anika', 'Ishaan', 'Saanvi', 'Arjun', 'Meera', 'Rohan', 'Tara', 'Dev', 'Kavya', 'Nikhil', 'Riya', 'Farhan', 'Sneha', 'Omkar', 'Gauri', 'Pranav', 'Simran'];
@@ -118,6 +135,10 @@ async function clearOldExpansion() {
     Poll.deleteMany({ event: { $in: eventIds } }),
     Question.deleteMany({ $or: [{ event: { $in: eventIds } }, { user: { $in: userIds } }] }),
     Report.deleteMany({ $or: [{ target: { $in: eventIds } }, { reporter: { $in: userIds } }] }),
+    Payment.deleteMany({ $or: [{ event: { $in: eventIds } }, { user: { $in: userIds } }] }),
+    Feedback.deleteMany({ $or: [{ event: { $in: eventIds } }, { user: { $in: userIds } }] }),
+    Notification.deleteMany({ user: { $in: userIds } }),
+    EventSEOProfile.deleteMany({ event: { $in: eventIds } }),
     RecommendationInteraction.deleteMany({ $or: [{ event: { $in: eventIds } }, { user: { $in: userIds } }] }),
     EventPrediction.deleteMany({ eventId: { $in: eventIds } }),
     EventPredictionSnapshot.deleteMany({ eventId: { $in: eventIds } }),
@@ -221,6 +242,9 @@ async function events(catMap, userGroups) {
       slug: `${PREFIX}-${slugify(title)}-${i}`,
       shortDescription: `Premium fictional demo event for ${categoryName.toLowerCase()} in ${city}.`,
       description: `${title} connects organizers, speakers, sessions, sponsors, registrations, SmartQueue and AI operations data.`,
+      metaTitle: `${title} — ${categoryName} in ${city}`.slice(0, 100),
+      metaDescription: `Join ${title} in ${city}: schedule, speakers, tickets and networking on EventSphere. Fictional demo event for ${categoryName.toLowerCase()}.`.slice(0, 220),
+      primaryKeyword: `${categoryName.toLowerCase()} events ${city.toLowerCase()}`,
       coverImage: image,
       images: [image],
       category: catMap[categoryName]._id,
@@ -275,14 +299,36 @@ async function program(eventList, speakerList, userGroups) {
 async function registrations(eventList, userGroups) {
   const regs = [];
   const tickets = [];
+  const payments = [];
   const used = new Set();
-  let total = 0;
-  for (let i = 0; i < eventList.length && total < PREMIUM_EXPANSION_CONFIG.registrations; i += 1) {
+
+  // Popularity bands from the data spec: popular 200–500, medium 50–200, small 10–80.
+  // Raw band targets are normalized to the configured budget so the budget is spread
+  // across the whole catalog instead of starving the later events.
+  const rawTargets = eventList.map((event, i) => {
+    if (i % 9 === 0) return Math.min(event.capacity, Math.max(200, Math.min(500, Math.round(event.capacity * 0.9))));
+    if (i % 5 === 0) return Math.min(event.capacity, Math.round(50 + r(i + 2) * 150));
+    return Math.min(event.capacity, Math.round(10 + r(i + 4) * 70));
+  });
+  const rawTotal = rawTargets.reduce((sum, t) => sum + t, 0);
+  const scale = Math.min(1, PREMIUM_EXPANSION_CONFIG.registrations / Math.max(rawTotal, 1));
+  const targets = rawTargets.map((t, i) => Math.max(Math.min(12, eventList[i].capacity), Math.floor(t * scale)));
+  // Redistribute leftover budget to the most popular events (never beyond capacity).
+  let remainder = PREMIUM_EXPANSION_CONFIG.registrations - targets.reduce((sum, t) => sum + t, 0);
+  for (let i = 0; i < targets.length && remainder > 0; i += 1) {
+    const room = eventList[i].capacity - targets[i];
+    const add = Math.min(room, remainder);
+    targets[i] += add;
+    remainder -= add;
+  }
+
+  for (let i = 0; i < eventList.length; i += 1) {
     const event = eventList[i];
-    const target = Math.min(event.capacity, Math.max(12, Math.round(event.capacity * (i % 9 === 0 ? 0.92 : i % 5 === 0 ? 0.72 : 0.58))));
+    const target = targets[i];
     let confirmed = 0;
     let checked = 0;
-    for (let j = 0; j < target && total < PREMIUM_EXPANSION_CONFIG.registrations; j += 1) {
+    const soldByType = {};
+    for (let j = 0; j < target; j += 1) {
       const user = pick(userGroups.attendees, i * 37 + j);
       const key = `${event._id}:${user._id}`;
       if (used.has(key)) continue;
@@ -290,22 +336,29 @@ async function registrations(eventList, userGroups) {
       const tt = pick(event.ticketTypes, j);
       const isChecked = event.status === 'completed' ? j % 5 !== 0 : event.status === 'live' ? j % 3 === 0 : false;
       const status = j % 31 === 0 ? 'cancelled' : j % 47 === 0 ? 'pending' : isChecked ? 'checked_in' : 'confirmed';
-      const reg = { _id: new mongoose.Types.ObjectId(), event: event._id, user: user._id, ticketType: { name: tt.name, price: tt.price }, status, amountPaid: ['confirmed', 'checked_in'].includes(status) ? tt.price : 0, source: pick(['direct', 'recommendation', 'social', 'organizer_invite'], j), registeredAt: day(-70 + ((i + j) % 80), 12), checkedInAt: isChecked ? addMin(event.startDate, 20 + (j % 180)) : undefined, checkInMethod: isChecked ? pick(['qr', 'manual'], j) : '', checkedInBy: isChecked ? event.organizer : undefined, responses: [{ field: 'goal', label: 'Primary goal', value: pick(['Learning', 'Networking', 'Hiring', 'Showcase'], j) }], pointsAwarded: isChecked };
+      // Registration always precedes the event; completes check in at/after start.
+      const registeredAt = new Date(event.startDate.getTime() - (5 + ((i * 31 + j) % 55)) * 86400000);
+      const reg = { _id: new mongoose.Types.ObjectId(), event: event._id, user: user._id, ticketType: { name: tt.name, price: tt.price }, status, amountPaid: ['confirmed', 'checked_in'].includes(status) ? tt.price : 0, source: pick(['direct', 'recommendation', 'social', 'organizer_invite'], j), registeredAt, checkedInAt: isChecked ? addMin(event.startDate, 20 + (j % 180)) : undefined, checkInMethod: isChecked ? pick(['qr', 'manual'], j) : '', checkedInBy: isChecked ? event.organizer : undefined, responses: [{ field: 'goal', label: 'Primary goal', value: pick(['Learning', 'Networking', 'Hiring', 'Showcase'], j) }], pointsAwarded: isChecked };
       regs.push(reg);
       if (['confirmed', 'checked_in'].includes(status)) {
         confirmed += 1;
         if (isChecked) checked += 1;
+        soldByType[tt._id] = (soldByType[tt._id] || 0) + 1;
         tickets.push({ code: ticketCode(), event: event._id, registration: reg._id, user: user._id, ticketType: tt.name, attendeeName: user.name, status: isChecked ? 'used' : 'valid', issuedAt: reg.registeredAt, checkedInAt: isChecked ? reg.checkedInAt : undefined, checkedInBy: isChecked ? event.organizer : undefined });
+        if (tt.price > 0) payments.push({ event: event._id, registration: reg._id, user: user._id, amount: tt.price, provider: 'demo', orderId: `order_${PREFIX}_${reg._id.toString().slice(-10)}`, paymentId: `pay_${PREFIX}_${reg._id.toString().slice(-12)}`, status: 'captured', ticketType: tt.name });
       }
-      total += 1;
     }
     event.registrationCount = confirmed;
     event.checkedInCount = checked;
+    event.popularityScore = Math.max(event.popularityScore || 0, confirmed);
+    event.ticketTypes.forEach((t) => { t.soldCount = soldByType[t._id] || 0; });
+    // eslint-disable-next-line no-await-in-loop
     await event.save();
   }
   if (regs.length) await Registration.insertMany(regs);
   if (tickets.length) await Ticket.insertMany(tickets);
-  return { regs, tickets };
+  if (payments.length) await Payment.insertMany(payments);
+  return { regs, tickets, payments };
 }
 
 async function waitlists(eventList, userGroups) {
@@ -417,6 +470,19 @@ async function trust(userGroups, eventList) {
   return { profiles, snapshots };
 }
 
+// Achievement catalogue for expansion users: real display names + icons so the
+// gamification UI renders properly (not raw CONSTANT_CASE strings).
+const ACHIEVEMENTS = [
+  { code: 'FIRST_EVENT', name: 'First Event', icon: 'PartyPopper', description: 'Attended your first EventSphere event.' },
+  { code: 'EARLY_ADOPTER', name: 'Early Adopter', icon: 'Rocket', description: 'Joined EventSphere in its early demo days.' },
+  { code: 'EVENT_EXPLORER', name: 'Event Explorer', icon: 'Compass', description: 'Explored events across many categories and cities.' },
+  { code: 'COMMUNITY_BUILDER', name: 'Community Builder', icon: 'Users', description: 'Grew the community through invites and referrals.' },
+  { code: 'NETWORKING_PRO', name: 'Networking Pro', icon: 'Network', description: 'Built a strong professional network at events.' },
+  { code: 'KNOWLEDGE_SEEKER', name: 'Knowledge Seeker', icon: 'BookOpen', description: 'Never misses workshops, labs and expert talks.' },
+  { code: 'HACKATHON_HERO', name: 'Hackathon Hero', icon: 'Code2', description: 'Ships projects at hackathons and demo days.' },
+  { code: 'CONSISTENT_ATTENDEE', name: 'Consistent Attendee', icon: 'CalendarCheck', description: 'Shows up, checks in and contributes every time.' },
+];
+
 async function recsPointsReports(eventList, userGroups) {
   const interactions = [];
   for (let i = 0; i < PREMIUM_EXPANSION_CONFIG.recommendationInteractions; i += 1) interactions.push({ user: pick(userGroups.attendees, i)._id, event: pick(eventList, i * 7)._id, interactionType: pick(['impression', 'view', 'click', 'save', 'feedback', 'dismiss'], i), feedbackType: i % 13 === 0 ? 'dislike' : i % 5 === 0 ? 'like' : 'none', feedbackReason: i % 5 === 0 ? 'Relevant to my interests' : '', recommendationSource: pick(['PERSONALIZED', 'TRENDING', 'NEARBY', 'COLLABORATIVE', 'SIMILAR_EVENTS'], i), algorithmVersion: 'recommendation-v2.1-premium', createdAt: day(-1 * (i % 80)) });
@@ -424,17 +490,91 @@ async function recsPointsReports(eventList, userGroups) {
   const points = [];
   for (let i = 0; i < PREMIUM_EXPANSION_CONFIG.pointActivities; i += 1) points.push({ user: pick(userGroups.attendees, i)._id, event: pick(eventList, i * 5)._id, points: pick([5, 10, 15, 20, 30, 50], i), reason: pick(['Event registration', 'Event check-in', 'Poll participation', 'Question submission', 'Feedback submission', 'Networking', 'Volunteer activity'], i), meta: { source: 'premium-expansion' } });
   await PointActivity.insertMany(points);
-  const badgeCodes = ['FIRST_EVENT', 'EARLY_ADOPTER', 'EVENT_EXPLORER', 'COMMUNITY_BUILDER', 'NETWORKING_PRO', 'KNOWLEDGE_SEEKER', 'HACKATHON_HERO', 'CONSISTENT_ATTENDEE'];
-  const badges = userGroups.attendees.slice(0, 260).map((u, i) => ({ user: u._id, code: badgeCodes[i % badgeCodes.length], name: badgeCodes[i % badgeCodes.length].replace(/_/g, ' '), icon: 'Award', description: 'Premium demo achievement badge.' }));
+  // Keep the denormalized User.points counter consistent with the immutable ledger,
+  // otherwise profile/leaderboard views show 0 for freshly seeded users.
+  const totals = await PointActivity.aggregate([
+    { $match: { user: { $in: userGroups.all.map((u) => u._id) } } },
+    { $group: { _id: '$user', p: { $sum: '$points' } } },
+  ]);
+  await User.bulkWrite(totals.map((row) => ({ updateOne: { filter: { _id: row._id }, update: { $set: { points: row.p } } } })));
+  const badges = userGroups.attendees.slice(0, 260).map((u, i) => ({ user: u._id, ...ACHIEVEMENTS[i % ACHIEVEMENTS.length] }));
   await UserBadge.insertMany(badges, { ordered: false }).catch(() => {});
   const reports = [];
-  for (let i = 0; i < PREMIUM_EXPANSION_CONFIG.reports; i += 1) reports.push({ reporter: pick(userGroups.attendees, i)._id, targetType: i % 7 === 0 ? 'user' : 'event', target: i % 7 === 0 ? pick(userGroups.all, i + 10)._id : pick(eventList, i)._id, reason: pick(['fake_event', 'inappropriate', 'spam', 'fraud', 'incorrect_info', 'other'], i), details: `Premium demo moderation case ${i + 1}.`, status: pick(['open', 'reviewing', 'resolved', 'dismissed'], i), resolvedBy: i % 3 === 0 ? userGroups.admin._id : undefined });
+  for (let i = 0; i < PREMIUM_EXPANSION_CONFIG.reports; i += 1) reports.push({ reporter: pick(userGroups.attendees, i)._id, targetType: i % 7 === 0 ? 'user' : 'event', target: i % 7 === 0 ? pick(userGroups.all, i + 10)._id : pick(eventList, i)._id, reason: pick(['fake_event', 'inappropriate', 'spam', 'fraud', 'incorrect_info', 'other'], i), details: `Premium demo moderation case ${i + 1}.`, status: pick(['open', 'reviewing', 'resolved', 'dismissed'], i), resolvedBy: i % 3 === 0 ? userGroups.admin._id : undefined, resolvedAt: i % 3 === 0 ? new Date() : undefined });
   await Report.insertMany(reports);
   return { interactions, points, badges, reports };
 }
 
+// EventBoost SEO coverage + attendee feedback + inbox content for expansion events
+// so every dashboard surface (organizer SEO panel, event reviews, notification bell)
+// has meaningful premium data instead of an empty state.
+async function engagementExtras(eventList, userGroups) {
+  const now = Date.now();
+  const seoDocs = [];
+  for (let i = 0; i < eventList.length; i += 1) {
+    const e = eventList[i];
+    const city = e.venue?.city || 'India';
+    const keyword = `${e.categorySlug?.replace(/-/g, ' ') || 'community'} events ${city.toLowerCase()}`;
+    const score = 74 + (i % 23);
+    seoDocs.push({
+      event: e._id,
+      primaryKeyword: keyword,
+      secondaryKeywords: [...(e.tags || []).slice(0, 4), 'EventSphere'],
+      relatedTerms: ['tickets', 'schedule', 'speakers', 'networking', String(new Date(e.startDate).getFullYear())],
+      metaTitle: e.metaTitle || `${e.title} | EventSphere`.slice(0, 100),
+      metaDescription: (e.metaDescription || e.shortDescription || '').slice(0, 300),
+      suggestedTitle: e.title,
+      suggestedDescription: (e.description || '').slice(0, 260),
+      suggestedMetaTitle: `${e.title} — Tickets & Schedule`.slice(0, 100),
+      suggestedMetaDescription: `Discover ${e.title}, explore the full program and reserve your pass on EventSphere.`.slice(0, 300),
+      suggestedKeywords: [keyword, ...(e.tags || []).slice(0, 3)],
+      seoScore: score, contentScore: Math.min(99, score + 5), readabilityScore: 84 + (i % 9), keywordScore: 78 + (i % 15), searchIntentScore: 88 + (i % 9), socialScore: 74 + (i % 16),
+      categoryScores: { titleOptimization: 88, descriptionQuality: 86, keywordRelevance: 82, searchIntentMatch: 90, readability: 85, metadataQuality: 80, contentCompleteness: 88, localRelevance: 87, socialReadiness: 78 },
+      searchIntent: { primary: 'Transactional', matchPercentage: 88 + (i % 10), detectedIntents: ['ticket purchase', 'event discovery', 'speaker research'], details: ['Clear date and venue signals', 'Strong category relevance'] },
+      history: [{ timestamp: new Date(now - 5 * 86400000), seoScore: Math.max(40, score - 9), changes: ['Initial premium analysis'], version: 'SEO_V2' }, { timestamp: new Date(now), seoScore: score, changes: ['Refreshed premium SEO audit'], version: 'SEO_V2.1' }],
+      analysisVersion: 'SEO_V2.1-PREMIUM',
+      lastAnalyzedAt: new Date(now),
+      aiProvider: 'deterministic-premium-engine',
+    });
+  }
+  await EventSEOProfile.insertMany(seoDocs);
+
+  // Feedback from checked-in attendees of completed events (respects event+user unique index).
+  const feedbackDocs = [];
+  const completed = eventList.filter((e) => e.status === 'completed');
+  for (let i = 0; i < completed.length && feedbackDocs.length < PREMIUM_EXPANSION_CONFIG.feedback; i += 1) {
+    const e = completed[i];
+    const usedPairs = new Set();
+    for (let k = 0; k < 22 && feedbackDocs.length < PREMIUM_EXPANSION_CONFIG.feedback; k += 1) {
+      const u = pick(userGroups.attendees, i * 53 + k * 7);
+      const pairKey = `${e._id}:${u._id}`;
+      if (usedPairs.has(pairKey)) continue;
+      usedPairs.add(pairKey);
+      const roll = r(i * 101 + k);
+      const rating = roll > 0.16 ? (roll > 0.62 ? 5 : 4) : roll > 0.07 ? 3 : 2;
+      const comment = rating >= 4 ? pick(['Excellent sessions and flawless check-in experience.', 'Loved the speaker lineup and the networking lounge.', 'Well organized — would definitely attend the next edition.', 'Great value; the workshops were the highlight.'], k) : rating === 3 ? pick(['Good content, but the venue felt crowded at peak hours.', 'Decent event; schedule slipped a little after lunch.'], k) : 'Audio issues in the main hall hurt the experience.';
+      feedbackDocs.push({ event: e._id, user: u._id, rating, contentRating: Math.max(1, Math.min(5, rating)), organizationRating: rating, venueRating: Math.max(1, rating - (k % 7 === 0 ? 1 : 0)), comment, wouldRecommend: rating >= 4, sentiment: rating >= 4 ? 'positive' : rating === 3 ? 'neutral' : 'negative' });
+    }
+  }
+  if (feedbackDocs.length) await Feedback.insertMany(feedbackDocs);
+
+  // Notification inbox: ticket confirmations, reminders and badge unlocks for expansion users.
+  const notificationDocs = [];
+  const regs = await Registration.find({ event: { $in: eventList.map((e) => e._id) }, status: { $in: ['confirmed', 'checked_in'] } }).populate('event', 'title startDate').limit(PREMIUM_EXPANSION_CONFIG.notifications);
+  for (let i = 0; i < regs.length; i += 1) {
+    const reg = regs[i];
+    if (i % 3 === 2) continue; // every third registration gets no seed notification
+    const upcoming = reg.event && reg.event.startDate > new Date();
+    notificationDocs.push(i % 9 === 8
+      ? { user: reg.user, type: 'system', title: 'Badge unlocked on EventSphere', message: 'You earned the Event Explorer badge — keep going!', link: '/gamification', read: false }
+      : { user: reg.user, type: 'registration', title: `Registered: ${reg.event ? reg.event.title : 'EventSphere event'}`, message: upcoming ? 'Your pass is confirmed — your QR ticket is ready in the app.' : 'Your pass was confirmed for this event.', link: '/my-tickets', read: i % 4 === 0 });
+  }
+  if (notificationDocs.length) await Notification.insertMany(notificationDocs);
+  return { seo: seoDocs.length, feedback: feedbackDocs.length, notifications: notificationDocs.length };
+}
+
 async function counts() {
-  const models = { users: User, events: Event, registrations: Registration, tickets: Ticket, sessions: Session, speakers: Speaker, sponsors: Sponsor, volunteers: Volunteer, polls: Poll, questions: Question, waitlists: Waitlist, seatHolds: SeatHold, smartQueueAudits: SmartQueueAudit, recommendationInteractions: RecommendationInteraction, pointActivities: PointActivity, userBadges: UserBadge, reports: Report, predictions: EventPrediction, predictionOutcomes: PredictionOutcome, riskAssessments: EventRiskAssessment, riskHistory: RiskAssessmentHistory, trustProfiles: OrganizerTrustProfile };
+  const models = { users: User, events: Event, registrations: Registration, tickets: Ticket, payments: Payment, sessions: Session, speakers: Speaker, sponsors: Sponsor, volunteers: Volunteer, polls: Poll, questions: Question, waitlists: Waitlist, seatHolds: SeatHold, smartQueueAudits: SmartQueueAudit, recommendationInteractions: RecommendationInteraction, pointActivities: PointActivity, userBadges: UserBadge, feedback: Feedback, notifications: Notification, reports: Report, predictions: EventPrediction, predictionOutcomes: PredictionOutcome, riskAssessments: EventRiskAssessment, riskHistory: RiskAssessmentHistory, trustProfiles: OrganizerTrustProfile, seoProfiles: EventSEOProfile };
   const out = {};
   for (const [name, Model] of Object.entries(models)) out[name] = await Model.countDocuments();
   return out;
@@ -455,12 +595,14 @@ async function expandPremiumDataset({ silent = false } = {}) {
   const aiData = await aiOps(eventList);
   const trustData = await trust(userGroups, eventList);
   const misc = await recsPointsReports(eventList, userGroups);
+  const extras = await engagementExtras(eventList, userGroups);
   const finalCounts = await counts();
   const created = {
     users: userGroups.all.length,
     events: eventList.length,
     registrations: regData.regs.length + waits.length,
     tickets: regData.tickets.length,
+    payments: regData.payments.length,
     sessions: sessionList.length,
     speakers: speakerList.length,
     sponsors: await Sponsor.countDocuments({ event: { $in: eventList.map((e) => e._id) } }),
@@ -473,6 +615,9 @@ async function expandPremiumDataset({ silent = false } = {}) {
     recommendationInteractions: misc.interactions.length,
     pointActivities: misc.points.length,
     userBadges: misc.badges.length,
+    feedback: extras.feedback,
+    notifications: extras.notifications,
+    seoProfiles: extras.seo,
     predictions: aiData.predictions.length,
     predictionOutcomes: aiData.outcomes.length,
     riskAssessments: aiData.risks.length,

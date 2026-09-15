@@ -10,6 +10,7 @@
     "dev:server": "node src/server.js",
     "seed": "node src/seeders/seed.js --force",
     "seed:premium": "node src/seeders/runPremiumSeed.js",
+    "seed:verify": "node src/seeders/verifySeed.js",
     "test": "cross-env NODE_ENV=test JEST_WORKER_ID=0 jest --runInBand --forceExit"
   },
   "dependencies": {
