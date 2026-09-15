@@ -53,6 +53,21 @@ describe('Demo login, sign-in & event creation', () => {
     expect(res.body.data.user.password).toBeUndefined();
   });
 
+  it('repairs stale demo credentials when the database already contains users', async () => {
+    const attendee = await User.findOne({ email: 'attendee@eventsphere.demo' }).select('+password');
+    attendee.password = 'stale-demo-password';
+    await attendee.save();
+
+    await runSeed({ force: false, silent: true });
+
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'attendee@eventsphere.demo', password: DEMO_PASSWORD });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.user.email).toBe('attendee@eventsphere.demo');
+  });
+
   it('rejects an incorrect password', async () => {
     const res = await request(app)
       .post('/api/auth/login')

@@ -28,6 +28,29 @@ const Favorite = require('../models/Favorite');
 const { PointActivity, UserBadge } = require('../models/Gamification');
 
 const PASSWORD = 'Event@123';
+const DEMO_ACCOUNTS = [
+  { email: 'admin@eventsphere.demo', name: 'Aanya Administrator', role: 'admin', title: 'Platform Administrator', company: 'EventSphere', location: 'Mumbai' },
+  { email: 'organizer@eventsphere.demo', name: 'Raj Malhotra', role: 'organizer', organizerStatus: 'approved', title: 'Founder & Event Director', company: 'Sphere Events', location: 'Nashik' },
+  { email: 'attendee@eventsphere.demo', name: 'Aarav Verma', role: 'attendee', title: 'Final-year CS Student', company: 'KKWIEER Nashik', location: 'Nashik' },
+  { email: 'volunteer@eventsphere.demo', name: 'Priya Deshmukh', role: 'volunteer', title: 'Operations Volunteer', company: 'Sphere Events', location: 'Nashik' },
+  { email: 'speaker@eventsphere.demo', name: 'Dr. Meera Iyer', role: 'speaker', title: 'AI Research Lead', company: 'IIT Bombay', location: 'Mumbai' },
+];
+
+async function ensureDemoAccounts() {
+  for (const account of DEMO_ACCOUNTS) {
+    let user = await User.findOne({ email: account.email }).select('+password');
+    if (!user) {
+      user = new User({ ...account, password: PASSWORD, authProvider: 'local', isActive: true, onboardingCompleted: true });
+    } else {
+      user.password = PASSWORD;
+      user.authProvider = 'local';
+      user.isActive = true;
+      user.role = account.role;
+      if (account.organizerStatus) user.organizerStatus = account.organizerStatus;
+    }
+    await user.save();
+  }
+}
 
 // Self-hosted, always-available cover images (served from client/public/images/events).
 // Mapping from the previously hot-linked Unsplash IDs to bundled local assets so that
@@ -139,6 +162,7 @@ async function runSeed({ force = false, silent = false } = {}) {
   const log = silent ? () => {} : console.log;
   const existing = await User.countDocuments();
   if (existing > 0 && !force) {
+    await ensureDemoAccounts();
     log('↷ Seed skipped (data already present). Use npm run seed to reset.');
     return;
   }
