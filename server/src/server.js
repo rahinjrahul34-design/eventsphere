@@ -4,6 +4,7 @@ const config = require('./config');
 const { connectDB } = require('./config/db');
 const { initSocket } = require('./sockets');
 const { runSeed } = require('./seeders/seed');
+const { seedPremiumData } = require('./seeders/premiumSeed');
 
 async function start() {
   await connectDB();
@@ -15,6 +16,7 @@ async function start() {
     // Even if SEED_ON_START=false, seed if the database has 0 users (e.g. in-memory MongoDB fresh restart)
     await runSeed({ force: false, silent: false });
   }
+  await seedPremiumData({ silent: false });
 
   const server = http.createServer(app);
   initSocket(server);

@@ -158,5 +158,6 @@ WRONG_EVENT/INVALID → RBAC denials → polls/Q&A/announcements → leaderboard
 | `npm start` | serve API + built SPA on port 5000 |
 | `npm run dev:server` / `dev:client` | dev processes |
 | `npm run seed` | seed a real MongoDB |
+| `npm run seed:premium` | rebuild the full demo dataset, including recommendations, prediction time series, pulse/risk alerts, SEO profiles, organizer trust reports, polls, Q&A, smart-queue activity and gamification |
 | `npm run assets` | regenerate bundled placeholder avatars/logos |
 | `npm test` | server tests |
