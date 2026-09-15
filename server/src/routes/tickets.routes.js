@@ -4,6 +4,6 @@ const t = require('../controllers/ticketController');
 
 router.get('/my', requireAuth, t.myTickets);
 router.post('/validate', requireAuth, t.validateTicket);
-router.get('/:code', requireAuth, t.getTicket);
+router.get('/:idOrCode', requireAuth, t.getTicket);
 
 module.exports = router;

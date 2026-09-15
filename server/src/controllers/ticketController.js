@@ -19,11 +19,15 @@ const myTickets = asyncHandler(async (req, res) => {
   ok(res, tickets);
 });
 
-// GET /api/tickets/:code
+// GET /api/tickets/:idOrCode
 const getTicket = asyncHandler(async (req, res) => {
-  const ticket = await Ticket.findOne({ code: req.params.code.toUpperCase() })
+  const lookup = String(req.params.idOrCode ?? req.params.code ?? '').trim();
+  const isObjectId = /^[0-9a-fA-F]{24}$/.test(lookup);
+
+  const ticket = await Ticket.findOne(isObjectId ? { _id: lookup } : { code: lookup.toUpperCase() })
     .populate({ path: 'event', populate: { path: 'organizer', select: 'name company' } })
     .populate('user', 'name email phone');
+
   if (!ticket) throw ApiError.notFound('Ticket not found');
   if (
     ticket.user._id.toString() !== req.userId.toString() &&
