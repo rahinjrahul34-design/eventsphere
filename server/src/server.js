@@ -3,12 +3,18 @@ const app = require('./app');
 const config = require('./config');
 const { connectDB } = require('./config/db');
 const { initSocket } = require('./sockets');
+const User = require('./models/User');
 const { runSeed } = require('./seeders/seed');
 const { seedPremiumData } = require('./seeders/premiumSeed');
+const { expandPremiumDataset } = require('./seeders/premiumExpansion');
 
 
 async function start() {
   await connectDB();
+
+  // Capture "fresh database" before any seeding so the premium catalog only
+  // auto-builds on a brand-new demo database (not on every subsequent boot).
+  const wasEmpty = !(await User.exists({}));
 
   // In demo mode or when database is completely empty, ensure seed data exists
   if (config.seedOnStart) {
@@ -18,6 +24,17 @@ async function start() {
     await runSeed({ force: false, silent: false });
   }
   await seedPremiumData({ silent: false });
+
+  // Build the full premium demo catalog (large interconnected dataset powering
+  // every dashboard) on fresh demo boots, or when explicitly requested.
+  //   SEED_PREMIUM_ON_START=true   → always rebuild the premium expansion
+  //   SEED_PREMIUM_ON_START=false  → never auto-build (use `npm run seed:premium`)
+  //   default                      → build once when a fresh demo DB boots
+  const premiumFlag = (process.env.SEED_PREMIUM_ON_START || '').toLowerCase();
+  const buildPremium = premiumFlag === 'true' || (premiumFlag !== 'false' && wasEmpty && config.demoMode);
+  if (buildPremium) {
+    await expandPremiumDataset({ silent: false });
+  }
 
   const server = http.createServer(app);
   initSocket(server);

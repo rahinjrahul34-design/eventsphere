@@ -158,6 +158,13 @@ WRONG_EVENT/INVALID → RBAC denials → polls/Q&A/announcements → leaderboard
 | `npm start` | serve API + built SPA on port 5000 |
 | `npm run dev:server` / `dev:client` | dev processes |
 | `npm run seed` | seed a real MongoDB |
-| `npm run seed:premium` | rebuild the full demo dataset, including recommendations, prediction time series, pulse/risk alerts, SEO profiles, organizer trust reports, polls, Q&A, smart-queue activity and gamification |
+| `npm run seed:premium` | rebuild the full premium demo dataset (large interconnected catalog: 400+ users, 60+ events, thousands of registrations/tickets, SmartQueue activity, feedback, payments, notifications) plus recommendations, prediction time series, pulse/risk alerts, SEO profiles, organizer trust reports, polls, Q&A and gamification |
+| `npm run seed:verify` | verify the seeded dataset: collection counts, reference integrity, capacity invariants and counter consistency |
 | `npm run assets` | regenerate bundled placeholder avatars/logos |
 | `npm test` | server tests |
+
+> **Premium demo dataset size is configurable** via environment variables read by
+> `server/src/seeders/premiumExpansion.js` — e.g. `PREMIUM_USERS=500 PREMIUM_EVENTS=80 PREMIUM_REGISTRATIONS=5000 npm run seed:premium`.
+> On a **fresh demo database** (the default in-memory one), `npm start` builds the premium
+> expansion automatically; set `SEED_PREMIUM_ON_START=false` to opt out, or
+> `SEED_PREMIUM_ON_START=true` to rebuild it on every boot.

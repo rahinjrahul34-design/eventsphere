@@ -16,6 +16,7 @@
     "start": "npm --workspace server start",
     "seed": "npm --workspace server run seed",
     "seed:premium": "npm --workspace server run seed:premium",
+    "seed:verify": "npm --workspace server run seed:verify",
     "assets": "node scripts/generate-placeholder-assets.js",
     "test": "npm --workspace server test"
   },
