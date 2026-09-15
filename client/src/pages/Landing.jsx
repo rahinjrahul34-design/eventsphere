@@ -20,6 +20,14 @@ const stats = [
   { value: 98, suffix: '%', label: 'Satisfaction' },
 ];
 
+const PREMIUM_FEATURED_EVENTS = [
+  { _id: 'premium-ai-summit', slug: 'ai-innovation-summit', title: 'AI Innovation Summit 2026', coverImage: '/images/events/premium-ai-summit.jpg', categorySlug: 'technology', eventType: 'offline', startDate: '2026-10-03T09:00:00.000Z', venue: { city: 'Nashik' }, capacity: 600, registrationCount: 482, price: 799, ticketTypes: [{ price: 799 }] },
+  { _id: 'premium-women-tech', slug: 'women-in-tech-conference', title: 'Women in Tech Conference 2026', coverImage: '/images/events/premium-women-tech.jpg', categorySlug: 'technology', eventType: 'offline', startDate: '2026-10-18T09:00:00.000Z', venue: { city: 'Mumbai' }, capacity: 450, registrationCount: 337, price: 499, ticketTypes: [{ price: 499 }] },
+  { _id: 'premium-founder-forum', slug: 'startup-demo-day', title: 'Founder Forum & Demo Day', coverImage: '/images/events/premium-founder-forum.jpg', categorySlug: 'business', eventType: 'hybrid', startDate: '2026-11-08T10:00:00.000Z', venue: { city: 'Bengaluru' }, capacity: 320, registrationCount: 244, price: 999, ticketTypes: [{ price: 999 }] },
+  { _id: 'premium-creative-festival', slug: 'design-thinking-sprint', title: 'Creative Futures Festival', coverImage: '/images/events/premium-creative-festival.jpg', categorySlug: 'arts', eventType: 'offline', startDate: '2026-11-22T11:00:00.000Z', venue: { city: 'Pune' }, capacity: 700, registrationCount: 516, price: 349, ticketTypes: [{ price: 349 }] },
+  { _id: 'premium-robotics-lab', slug: 'robotics-workshop', title: 'Robotics Lab: Build the Future', coverImage: '/images/events/premium-robotics-lab.jpg', categorySlug: 'technology', eventType: 'offline', startDate: '2026-12-06T09:30:00.000Z', venue: { city: 'Hyderabad' }, capacity: 240, registrationCount: 188, price: 649, ticketTypes: [{ price: 649 }] },
+];
+
 const testimonials = [
   { name: 'Ananya Iyer', role: 'Student Council Head', text: 'QR check-in that used to take an hour now takes ten minutes. The live announcements saved our cultural fest.', rating: 5 },
   { name: 'Rohit Menon', role: 'Hackathon Organizer', text: 'The AI Copilot drafted our schedule, sponsor tiers and social captions in seconds. Felt like having a co-organizer.', rating: 5 },
@@ -74,6 +82,7 @@ export default function Landing() {
     queryFn: () => endpoints.events({ featured: 'true', limit: 6, sort: 'popular', date: 'upcoming' }),
   });
   const events = data?.events || [];
+  const featuredEvents = events.length ? events : PREMIUM_FEATURED_EVENTS;
 
   return (
     <div>
@@ -168,9 +177,7 @@ export default function Landing() {
           </Link>
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {(events.length ? events : Array.from({ length: 6 }).map((_, i) => ({ _id: `sk${i}`, slug: '' }))).slice(0, 6).map((e, i) =>
-            e.slug ? <EventCard key={e._id} event={e} index={i} /> : <div key={i} className="h-80 rounded-xl border bg-muted/40 animate-pulse" />
-          )}
+          {featuredEvents.slice(0, 6).map((e, i) => <EventCard key={e._id} event={e} index={i} />)}
         </div>
       </section>
 

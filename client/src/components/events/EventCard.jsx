@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, CalendarDays, Users, IndianRupee, Radio, Video, Building2, ArrowRight } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import FavoriteButton from './FavoriteButton';
+import SmartImage from '../ui/smart-image';
 import { fmtDate, typeLabel, categoryMeta } from '../../lib/format';
 
 const typeIcon = { offline: Building2, online: Video, hybrid: Radio };
@@ -11,7 +11,6 @@ const typeIcon = { offline: Building2, online: Video, hybrid: Radio };
 export default function EventCard({ event, index = 0, compact = false }) {
   const cat = categoryMeta(event.categorySlug);
   const TypeIcon = typeIcon[event.eventType] || Building2;
-  const [imgFailed, setImgFailed] = useState(false);
   const seatsLeft = Math.max(0, (event.capacity || 0) - (event.registrationCount || 0));
   const fillPct = Math.min(100, Math.round(((event.registrationCount || 0) / Math.max(1, event.capacity)) * 100));
   const isLive = event.status === 'live';
@@ -29,22 +28,13 @@ export default function EventCard({ event, index = 0, compact = false }) {
         className="group flex h-full flex-col overflow-hidden rounded-xl border bg-card shadow-soft transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-border-strong hover:shadow-lift"
       >
         <div className="relative aspect-[16/9] overflow-hidden">
-          {!imgFailed && event.coverImage ? (
-            <img
-              src={event.coverImage}
-              alt={event.title}
-              loading="lazy"
-              onError={() => setImgFailed(true)}
-              className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-            />
-          ) : (
-            <div
-              className="grid size-full place-items-center bg-gradient-to-br from-primary/30 via-primary/15 to-accent/20"
-              aria-hidden="true"
-            >
-              <span className="font-display text-4xl font-extrabold text-white/70">{cat.name?.[0] || 'E'}</span>
-            </div>
-          )}
+          <SmartImage
+            src={event.coverImage}
+            alt={event.title}
+            fallbackSeed={`${event.title}-${event.categorySlug}`}
+            loading="lazy"
+            className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />
           <div className="absolute left-3 top-3 flex gap-2">
             <span
