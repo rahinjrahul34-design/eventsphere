@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
+    "dev:server": "node src/server.js",
     "seed": "node src/seeders/seed.js --force",
     "seed:premium": "node src/seeders/premiumSeed.js",
     "test": "cross-env NODE_ENV=test JEST_WORKER_ID=0 jest --runInBand --forceExit"

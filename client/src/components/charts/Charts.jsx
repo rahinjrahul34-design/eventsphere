@@ -17,6 +17,11 @@ const tooltipStyle = {
 const tick = { fontSize: 11, fill: 'hsl(var(--muted-foreground))' };
 
 export function TrendChart({ data, xKey = 'date', lines, height = 260 }) {
+  const maxValue = Math.max(
+    0,
+    ...data.flatMap((row) => lines.map((line) => Number(row?.[line.key]) || 0))
+  );
+
   return (
     <ResponsiveContainer width="100%" height={height}>
       <AreaChart data={data} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
@@ -30,12 +35,12 @@ export function TrendChart({ data, xKey = 'date', lines, height = 260 }) {
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
         <XAxis dataKey={xKey} tick={tick} tickLine={false} axisLine={false} dy={6} />
-        <YAxis tick={tick} tickLine={false} axisLine={false} width={48} allowDecimals={false} />
+        <YAxis tick={tick} tickLine={false} axisLine={false} width={48} allowDecimals={false} domain={[0, maxValue <= 0 ? 1 : 'auto']} />
         <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: GRID, strokeDasharray: '3 3' }} />
         {lines.length > 1 && <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" iconSize={7} />}
         {lines.map((l) => (
           <Area key={l.key} type="monotone" dataKey={l.key} name={l.label || l.key} stroke={l.color || COLORS[0]}
-            strokeWidth={2} fill={`url(#grad-${l.key})`} activeDot={{ r: 4, strokeWidth: 0 }} />
+            strokeWidth={2} fill={`url(#grad-${l.key})`} dot={{ r: 3, strokeWidth: 0, fill: l.color || COLORS[0] }} activeDot={{ r: 4, strokeWidth: 0 }} />
         ))}
       </AreaChart>
     </ResponsiveContainer>

@@ -32,6 +32,11 @@ export default function AdminHome() {
     : (obj || []).map((r) => ({ name: r._id, value: r.count })));
   const roleChart = toPairs(d.usersByRole).map((r, i) => ({ ...r, color: COLORS[i % COLORS.length] }));
   const statusChart = toPairs(d.eventsByStatus).map((r, i) => ({ ...r, color: COLORS[(i + 2) % COLORS.length] }));
+  const registrationTrend = (d.trend || []).map((t) => ({
+    date: t.date,
+    registrations: Number(t.count ?? t.registrations ?? 0),
+  }));
+  const hasRegistrationTrend = registrationTrend.some((t) => t.registrations > 0);
 
   return (
     <div className="space-y-6">
@@ -78,8 +83,13 @@ export default function AdminHome() {
 
       <Card>
         <CardHeader><CardTitle>Growth — registrations (30 days)</CardTitle></CardHeader>
-        <CardContent>
-          <TrendChart data={d.trend.map((t) => ({ date: t.date, registrations: t.count || t.registrations }))} lines={[{ key: 'registrations', color: COLORS[0] }]} />
+        <CardContent className="space-y-3">
+          <TrendChart data={registrationTrend} lines={[{ key: 'registrations', color: COLORS[0] }]} />
+          {!hasRegistrationTrend && (
+            <p className="text-center text-sm text-muted-foreground">
+              No registrations recorded in the selected 30-day window.
+            </p>
+          )}
         </CardContent>
       </Card>
 

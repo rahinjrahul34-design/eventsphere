@@ -6,6 +6,7 @@ const { initSocket } = require('./sockets');
 const { runSeed } = require('./seeders/seed');
 const { seedPremiumData } = require('./seeders/premiumSeed');
 
+
 async function start() {
   await connectDB();
 

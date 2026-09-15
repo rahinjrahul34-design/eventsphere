@@ -25,6 +25,15 @@ const Announcement = require('../models/Announcement');
 const Poll = require('../models/Poll');
 const Question = require('../models/Question');
 const Favorite = require('../models/Favorite');
+const PredictionOutcome = require('../models/PredictionOutcome');
+const RecommendationInteraction = require('../models/RecommendationInteraction');
+const RiskAssessmentHistory = require('../models/RiskAssessmentHistory');
+const SeatHold = require('../models/SeatHold');
+const SmartQueueAudit = require('../models/SmartQueueAudit');
+const EventPrediction = require('../models/EventPrediction');
+const EventPredictionSnapshot = require('../models/EventPredictionSnapshot');
+const EventRiskAssessment = require('../models/EventRiskAssessment');
+const EventRiskAlert = require('../models/EventRiskAlert');
 const { PointActivity, UserBadge } = require('../models/Gamification');
 
 const PASSWORD = 'Event@123';
@@ -106,6 +115,14 @@ const avatar = (seed) => {
 
 // Deterministic sponsor "logo" from the bundled brand marks.
 const logo = (name) => `/images/sponsors/logo-${pad((hash(name) % LOGO_VARIANTS) + 1)}.svg`;
+const premium = (name) => `/premium-events/${name}.jpg`;
+const PREMIUM_IMAGES = {
+  aiSummit: premium('premium-ai-summit'),
+  womenTech: premium('premium-women-tech'),
+  roboticsLab: premium('premium-robotics-lab'),
+  creativeFestival: premium('premium-creative-festival'),
+  founderForum: premium('premium-founder-forum'),
+};
 
 const COORDS = {
   Nashik: [73.7898, 19.9975],
@@ -175,6 +192,9 @@ async function runSeed({ force = false, silent = false } = {}) {
     Connection.deleteMany({}), Certificate.deleteMany({}), Feedback.deleteMany({}), Waitlist.deleteMany({}),
     Report.deleteMany({}), AuditLog.deleteMany({}), Announcement.deleteMany({}), Poll.deleteMany({}),
     Question.deleteMany({}), Favorite.deleteMany({}), PointActivity.deleteMany({}), UserBadge.deleteMany({}),
+    PredictionOutcome.deleteMany({}), RecommendationInteraction.deleteMany({}), RiskAssessmentHistory.deleteMany({}),
+    SeatHold.deleteMany({}), SmartQueueAudit.deleteMany({}), EventPrediction.deleteMany({}),
+    EventPredictionSnapshot.deleteMany({}), EventRiskAssessment.deleteMany({}), EventRiskAlert.deleteMany({}),
   ]);
 
   // ─────────────── Categories ───────────────
@@ -322,7 +342,8 @@ async function runSeed({ force = false, silent = false } = {}) {
     title: 'AI Innovation Summit 2026', slug: 'ai-innovation-summit',
     shortDescription: '2-day summit on generative AI with keynotes, workshops, demos and networking.',
     description: 'The AI Innovation Summit brings together 250+ students, researchers and builders for two power-packed days of generative AI. Day 1 covers foundation models, agents and responsible AI; Day 2 is a hands-on build day with mentor support from industry teams.\n\nEvery attendee gets a QR pass, live event feed, gamification rewards and a verifiable digital certificate.',
-    coverImage: img('photo-1591453089816-0fbb971b454c'),
+    coverImage: PREMIUM_IMAGES.aiSummit,
+    images: [PREMIUM_IMAGES.aiSummit, PREMIUM_IMAGES.womenTech, PREMIUM_IMAGES.roboticsLab],
     category: catMap.conference._id, categorySlug: 'conference',
     tags: ['AI/ML', 'Generative AI', 'Data Science', 'Networking', 'Startups'],
     eventType: 'offline', startDate: day(3, 9), endDate: day(4, 17), timezone: 'Asia/Kolkata',
@@ -352,7 +373,8 @@ async function runSeed({ force = false, silent = false } = {}) {
     title: 'TechNova Hackathon', slug: 'technova-hackathon',
     shortDescription: '36-hour national-level hackathon. Build, pitch and win ₹2L+ in prizes.',
     description: 'TechNova is a 36-hour hackathon for student teams across India. Pick a problem statement across AI, fintech, sustainability or developer tools, build a working prototype, and present it to judges from top startups and product companies.\n\nIncludes API credits, mentor office hours, midnight snacks, swag and ₹2,00,000+ in cash prizes.',
-    coverImage: img('photo-1504384308090-c894fdcc538d'),
+    coverImage: PREMIUM_IMAGES.roboticsLab,
+    images: [PREMIUM_IMAGES.roboticsLab, PREMIUM_IMAGES.aiSummit, img('photo-1504384308090-c894fdcc538d')],
     category: catMap.hackathon._id, categorySlug: 'hackathon',
     tags: ['Hackathon', 'AI/ML', 'Web Development', 'Startups', 'Competition'],
     eventType: 'offline', startDate: day(12, 18), endDate: day(14, 12),
@@ -379,7 +401,8 @@ async function runSeed({ force = false, silent = false } = {}) {
     title: 'Campus Startup Expo', slug: 'campus-startup-expo',
     shortDescription: '60 student startups, 20 investors, one expo floor. Demo day meets networking.',
     description: 'The Campus Startup Expo is Maharashtra’s largest student-founder showcase: 60 early-stage teams, investor 1:1 slots, founder panels, and a hiring corner for internships. Free for students; teams pitch for the Best Campus Startup award.',
-    coverImage: img('photo-1556761175-b413da4baf72'),
+    coverImage: PREMIUM_IMAGES.founderForum,
+    images: [PREMIUM_IMAGES.founderForum, PREMIUM_IMAGES.womenTech, img('photo-1556761175-b413da4baf72')],
     category: catMap.networking._id, categorySlug: 'networking',
     tags: ['Startups', 'Business', 'Networking', 'Internship'],
     eventType: 'offline', startDate: day(6, 10), endDate: day(6, 18),
@@ -412,7 +435,8 @@ async function runSeed({ force = false, silent = false } = {}) {
     title: 'Rhythm & Hues — Annual Cultural Fest', slug: 'annual-cultural-fest',
     shortDescription: 'Three nights of music, dance, drama and art. 800+ students, one unforgettable fest.',
     description: 'The annual cultural fest features battle of the bands, dance championships, stand-up, an art walk and a headline DJ night. All participants receive digital certificates and the winning teams take home trophies and cash prizes.',
-    coverImage: img('photo-1493676304819-0d7a8d026dcf'),
+    coverImage: PREMIUM_IMAGES.creativeFestival,
+    images: [PREMIUM_IMAGES.creativeFestival, img('photo-1493676304819-0d7a8d026dcf'), img('photo-1501386761578-eac5c94b800a')],
     category: catMap.cultural._id, categorySlug: 'cultural',
     tags: ['Cultural', 'Music', 'Dance', 'Arts', 'Networking'],
     eventType: 'offline', startDate: day(-60, 17), endDate: day(-58, 22),
@@ -440,7 +464,8 @@ async function runSeed({ force = false, silent = false } = {}) {
     title: 'Corporate Leadership Summit', slug: 'corporate-leadership-summit',
     shortDescription: 'Executive leadership program for high-potential managers (completed edition).',
     description: 'A sold-out leadership development summit covering decision frameworks, difficult conversations and leading through change. Included 360-degree assessments and executive coaching circles.',
-    coverImage: img('photo-1542744173-8e7e53415bb0'),
+    coverImage: PREMIUM_IMAGES.womenTech,
+    images: [PREMIUM_IMAGES.womenTech, PREMIUM_IMAGES.founderForum, img('photo-1542744173-8e7e53415bb0')],
     category: catMap.corporate._id, categorySlug: 'corporate',
     tags: ['Business', 'Leadership', 'Corporate', 'Networking'],
     eventType: 'offline', startDate: day(-30, 9), endDate: day(-30, 17),
@@ -527,7 +552,8 @@ async function runSeed({ force = false, silent = false } = {}) {
     title: 'Fintech Founders Roundtable', slug: 'fintech-founders-roundtable',
     shortDescription: 'An invite-only evening with fintech founders and operators.',
     description: 'A curated roundtable dinner for 40 fintech founders and operators: candid conversations on regulation, distribution and fundraising, under Chatham House Rules.',
-    coverImage: img('photo-1556761175-5973dc0f32e7'),
+    coverImage: PREMIUM_IMAGES.founderForum,
+    images: [PREMIUM_IMAGES.founderForum, PREMIUM_IMAGES.womenTech, img('photo-1556761175-5973dc0f32e7')],
     category: catMap.networking._id, categorySlug: 'networking',
     tags: ['Startups', 'Business', 'Fintech', 'Networking'],
     eventType: 'offline', startDate: day(5, 18), endDate: day(5, 21),
@@ -1195,6 +1221,190 @@ async function runSeed({ force = false, silent = false } = {}) {
   ]);
 
   // ─────────────── Reports & audit ───────────────
+  // Advanced analytics, recommendations, safety and queue telemetry
+  async function seedPredictionAnalytics(slug, i) {
+    const ev = events[slug];
+    const registrations = ev.registrationCount || await Registration.countDocuments({ event: ev._id, status: { $in: ['confirmed', 'checked_in'] } });
+    const checkedIn = ev.checkedInCount || await Registration.countDocuments({ event: ev._id, status: 'checked_in' });
+    const predicted = Math.min(ev.capacity, Math.max(registrations + 8 + i * 3, Math.round(ev.capacity * (0.55 + (i % 4) * 0.08))));
+    const expectedAttendance = Math.round(predicted * (0.72 + (i % 3) * 0.05));
+    const engagementScore = Math.min(96, 62 + i * 4);
+    const noShows = Math.max(0, registrations - checkedIn);
+    await EventPrediction.create({
+      eventId: ev._id,
+      forecast: {
+        predictedRegistrations: predicted,
+        lowerBound: Math.max(0, predicted - 18),
+        upperBound: Math.min(ev.capacity, predicted + 26),
+        velocity24h: 6 + i * 2,
+        growthRate: Number((0.08 + i * 0.012).toFixed(3)),
+        momentumState: pick(['accelerating', 'growing', 'stable', 'slowing'], i),
+      },
+      attendance: {
+        expectedAttendees: expectedAttendance,
+        expectedNoShows: Math.max(0, predicted - expectedAttendance),
+        attendanceRate: Math.round((expectedAttendance / Math.max(predicted, 1)) * 100),
+        noShowRate: Math.round(((predicted - expectedAttendance) / Math.max(predicted, 1)) * 100),
+        lowerBound: Math.max(0, expectedAttendance - 15),
+        upperBound: Math.min(ev.capacity, expectedAttendance + 20),
+      },
+      engagement: {
+        score: engagementScore,
+        level: engagementScore > 84 ? 'very_high' : engagementScore > 70 ? 'high' : 'medium',
+        trend: i % 3 === 0 ? 'rising' : 'stable',
+        breakdown: { participation: 70 + i, interaction: 58 + i * 2, liveActivity: 48 + i * 3, feedback: 64 + i, networking: 55 + i * 2 },
+      },
+      health: {
+        score: Math.min(98, 68 + i * 4),
+        status: i > 4 ? 'healthy' : 'good',
+        breakdown: { velocity: 70 + i, capacity: Math.round((registrations / ev.capacity) * 100), attendance: 74 + i, engagement: engagementScore, sentiment: 78 + i },
+      },
+      confidence: { score: 78 + i, level: i > 4 ? 'high' : 'medium', reasons: ['Strong historical registrations', 'Healthy recommendation click-through', 'Capacity risk is monitored'] },
+      drivers: [
+        { factor: 'Recommendation saves', impact: 'High save rate is lifting intent', direction: 'positive', magnitude: 'high' },
+        { factor: 'Registration velocity', impact: 'Last 24h signups are above baseline', direction: 'positive', magnitude: 'medium' },
+      ],
+      recommendations: [
+        { id: `boost-${slug}`, priority: 'high', title: 'Promote premium pass inventory', action: 'Feature premium benefits on the event detail page.', rationale: 'Paid conversion is trailing free registrations.', trigger: 'ticket_mix' },
+        { id: `ops-${slug}`, priority: 'medium', title: 'Confirm check-in staffing', action: 'Keep one backup desk ready for peak arrival.', rationale: 'Forecasted arrival surge crosses the smooth check-in threshold.', trigger: 'arrival_forecast' },
+      ],
+      aiSummary: `${ev.title} is forecast to reach ${predicted} registrations with ${expectedAttendance} expected attendees.`,
+      featureSnapshot: { registrations, checkedIn, waitlist: ev.waitlistCount, views: ev.views, capacity: ev.capacity },
+      expiresAt: new Date(Date.now() + 12 * 60 * 60000),
+    });
+    await EventPredictionSnapshot.create([
+      { eventId: ev._id, dayOffset: -7, predictedRegistrations: Math.max(5, predicted - 38), actualRegistrations: Math.max(0, registrations - 34), expectedAttendance: Math.max(5, expectedAttendance - 28), actualAttendance: Math.max(0, checkedIn - 24), engagementScore: engagementScore - 8, trigger: 'daily', snapshotTime: new Date(Date.now() - 7 * 86400000) },
+      { eventId: ev._id, dayOffset: -3, predictedRegistrations: Math.max(8, predicted - 17), actualRegistrations: Math.max(0, registrations - 14), expectedAttendance: Math.max(6, expectedAttendance - 12), actualAttendance: Math.max(0, checkedIn - 10), engagementScore: engagementScore - 3, trigger: 'velocity_shift', snapshotTime: new Date(Date.now() - 3 * 86400000) },
+      { eventId: ev._id, dayOffset: 0, predictedRegistrations: predicted, actualRegistrations: registrations, expectedAttendance, actualAttendance: checkedIn, engagementScore, trigger: ev.status === 'live' ? 'checkin_milestone' : 'manual' },
+    ]);
+    if (ev.status === 'completed') {
+      const actualEngagement = Math.min(100, engagementScore + (i % 2 === 0 ? 3 : -4));
+      await PredictionOutcome.create({
+        eventId: ev._id,
+        predicted: { registrations: predicted, attendance: expectedAttendance, noShows: Math.max(0, predicted - expectedAttendance), engagement: engagementScore },
+        actual: { registrations, attendance: checkedIn, noShows, engagement: actualEngagement },
+        errors: {
+          registrationAE: Math.abs(predicted - registrations),
+          registrationPE: Math.round((Math.abs(predicted - registrations) / Math.max(registrations, 1)) * 100),
+          attendanceAE: Math.abs(expectedAttendance - checkedIn),
+          attendancePE: Math.round((Math.abs(expectedAttendance - checkedIn) / Math.max(checkedIn, 1)) * 100),
+          engagementAE: Math.abs(engagementScore - actualEngagement),
+          engagementPE: Math.round((Math.abs(engagementScore - actualEngagement) / Math.max(actualEngagement, 1)) * 100),
+        },
+        evaluatedAt: new Date(ev.endDate.getTime() + 86400000),
+      });
+    }
+  }
+
+  async function seedSafetyAnalytics(slug, i) {
+    const ev = events[slug];
+    const safetyScore = Math.min(96, 72 + i * 3);
+    const readinessScore = Math.min(98, 68 + i * 4);
+    const level = safetyScore < 75 ? 'medium' : 'low';
+    await EventRiskAssessment.create({
+      eventId: ev._id,
+      safetyScore,
+      readinessScore,
+      overallRiskLevel: level,
+      summary: `${ev.title} has ${level} operational risk with staffing, entry flow and accessibility tracked.`,
+      categories: [
+        { id: 'crowd', name: 'Crowd Flow', score: safetyScore - 3, riskLevel: level, issues: i % 2 ? ['Peak arrival window may compress queues'] : [], recommendations: ['Open backup entry lane 30 minutes before keynote'], evidence: [`${ev.registrationCount} confirmed registrations`], probability: 'medium', impact: 'medium', priority: 'medium' },
+        { id: 'venue', name: 'Venue Readiness', score: readinessScore, riskLevel: 'low', recommendations: ['Reconfirm signage and accessibility desk'], evidence: [ev.venue.name], probability: 'low', impact: 'medium', priority: 'low' },
+      ],
+      topRisks: [
+        { title: 'Peak entry congestion', category: 'Crowd Flow', severity: level, reason: 'High first-hour arrivals expected', evidence: `${ev.registrationCount}/${ev.capacity} capacity booked`, recommendation: 'Stage volunteers near QR scan desks.' },
+      ],
+      checklist: [
+        { id: `check-${slug}-1`, title: 'Verify emergency contact board', category: 'Safety', priority: 'high', status: i % 2 ? 'pending' : 'completed', completedAt: i % 2 ? null : new Date(), completedBy: i % 2 ? null : organizer._id },
+        { id: `check-${slug}-2`, title: 'Confirm check-in desk signage', category: 'Operations', priority: 'medium', status: 'completed', completedAt: new Date(), completedBy: organizer._id },
+      ],
+      matrix: [
+        { risk: 'Queue spillover', probability: 'medium', impact: 'medium', priority: 'medium', action: 'Keep overflow lane and volunteer marshal ready.' },
+      ],
+      metricsSnapshot: { capacity: ev.capacity, registrations: ev.registrationCount, waitlist: ev.waitlistCount, staffTarget: Math.ceil(ev.capacity / 50) },
+    });
+    await RiskAssessmentHistory.create([
+      { eventId: ev._id, safetyScore: safetyScore - 8, readinessScore: readinessScore - 10, overallRiskLevel: 'medium', trigger: 'initial', delta: 0, improvements: ['Created safety checklist'], topRisksCount: 3, analyzedAt: new Date(Date.now() - 5 * 86400000) },
+      { eventId: ev._id, safetyScore: safetyScore - 2, readinessScore: readinessScore - 3, overallRiskLevel: level, trigger: 'registration_threshold', delta: 6, improvements: ['Added two check-in desks', 'Updated evacuation instructions'], topRisksCount: 2, analyzedAt: new Date(Date.now() - 2 * 86400000) },
+      { eventId: ev._id, safetyScore, readinessScore, overallRiskLevel: level, trigger: 'auto_recalc', delta: 4, improvements: ['Assigned backup volunteer lead'], topRisksCount: 1 },
+    ]);
+    await EventRiskAlert.create({
+      eventId: ev._id,
+      type: 'capacity_pressure',
+      severity: level,
+      message: `${ev.title} is approaching the next capacity planning threshold.`,
+      metricValue: ev.registrationCount,
+      threshold: Math.round(ev.capacity * 0.8),
+      status: i % 2 ? 'acknowledged' : 'active',
+      actionRequired: 'Review gate staffing and late-arrival signage.',
+      resolvedBy: i % 2 ? organizer._id : null,
+      resolvedAt: i % 2 ? new Date() : null,
+    });
+  }
+
+  const analyticsSlugs = ['ai-innovation-summit', 'technova-hackathon', 'campus-startup-expo', 'annual-cultural-fest', 'nashik-developer-meetup', 'corporate-leadership-summit', 'fintech-founders-roundtable'];
+  for (let i = 0; i < analyticsSlugs.length; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    await seedPredictionAnalytics(analyticsSlugs[i], i);
+    // eslint-disable-next-line no-await-in-loop
+    await seedSafetyAnalytics(analyticsSlugs[i], i);
+  }
+
+  const recInteractions = [];
+  const recEvents = analyticsSlugs.map((slug) => events[slug]);
+  for (let i = 0; i < 90; i += 1) {
+    const u = pool[i % pool.length];
+    const ev = recEvents[(i * 3) % recEvents.length];
+    recInteractions.push({
+      user: u._id,
+      event: ev._id,
+      interactionType: pick(['impression', 'view', 'click', 'save', 'feedback', 'dismiss'], i),
+      feedbackType: i % 11 === 0 ? 'dislike' : i % 5 === 0 ? 'like' : 'none',
+      feedbackReason: i % 11 === 0 ? 'Timing conflict' : i % 5 === 0 ? 'Highly relevant to my interests' : '',
+      recommendationSource: pick(['PERSONALIZED', 'TRENDING', 'SIMILAR_EVENTS', 'NETWORK_BASED'], i),
+      algorithmVersion: `recommendation-v2.${i % 4}`,
+      createdAt: new Date(Date.now() - (i % 30) * 86400000),
+    });
+  }
+  await RecommendationInteraction.insertMany(recInteractions);
+
+  const cyberWaitlist = await Waitlist.find({ event: events['cyber-security-bootcamp']._id }).sort({ position: 1 }).limit(4);
+  for (let i = 0; i < cyberWaitlist.length; i += 1) {
+    const entry = cyberWaitlist[i];
+    const holdStatus = pick(['active', 'accepted', 'expired', 'declined'], i);
+    // eslint-disable-next-line no-await-in-loop
+    const hold = await SeatHold.create({
+      eventId: entry.event,
+      userId: entry.user,
+      waitlistEntryId: entry._id,
+      registrationId: entry.registration,
+      ticketType: { name: 'Lab Seat', price: 299 },
+      status: holdStatus,
+      holdExpiresAt: new Date(Date.now() + (i === 0 ? 30 : -30 - i * 10) * 60000),
+      holdDurationMinutes: 30,
+      reminderSentAt: i === 0 ? new Date(Date.now() - 5 * 60000) : null,
+      acceptedAt: holdStatus === 'accepted' ? new Date(Date.now() - 25 * 60000) : null,
+      declinedAt: holdStatus === 'declined' ? new Date(Date.now() - 20 * 60000) : null,
+      expiredAt: holdStatus === 'expired' ? new Date(Date.now() - 15 * 60000) : null,
+      idempotencyKey: `seed-cyber-hold-${i + 1}`,
+    });
+    entry.status = holdStatus === 'active' ? 'hold_active' : holdStatus === 'accepted' ? 'promoted' : holdStatus;
+    entry.activeHold = holdStatus === 'active' ? hold._id : undefined;
+    entry.ticketType = { name: 'Lab Seat', price: 299 };
+    entry.notifiedAt = hold.notifiedAt;
+    entry.promotedAt = holdStatus === 'accepted' ? hold.acceptedAt : undefined;
+    entry.declinedAt = holdStatus === 'declined' ? hold.declinedAt : undefined;
+    // eslint-disable-next-line no-await-in-loop
+    await entry.save();
+    // eslint-disable-next-line no-await-in-loop
+    await SmartQueueAudit.create([
+      { eventId: entry.event, userId: entry.user, waitlistEntryId: entry._id, action: 'ELIGIBILITY_CHECKED', details: { position: entry.position, strategy: 'fifo' } },
+      { eventId: entry.event, userId: entry.user, waitlistEntryId: entry._id, holdId: hold._id, action: 'SEAT_HELD', details: { ticketType: 'Lab Seat', holdDurationMinutes: 30 } },
+      { eventId: entry.event, userId: entry.user, waitlistEntryId: entry._id, holdId: hold._id, action: 'NOTIFICATION_SENT', details: { channel: 'in_app' } },
+      { eventId: entry.event, userId: entry.user, waitlistEntryId: entry._id, holdId: hold._id, action: holdStatus === 'accepted' ? 'HOLD_ACCEPTED' : holdStatus === 'expired' ? 'HOLD_EXPIRED' : holdStatus === 'declined' ? 'HOLD_DECLINED' : 'REMINDER_SENT', details: { status: holdStatus } },
+    ]);
+  }
+
   await Report.create({
     reporter: attendees[12]._id, targetType: 'event', target: events['indie-music-night']._id,
     reason: 'incorrect_info', details: 'The gate price shown at registration differs from the venue poster (₹399 vs ₹349).', status: 'open',
